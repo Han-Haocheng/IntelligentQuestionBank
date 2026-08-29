@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS question (
   update_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
   KEY idx_user (user_id),
+  KEY idx_user_type (user_id, type),
+  KEY idx_user_difficulty (user_id, difficulty),
   KEY idx_category (category_id),
   KEY idx_bank (bank_id),
   KEY idx_type (type)
@@ -94,7 +96,10 @@ CREATE TABLE IF NOT EXISTS share (
   PRIMARY KEY (id),
   KEY idx_to_user (to_user_id),
   KEY idx_from_user (from_user_id),
-  KEY idx_bank (bank_id)
+  KEY idx_question (question_id),
+  KEY idx_bank (bank_id),
+  UNIQUE KEY uk_share_question_target (from_user_id, question_id, to_user_id, share_type),
+  UNIQUE KEY uk_share_bank_target (from_user_id, bank_id, to_user_id, share_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='共享表';
 
 -- 练习记录表 (mode: 1-顺序 2-随机 3-错题重做)
@@ -124,7 +129,8 @@ CREATE TABLE IF NOT EXISTS practice_answer (
   is_correct  TINYINT      NOT NULL DEFAULT 0 COMMENT '0答错 1答对',
   answer_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '答题时间',
   PRIMARY KEY (id),
-  KEY idx_record (record_id)
+  KEY idx_record (record_id),
+  KEY idx_question (question_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='练习答题明细表';
 
 -- 练习会题目快照表 (记录每次练习包含的题目, 交卷时校验归属, 防止提交无关题目)

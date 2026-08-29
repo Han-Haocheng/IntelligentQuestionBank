@@ -67,15 +67,21 @@ public class ShareService {
                 throw new BusinessException("不能共享给自己");
             }
             share.setToUserId(target.getId());
+            try {
+                shareMapper.insert(share);
+            } catch (org.springframework.dao.DuplicateKeyException e) {
+                throw new BusinessException("该题目已共享给该用户");
+            }
         } else {
-            if (shareMapper.countPublic(dto.getQuestionId(), userId) > 0) {
+            // 公开共享: 条件插入原子防重(唯一键对 NULL to_user_id 不生效)
+            Share pub = new Share();
+            pub.setQuestionId(dto.getQuestionId());
+            pub.setFromUserId(userId);
+            pub.setShareType(2);
+            pub.setMessage(dto.getMessage());
+            if (shareMapper.insertPublic(pub) == 0) {
                 throw new BusinessException("该题目已公开共享");
             }
-        }
-        try {
-            shareMapper.insert(share);
-        } catch (org.springframework.dao.DuplicateKeyException e) {
-            throw new BusinessException("该题目已共享给该用户");
         }
     }
 
@@ -103,15 +109,20 @@ public class ShareService {
                 throw new BusinessException("不能共享给自己");
             }
             share.setToUserId(target.getId());
+            try {
+                shareMapper.insert(share);
+            } catch (org.springframework.dao.DuplicateKeyException e) {
+                throw new BusinessException("该题库已共享给该用户");
+            }
         } else {
-            if (shareMapper.countBankPublic(dto.getBankId(), userId) > 0) {
+            Share pub = new Share();
+            pub.setBankId(dto.getBankId());
+            pub.setFromUserId(userId);
+            pub.setShareType(4);
+            pub.setMessage(dto.getMessage());
+            if (shareMapper.insertPublic(pub) == 0) {
                 throw new BusinessException("该题库已公开共享");
             }
-        }
-        try {
-            shareMapper.insert(share);
-        } catch (org.springframework.dao.DuplicateKeyException e) {
-            throw new BusinessException("该题库已共享给该用户");
         }
     }
 

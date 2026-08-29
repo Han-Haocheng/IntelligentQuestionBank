@@ -56,6 +56,19 @@
         VALUES (#{questionId}, #{bankId}, #{fromUserId}, #{toUserId}, #{shareType}, #{message})
     </insert>
 
+    <insert id="insertPublic">
+        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, message)
+        SELECT #{questionId}, #{bankId}, #{fromUserId}, NULL, #{shareType}, #{message}
+        FROM DUAL
+        WHERE NOT EXISTS (
+            SELECT 1 FROM share
+            WHERE from_user_id = #{fromUserId}
+              AND share_type = #{shareType}
+              AND ((#{questionId} IS NOT NULL AND question_id = #{questionId})
+                OR (#{bankId} IS NOT NULL AND bank_id = #{bankId}))
+        )
+    </insert>
+
     <delete id="delete">
         DELETE FROM share WHERE id = #{id} AND from_user_id = #{fromUserId}
     </delete>

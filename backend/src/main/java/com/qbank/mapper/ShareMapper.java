@@ -9,6 +9,9 @@ public interface ShareMapper {
 
     int insert(Share share);
 
+    /** 公开共享条件插入(原子防重): 返回 0 表示已存在同类公开共享 */
+    int insertPublic(Share share);
+
     int delete(@Param("id") Long id, @Param("fromUserId") Long fromUserId);
 
     int deleteByQuestionIds(@Param("ids") List<Long> ids);
