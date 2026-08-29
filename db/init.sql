@@ -11,7 +11,8 @@ USE question_bank;
 CREATE TABLE IF NOT EXISTS user (
   id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   username    VARCHAR(50)  NOT NULL COMMENT '用户名',
-  password    VARCHAR(128) NOT NULL COMMENT '密码(格式: 盐:sha256)',
+  password    VARCHAR(128) NOT NULL COMMENT '密码(BCrypt 哈希)',
+  -- 存量 v1 账号仍为 "盐:sha256" 格式, 登录成功后会由后端自动升级为 BCrypt
   nickname    VARCHAR(50)  DEFAULT NULL COMMENT '昵称',
   email       VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
   avatar      VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
@@ -146,10 +147,10 @@ CREATE TABLE IF NOT EXISTS wrong_question (
 -- 种子数据
 -- ============================================================
 
--- 账号 (密码均为 123456, 盐:SHA-256)
+-- 账号 (密码均为 123456, BCrypt)
 INSERT INTO user (id, username, password, nickname, role) VALUES
-(1, 'admin', 'f70037850279020b:a525c44d6f86180f2d8a620f42990f263dca54b57af1a6a4d9ea8fbaff4595e4', '管理员', 0),
-(2, 'demo',  '2e08e5cd30ecb9df:69ac4d2d36162c2c82750060304fa2c169d9da2041a05a73462b333b40de615a', '演示用户', 1);
+(1, 'admin', '$2a$10$.IAH.dIaEFQhU.DNoJz4Ze0clebnLDZywCmqeZtvLbXGLBpfop36S', '管理员', 0),
+(2, 'demo',  '$2a$10$gykpJdkTMxe/PUXewnV5EuqO75oA3FSJC76aNJjc/QWdp0N9fDxWu', '演示用户', 1);
 
 -- 分类 (admin: 1-8, demo: 9-10)
 INSERT INTO category (id, name, parent_id, sort, user_id) VALUES

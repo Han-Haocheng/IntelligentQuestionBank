@@ -54,6 +54,10 @@ public class UserService {
         if (user.getStatus() == null || user.getStatus() != 1) {
             throw new BusinessException("账号已被禁用, 请联系管理员");
         }
+        // 存量旧格式(盐:sha256)账号登录成功后自动升级为 BCrypt, 无需用户感知
+        if (PasswordUtil.isLegacySha256(user.getPassword())) {
+            userMapper.updatePassword(user.getId(), PasswordUtil.encode(dto.getPassword()));
+        }
         return buildLogin(user);
     }
 
