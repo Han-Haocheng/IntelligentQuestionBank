@@ -1,7 +1,7 @@
 {
   "name": "intelligent-question-bank",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "智能题库管理系统前端 (Vue3 + Element Plus + Electron)",
   "author": {
     "name": "Han-Haocheng"
