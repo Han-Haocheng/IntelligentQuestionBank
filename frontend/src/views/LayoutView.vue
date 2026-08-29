@@ -7,6 +7,7 @@
         <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon>统计看板</el-menu-item>
         <el-menu-item index="/questions"><el-icon><Document /></el-icon>题目管理</el-menu-item>
         <el-menu-item index="/banks"><el-icon><Files /></el-icon>题库管理</el-menu-item>
+        <el-menu-item index="/ai-settings"><el-icon><MagicStick /></el-icon>AI 设置</el-menu-item>
         <el-menu-item index="/categories"><el-icon><FolderOpened /></el-icon>分类管理</el-menu-item>
         <el-menu-item index="/practice"><el-icon><EditPen /></el-icon>开始练习</el-menu-item>
         <el-menu-item index="/records"><el-icon><List /></el-icon>练习记录</el-menu-item>

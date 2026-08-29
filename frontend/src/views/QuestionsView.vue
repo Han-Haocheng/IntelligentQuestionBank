@@ -166,9 +166,10 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { questionApi, categoryApi, bankApi, favoriteApi, shareApi } from '../api'
+import { aiChat, buildQuestionPrompt, pushAiHistory, hasApiKey } from '../utils/ai'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
@@ -180,6 +181,7 @@ const flatCategories = ref([])
 const query = reactive({ keyword: '', categoryId: null, bankId: null, type: null, difficulty: null, pageNum: 1, pageSize: 10 })
 const banks = ref([])
 const route = useRoute()
+const router = useRouter()
 
 const editVisible = ref(false)
 const saving = ref(false)
@@ -347,14 +349,24 @@ async function doShare () {
 }
 
 async function analyze (row) {
+  if (!hasApiKey()) {
+    ElMessage.warning('尚未配置 AI, 请先到「AI 设置」填写 API Key')
+    router.push('/ai-settings')
+    return
+  }
   row.aiLoading = true
   aiVisible.value = true
   aiLoading.value = true
   aiContent.value = ''
   try {
-    const res = await aiApi.analyzeQuestion(row.id)
-    aiContent.value = res.content
+    const content = await aiChat(buildQuestionPrompt({
+      type: row.type, difficulty: row.difficulty, tags: row.tags,
+      title: row.title, options: row.options, answer: row.answer, analysis: row.analysis
+    }))
+    aiContent.value = content
+    pushAiHistory({ type: 'question', title: row.title.substring(0, 40), content })
   } catch (e) {
+    ElMessage.error(e.message || 'AI 调用失败')
     aiVisible.value = false
   } finally {
     aiLoading.value = false

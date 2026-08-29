@@ -36,8 +36,10 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
-import { statsApi, aiApi } from '../api'
+import { statsApi } from '../api'
+import { aiChat, buildReportPrompt, pushAiHistory, hasApiKey, getAiConfig } from '../utils/ai'
 
 const overview = reactive({})
 const typeChartRef = ref()
@@ -52,6 +54,7 @@ const reportContent = ref('')
 const reportModel = ref('')
 
 let charts = []
+const router = useRouter()
 
 function renderBar (el, title, data) {
   const chart = echarts.init(el)
@@ -117,14 +120,25 @@ async function loadAll () {
 }
 
 async function genReport () {
+  if (!hasApiKey()) {
+    ElMessage.warning('尚未配置 AI, 请先到「AI 设置」填写 API Key')
+    router.push('/ai-settings')
+    return
+  }
   reportVisible.value = true
   reportLoading.value = true
   reportContent.value = ''
   try {
-    const res = await aiApi.report()
-    reportContent.value = res.content
-    reportModel.value = res.model
+    const [overview, wrongByCategory, trend] = await Promise.all([
+      statsApi.overview(), statsApi.wrongByCategory(), statsApi.trend()
+    ])
+    const prompt = buildReportPrompt({ ...overview, wrongByCategory, recentTrend: trend })
+    const content = await aiChat(prompt)
+    reportContent.value = content
+    reportModel.value = getAiConfig().model + ' (本地直连)'
+    pushAiHistory({ type: 'report', title: '学情报告', content })
   } catch (e) {
+    ElMessage.error(e.message || 'AI 调用失败')
     reportVisible.value = false
   } finally {
     reportLoading.value = false

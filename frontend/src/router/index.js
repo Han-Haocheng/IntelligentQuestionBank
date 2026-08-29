@@ -11,6 +11,7 @@ const routes = [
       { path: 'dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { title: '统计看板' } },
       { path: 'questions', name: 'questions', component: () => import('../views/QuestionsView.vue'), meta: { title: '题目管理' } },
       { path: 'banks', name: 'banks', component: () => import('../views/BanksView.vue'), meta: { title: '题库管理' } },
+      { path: 'ai-settings', name: 'ai-settings', component: () => import('../views/AiSettingsView.vue'), meta: { title: 'AI 设置' } },
       { path: 'categories', name: 'categories', component: () => import('../views/CategoriesView.vue'), meta: { title: '分类管理' } },
       { path: 'practice', name: 'practice', component: () => import('../views/PracticeView.vue'), meta: { title: '开始练习' } },
       { path: 'records', name: 'records', component: () => import('../views/RecordsView.vue'), meta: { title: '练习记录' } },

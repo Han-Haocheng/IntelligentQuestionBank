@@ -29,12 +29,5 @@ logging:
   level:
     com.qbank.mapper: debug
 
-# AI 分析配置: 使用 OpenAI 兼容接口(默认适配 DeepSeek)
-# 配置 api-key 后自动启用真实 AI; 未配置时自动降级为本地规则分析
-qbank:
-  ai:
-    enabled: true
-    api-key: ""
-    base-url: https://api.deepseek.com
-    model: deepseek-chat
-    timeout-ms: 60000
+# v2 起 AI 分析在前端本地完成(浏览器直连大模型), 后端不再提供 AI 接口
+# 前端配置入口: 系统界面左侧菜单 -> AI 设置

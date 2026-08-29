@@ -11,6 +11,12 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      // 开发模式下前端本地 AI 走此代理规避浏览器 CORS
+      '/ai-proxy': {
+        target: 'https://api.deepseek.com',
+        changeOrigin: true,
+        rewrite: (p) => p.substring('/ai-proxy'.length)
       }
     }
   },

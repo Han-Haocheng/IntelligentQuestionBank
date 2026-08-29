@@ -82,9 +82,4 @@ export const statsApi = {
   wrongByCategory: () => request.get('/stats/wrong-by-category')
 }
 
-// ==================== AI ====================
-export const aiApi = {
-  analyzeQuestion: (id) => request.post('/ai/analyze/question/' + id),
-  report: () => request.post('/ai/analyze/report'),
-  history: (params) => request.get('/ai/history', { params })
-}
+// AI 分析已迁移到前端本地, 见 src/utils/ai.js (v2)
