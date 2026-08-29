@@ -6,6 +6,7 @@
   "author": {
     "name": "Han-Haocheng"
   },
+  "homepage": "https://github.com/Han-Haocheng/IntelligentQuestionBank#readme",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -70,12 +71,17 @@
       "artifactName": "QBank-${version}-${arch}.dmg"
     },
     "linux": {
+      "category": "Education",
       "target": [
         "AppImage",
         "deb"
-      ],
-      "category": "Education",
+      ]
+    },
+    "appImage": {
       "artifactName": "QBank-${version}-${arch}.AppImage"
+    },
+    "deb": {
+      "maintainer": "Han-Haocheng <hanhaocheng@users.noreply.github.com>"
     }
   },
   "allowScripts": {
