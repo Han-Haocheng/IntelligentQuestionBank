@@ -31,6 +31,9 @@ pagehelper:
 qbank:
   jwt:
     secret: ${QBANK_JWT_SECRET:dev-only-change-me-in-production-0123456789abcdef}
+  # CORS 允许来源(逗号分隔); 默认 * 兼容 Electron file:// 与本地开发, 公网部署请收紧
+  cors:
+    allowed-origins: ${QBANK_CORS_ALLOWED_ORIGINS:*}
 
 # 需要排查 SQL 时再临时开启, 勿在生产常开(会打印全部 SQL 与参数)
 #logging:

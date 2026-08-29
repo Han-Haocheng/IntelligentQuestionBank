@@ -20,7 +20,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Result<Void> handleOther(Exception e) {
+        // 完整堆栈仅记录在服务端日志, 不向客户端透出内部细节
         log.error("system error", e);
-        return Result.error("系统异常: " + e.getMessage());
+        return Result.error("系统繁忙, 请稍后重试");
     }
 }
