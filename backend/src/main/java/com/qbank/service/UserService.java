@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.Constants;
 import com.qbank.common.PageUtil;
 import com.qbank.dto.LoginDTO;
 import com.qbank.dto.LoginVO;
@@ -44,7 +45,7 @@ public class UserService {
         user.setUsername(dto.getUsername());
         user.setPassword(PasswordUtil.encode(dto.getPassword()));
         user.setNickname(StringUtils.hasText(dto.getNickname()) ? dto.getNickname() : dto.getUsername());
-        user.setRole(1);
+        user.setRole(Constants.ROLE_USER);
         user.setStatus(1);
         userMapper.insert(user);
         return buildLogin(user);
@@ -116,7 +117,8 @@ public class UserService {
         user.setUsername(dto.getUsername());
         user.setPassword(PasswordUtil.encode(dto.getPassword()));
         user.setNickname(StringUtils.hasText(dto.getNickname()) ? dto.getNickname() : dto.getUsername());
-        user.setRole(dto.getRole() != null && dto.getRole() == 0 ? 0 : 1);
+        user.setRole(dto.getRole() != null && dto.getRole() == Constants.ROLE_ADMIN
+                ? Constants.ROLE_ADMIN : Constants.ROLE_USER);
         user.setStatus(1);
         userMapper.insert(user);
         return requireUser(user.getId());

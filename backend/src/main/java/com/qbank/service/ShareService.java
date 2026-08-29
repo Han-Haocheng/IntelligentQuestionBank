@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.Constants;
 import com.qbank.common.PageUtil;
 import com.qbank.dto.ShareDTO;
 import com.qbank.entity.Bank;
@@ -49,13 +50,14 @@ public class ShareService {
         if (question == null || !question.getUserId().equals(userId)) {
             throw new BusinessException("只能共享自己的题目");
         }
-        int type = dto.getShareType() != null && dto.getShareType() == 2 ? 2 : 1;
+        int type = dto.getShareType() != null && dto.getShareType() == Constants.SHARE_TYPE_PUBLIC_QUESTION
+                ? Constants.SHARE_TYPE_PUBLIC_QUESTION : Constants.SHARE_TYPE_USER_QUESTION;
         Share share = new Share();
         share.setQuestionId(dto.getQuestionId());
         share.setFromUserId(userId);
         share.setShareType(type);
         share.setMessage(dto.getMessage());
-        if (type == 1) {
+        if (type == Constants.SHARE_TYPE_USER_QUESTION) {
             if (!StringUtils.hasText(dto.getToUsername())) {
                 throw new BusinessException("请输入要共享给的用户名");
             }
@@ -77,7 +79,7 @@ public class ShareService {
             Share pub = new Share();
             pub.setQuestionId(dto.getQuestionId());
             pub.setFromUserId(userId);
-            pub.setShareType(2);
+            pub.setShareType(Constants.SHARE_TYPE_PUBLIC_QUESTION);
             pub.setMessage(dto.getMessage());
             if (shareMapper.insertPublic(pub) == 0) {
                 throw new BusinessException("该题目已公开共享");
@@ -91,11 +93,11 @@ public class ShareService {
         if (bank == null || !bank.getUserId().equals(userId)) {
             throw new BusinessException("只能共享自己的题库");
         }
-        boolean isPublic = dto.getShareType() != null && dto.getShareType() == 4;
+        boolean isPublic = dto.getShareType() != null && dto.getShareType() == Constants.SHARE_TYPE_PUBLIC_BANK;
         Share share = new Share();
         share.setBankId(dto.getBankId());
         share.setFromUserId(userId);
-        share.setShareType(isPublic ? 4 : 3);
+        share.setShareType(isPublic ? Constants.SHARE_TYPE_PUBLIC_BANK : Constants.SHARE_TYPE_USER_BANK);
         share.setMessage(dto.getMessage());
         if (!isPublic) {
             if (!StringUtils.hasText(dto.getToUsername())) {
@@ -118,7 +120,7 @@ public class ShareService {
             Share pub = new Share();
             pub.setBankId(dto.getBankId());
             pub.setFromUserId(userId);
-            pub.setShareType(4);
+            pub.setShareType(Constants.SHARE_TYPE_PUBLIC_BANK);
             pub.setMessage(dto.getMessage());
             if (shareMapper.insertPublic(pub) == 0) {
                 throw new BusinessException("该题库已公开共享");

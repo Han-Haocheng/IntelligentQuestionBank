@@ -14,6 +14,7 @@ import com.qbank.entity.PracticeRecord;
 import com.qbank.entity.Question;
 import com.qbank.entity.WrongQuestion;
 import com.qbank.mapper.PracticeAnswerMapper;
+import com.qbank.util.QuestionGrading;
 import com.qbank.mapper.PracticeQuestionMapper;
 import com.qbank.mapper.PracticeRecordMapper;
 import com.qbank.mapper.QuestionMapper;
@@ -58,8 +59,8 @@ public class PracticeService {
     public PracticeStartVO start(Long userId, PracticeStartDTO dto) {
         int count = Math.max(1, Math.min(50, dto.getCount()));
         int mode = dto.getMode();
-        boolean random = mode == 2;
-        boolean onlyWrong = dto.getOnlyWrong() || mode == 3;
+        boolean random = mode == Constants.PRACTICE_MODE_RANDOM;
+        boolean onlyWrong = dto.getOnlyWrong() || mode == Constants.PRACTICE_MODE_WRONG;
         List<Question> questions = random
                 ? pickRandomQuestions(userId, dto, count, onlyWrong)
                 : questionMapper.selectForPractice(
@@ -101,7 +102,7 @@ public class PracticeService {
         if (record == null || !record.getUserId().equals(userId)) {
             throw new BusinessException("练习记录不存在");
         }
-        if (record.getStatus() != null && record.getStatus() == 1) {
+        if (record.getStatus() != null && record.getStatus() == Constants.PRACTICE_STATUS_FINISHED) {
             throw new BusinessException("该练习已提交");
         }
         Map<Long, String> answerMap = new HashMap<>();
@@ -134,7 +135,7 @@ public class PracticeService {
                     continue;
                 }
                 String userAnswer = answerMap.get(question.getId());
-                boolean correct = isCorrect(question, userAnswer);
+                boolean correct = QuestionGrading.isCorrect(question, userAnswer);
                 if (correct) {
                     correctCount++;
                 }
@@ -154,7 +155,7 @@ public class PracticeService {
                 LocalDateTime.now()).getSeconds();
         record.setCorrect(correctCount);
         record.setDuration(Math.max(0, duration));
-        record.setStatus(1);
+        record.setStatus(Constants.PRACTICE_STATUS_FINISHED);
         recordMapper.updateFinish(record);
 
         // 错题本维护: 答错入本; 错题重做答对则标记已掌握(先批量查询已有错题记录, 避免每题一次 find)
@@ -182,7 +183,7 @@ public class PracticeService {
                 } else {
                     wrongQuestionMapper.incrementWrong(exist.getId(), row.getUserAnswer());
                 }
-            } else if (record.getMode() != null && record.getMode() == 3) {
+            } else if (record.getMode() != null && record.getMode() == Constants.PRACTICE_MODE_WRONG) {
                 wrongQuestionMapper.updateMastered(userId, row.getQuestionId(), 1);
             }
         }
@@ -249,72 +250,9 @@ public class PracticeService {
         return result;
     }
 
-    /** 判分规则 */
-    private boolean isCorrect(Question question, String userAnswer) {
-        if (userAnswer == null || userAnswer.trim().isEmpty()) {
-            return false;
-        }
-        String answer = question.getAnswer() == null ? "" : question.getAnswer().trim();
-        if (answer.isEmpty()) {
-            return false;
-        }
-        String ua = userAnswer.trim();
-        switch (question.getType() == null ? 0 : question.getType()) {
-            case Constants.TYPE_MULTIPLE: {
-                return normalizeLetters(ua).equals(normalizeLetters(answer));
-            }
-            case Constants.TYPE_FILL: {
-                String[] expect = splitMultiBlank(answer);
-                String[] actual = splitMultiBlank(ua);
-                if (expect.length != actual.length) {
-                    return false;
-                }
-                for (int i = 0; i < expect.length; i++) {
-                    if (!expect[i].trim().equalsIgnoreCase(actual[i].trim())) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            case Constants.TYPE_JUDGE: {
-                return normalizeJudge(ua).equals(normalizeJudge(answer));
-            }
-            default:
-                // 单选/简答: 宽松相等比较
-                return ua.equalsIgnoreCase(answer);
-        }
-    }
-
-    /** 按字面量 '|||' 拆分多空答案(不使用正则) */
-    private String[] splitMultiBlank(String s) {
-        List<String> parts = new ArrayList<>();
-        String sep = "|||";
-        int start = 0;
-        int idx;
-        while ((idx = s.indexOf(sep, start)) >= 0) {
-            parts.add(s.substring(start, idx));
-            start = idx + sep.length();
-        }
-        parts.add(s.substring(start));
-        return parts.toArray(new String[0]);
-    }
-
-    private String normalizeLetters(String s) {
-        char[] chars = s.toUpperCase().replaceAll("[^A-Z]", "").toCharArray();
-        java.util.Arrays.sort(chars);
-        return new String(chars);
-    }
-
-    private String normalizeJudge(String s) {
-        String v = s.trim();
-        if (v.equals("对") || v.equals("正确") || v.equalsIgnoreCase("true") || v.equalsIgnoreCase("T")) {
-            return "对";
-        }
-        return "错";
-    }
-
     private String defaultName(int mode) {
-        String modeName = mode == 2 ? "随机练习" : (mode == 3 ? "错题重做" : "顺序练习");
+        String modeName = mode == Constants.PRACTICE_MODE_RANDOM ? "随机练习"
+                : (mode == Constants.PRACTICE_MODE_WRONG ? "错题重做" : "顺序练习");
         return modeName + " " + LocalDateTime.now().toLocalDate();
     }
 }

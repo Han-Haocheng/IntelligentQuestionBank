@@ -23,6 +23,21 @@ public class Constants {
     public static final int ROLE_ADMIN = 0;
     public static final int ROLE_USER = 1;
 
+    /** 共享类型: 1指定用户-题目 2公开-题目 3指定用户-题库 4公开-题库 */
+    public static final int SHARE_TYPE_USER_QUESTION = 1;
+    public static final int SHARE_TYPE_PUBLIC_QUESTION = 2;
+    public static final int SHARE_TYPE_USER_BANK = 3;
+    public static final int SHARE_TYPE_PUBLIC_BANK = 4;
+
+    /** 练习模式: 1顺序 2随机 3错题重做 */
+    public static final int PRACTICE_MODE_SEQUENCE = 1;
+    public static final int PRACTICE_MODE_RANDOM = 2;
+    public static final int PRACTICE_MODE_WRONG = 3;
+
+    /** 练习状态: 0进行中 1已完成 */
+    public static final int PRACTICE_STATUS_STARTED = 0;
+    public static final int PRACTICE_STATUS_FINISHED = 1;
+
     public static final int TOKEN_DAYS = 7;
 
     public static String typeName(int type) {
