@@ -9,8 +9,7 @@
         <el-menu-item index="/ai-settings"><el-icon><MagicStick /></el-icon>AI 设置</el-menu-item>
         <el-menu-item v-if="store.isAdmin" index="/admin"><el-icon><Setting /></el-icon>管理</el-menu-item>
         <el-menu-item index="/practice"><el-icon><EditPen /></el-icon>练习</el-menu-item>
-        <el-menu-item index="/favorites"><el-icon><Star /></el-icon>收藏夹</el-menu-item>
-        <el-menu-item index="/shares"><el-icon><Share /></el-icon>共享</el-menu-item>
+        <el-menu-item index="/my"><el-icon><Star /></el-icon>我的</el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -54,7 +53,7 @@ const initials = computed(() => {
 
 function onCommand (cmd) {
   if (cmd === 'profile') {
-    router.push('/profile')
+    router.push('/my?tab=profile')
   } else if (cmd === 'logout') {
     store.logout()
     ElMessage.success('已退出登录')

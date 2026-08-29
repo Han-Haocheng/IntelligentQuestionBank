@@ -18,9 +18,10 @@ const routes = [
       { path: 'practice', name: 'practice', component: () => import('../views/PracticeView.vue'), meta: { title: '练习' } },
       { path: 'records', redirect: '/practice' },
       { path: 'wrong', redirect: '/practice' },
-      { path: 'favorites', name: 'favorites', component: () => import('../views/FavoritesView.vue'), meta: { title: '收藏夹' } },
-      { path: 'shares', name: 'shares', component: () => import('../views/SharesView.vue'), meta: { title: '共享' } },
-      { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { title: '个人资料' } }
+      { path: 'my', name: 'my', component: () => import('../views/MyView.vue'), meta: { title: '我的' } },
+      { path: 'favorites', redirect: '/my' },
+      { path: 'shares', redirect: '/my' },
+      { path: 'profile', redirect: '/my' }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
