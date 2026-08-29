@@ -7,7 +7,21 @@
     </select>
 
     <select id="selectByUser" resultType="com.qbank.entity.Bank">
-        SELECT * FROM bank WHERE user_id = #{userId} ORDER BY id DESC
+        SELECT * FROM bank
+        <where>
+            <if test="userId != null">user_id = #{userId}</if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectShared" resultType="com.qbank.entity.Bank">
+        SELECT DISTINCT b.*
+        FROM bank b
+        JOIN share s ON s.bank_id = b.id
+        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+        WHERE (s.to_user_id = #{userId} OR (s.share_type = 4 AND s.from_user_id != #{userId}))
+          AND (m.id IS NULL OR m.subscribed = 1)
+        ORDER BY b.id DESC
     </select>
 
     <select id="findByName" resultType="com.qbank.entity.Bank">

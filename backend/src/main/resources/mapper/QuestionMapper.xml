@@ -15,7 +15,7 @@
         LEFT JOIN category c ON c.id = q.category_id
         LEFT JOIN bank b ON b.id = q.bank_id
         <where>
-            q.user_id = #{userId}
+            <if test="userId != null">AND q.user_id = #{userId}</if>
             <if test="q.keyword != null and q.keyword != ''">
                 AND (q.title LIKE CONCAT('%', #{q.keyword}, '%') OR q.tags LIKE CONCAT('%', #{q.keyword}, '%'))
             </if>

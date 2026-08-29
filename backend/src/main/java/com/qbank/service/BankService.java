@@ -28,8 +28,24 @@ public class BankService {
         this.shareMapper = shareMapper;
     }
 
-    public List<Bank> list(Long userId) {
-        List<Bank> list = bankMapper.selectByUser(userId);
+    public List<Bank> list(Long userId, Integer role) {
+        List<Bank> list = new java.util.ArrayList<>();
+        if (role != null && role == 0) {
+            // 管理员: 查看全部用户的题库
+            list.addAll(bankMapper.selectByUser(null));
+        } else {
+            list.addAll(bankMapper.selectByUser(userId));
+            // 普通用户: 追加订阅中的共享题库
+            java.util.Set<Long> seen = new java.util.HashSet<>();
+            for (Bank b : list) {
+                seen.add(b.getId());
+            }
+            for (Bank b : bankMapper.selectShared(userId)) {
+                if (seen.add(b.getId())) {
+                    list.add(b);
+                }
+            }
+        }
         for (Bank bank : list) {
             bank.setQuestionCount((long) questionMapper.countByBank(bank.getId()));
         }

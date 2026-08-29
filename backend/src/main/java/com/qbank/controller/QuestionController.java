@@ -40,8 +40,9 @@ public class QuestionController {
     }
 
     @GetMapping("/list")
-    public Result<PageInfo<QuestionDTO>> list(@RequestAttribute("userId") Long userId, QuestionQuery query) {
-        return Result.ok(questionService.page(userId, query));
+    public Result<PageInfo<QuestionDTO>> list(@RequestAttribute("userId") Long userId,
+            @RequestAttribute("role") Integer role, QuestionQuery query) {
+        return Result.ok(questionService.page(userId, role, query));
     }
 
     @GetMapping("/{id}")

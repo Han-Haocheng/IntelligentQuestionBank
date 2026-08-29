@@ -29,8 +29,9 @@ public class BankController {
     }
 
     @GetMapping("/list")
-    public Result<List<Bank>> list(@RequestAttribute("userId") Long userId) {
-        return Result.ok(bankService.list(userId));
+    public Result<List<Bank>> list(@RequestAttribute("userId") Long userId,
+                                   @RequestAttribute("role") Integer role) {
+        return Result.ok(bankService.list(userId, role));
     }
 
     @GetMapping("/{id}")

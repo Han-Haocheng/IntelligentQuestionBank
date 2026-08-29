@@ -51,9 +51,16 @@ public class QuestionService {
         this.objectMapper = objectMapper;
     }
 
-    public PageInfo<QuestionDTO> page(Long userId, QuestionQuery query) {
+    public PageInfo<QuestionDTO> page(Long userId, Integer role, QuestionQuery query) {
+        Long scope = userId;
+        if (role != null && role == Constants.ROLE_ADMIN) {
+            // 管理员: 传 userId 查看指定用户, 不传查看全部
+            scope = query.getUserId() != null ? query.getUserId() : null;
+        } else {
+            scope = scopeUserId(userId, query.getBankId());
+        }
         PageHelper.startPage(query.getPageNum(), query.getPageSize());
-        List<Question> list = questionMapper.selectPage(scopeUserId(userId, query.getBankId()), query);
+        List<Question> list = questionMapper.selectPage(scope, query);
         PageInfo<Question> pageInfo = new PageInfo<>(list);
         PageInfo<QuestionDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());

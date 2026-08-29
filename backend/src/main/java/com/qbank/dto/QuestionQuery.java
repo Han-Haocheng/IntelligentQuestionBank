@@ -10,6 +10,7 @@ public class QuestionQuery {
     private Integer type;
     private Integer difficulty;
     private String tag;
+    private Long userId;          // 管理员筛选指定用户的题目
     private Integer pageNum = 1;
     private Integer pageSize = 10;
 
@@ -25,6 +26,8 @@ public class QuestionQuery {
     public void setDifficulty(Integer difficulty) { this.difficulty = difficulty; }
     public String getTag() { return tag; }
     public void setTag(String tag) { this.tag = tag; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public Integer getPageNum() { return com.qbank.common.PageUtil.pageNum(pageNum == null ? 1 : pageNum); }
     public void setPageNum(Integer pageNum) { this.pageNum = pageNum; }
     public Integer getPageSize() { return com.qbank.common.PageUtil.pageSize(pageSize == null ? 10 : pageSize); }

@@ -15,7 +15,11 @@ public interface BankMapper {
 
     Bank findById(@Param("id") Long id);
 
+    /** userId 为 null 时返回全部(管理员) */
     List<Bank> selectByUser(@Param("userId") Long userId);
+
+    /** 订阅中的共享题库(指定用户共享 + 公开共享, 排除已退订) */
+    List<Bank> selectShared(@Param("userId") Long userId);
 
     Bank findByName(@Param("userId") Long userId, @Param("name") String name);
 }
