@@ -1,8 +1,12 @@
 <template>
   <el-container class="layout">
-    <el-aside :width="collapsed ? '64px' : '210px'" class="aside">
-      <div class="logo" :class="{ 'logo-mini': collapsed }">{{ collapsed ? '题库' : '题库管理系统' }}</div>
-      <el-menu :default-active="route.path" router :collapse="collapsed" :collapse-transition="false"
+    <el-aside :style="{ width: collapsed ? '64px' : '210px' }" class="aside">
+      <div class="logo">
+        <Transition name="logo-fade" mode="out-in">
+          <span :key="collapsed ? 'mini' : 'full'">{{ collapsed ? '题库' : '题库管理系统' }}</span>
+        </Transition>
+      </div>
+      <el-menu :default-active="route.path" router :collapse="collapsed"
         background-color="#001529" text-color="#a6adb4" active-text-color="#ffffff" class="menu">
         <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon><template #title>统计看板</template></el-menu-item>
         <el-menu-item index="/questions"><el-icon><Document /></el-icon><template #title>题目管理</template></el-menu-item>
@@ -10,7 +14,7 @@
         <el-menu-item index="/practice"><el-icon><EditPen /></el-icon><template #title>练习</template></el-menu-item>
         <el-menu-item index="/my"><el-icon><Star /></el-icon><template #title>我的</template></el-menu-item>
       </el-menu>
-      <!-- 侧栏左下角: 折叠/展开按钮 -->
+      <!-- 侧栏左下角: 折叠/展开按钮(展开时左对齐, 折叠时居中, padding 平滑过渡) -->
       <div class="aside-footer" :class="{ 'footer-center': collapsed }">
         <el-tooltip :content="collapsed ? '展开侧栏' : '折叠侧栏'" placement="right">
           <el-icon class="collapse-btn" @click="toggleCollapse">
@@ -85,7 +89,7 @@ function onCommand (cmd) {
 
 .aside {
   background: #001529;
-  /* 无宽度动画: 内容(logo/菜单/底部按钮)随 collapsed 状态同拍切换, 避免动画不同步造成的抖动 */
+  transition: width 0.25s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -100,11 +104,23 @@ function onCommand (cmd) {
   letter-spacing: 2px;
   white-space: nowrap;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
-.logo-mini {
-  font-size: 15px;
-  padding: 22px 0;
+.logo span {
+  display: inline-block;
+  transition: font-size 0.25s ease;
+}
+
+.logo-fade-enter-active,
+.logo-fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.logo-fade-enter-from,
+.logo-fade-leave-to {
+  opacity: 0;
 }
 
 .menu {
@@ -128,11 +144,12 @@ function onCommand (cmd) {
   justify-content: flex-start;
   padding: 12px 0 12px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  transition: padding-left 0.25s ease;
 }
 
+/* 折叠时按钮在 64px 栏内居中: 64/2 - 图标宽18/2 = 23px 左内边距 */
 .aside-footer.footer-center {
-  justify-content: center;
-  padding-left: 0;
+  padding-left: 23px;
 }
 
 .collapse-btn {
