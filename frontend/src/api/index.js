@@ -67,6 +67,7 @@ export const shareApi = {
 export const practiceApi = {
   start: (data) => request.post('/practice/start', data),
   submit: (data) => request.post('/practice/submit', data),
+  count: (params) => request.get('/practice/count', { params }),
   records: (params) => request.get('/practice/records', { params }),
   detail: (id) => request.get('/practice/records/' + id),
   remove: (id) => request.delete('/practice/records/' + id)
@@ -81,12 +82,12 @@ export const wrongApi = {
 
 // ==================== 统计 ====================
 export const statsApi = {
-  overview: () => request.get('/stats/overview'),
-  byType: () => request.get('/stats/question-by-type'),
-  byDifficulty: () => request.get('/stats/question-by-difficulty'),
-  byCategory: () => request.get('/stats/question-by-category'),
-  trend: () => request.get('/stats/practice-trend'),
-  wrongByCategory: () => request.get('/stats/wrong-by-category')
+  overview: (params) => request.get('/stats/overview', { params }),
+  byType: (params) => request.get('/stats/question-by-type', { params }),
+  byDifficulty: (params) => request.get('/stats/question-by-difficulty', { params }),
+  byCategory: (params) => request.get('/stats/question-by-category', { params }),
+  trend: (params) => request.get('/stats/practice-trend', { params }),
+  wrongByCategory: (params) => request.get('/stats/wrong-by-category', { params })
 }
 
 // AI 分析已迁移到前端本地, 见 src/utils/ai.js (v2)

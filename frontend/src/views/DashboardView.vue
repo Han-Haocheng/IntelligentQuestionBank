@@ -100,14 +100,21 @@ function renderTrend (el, data) {
   return chart
 }
 
+function statsParams () {
+  return userStore.isAdmin && targetUserId.value ? { targetUserId: targetUserId.value } : undefined
+}
+
 async function loadAll () {
   try {
-    const ov = await statsApi.overview()
+    const ov = await statsApi.overview(statsParams())
+    Object.keys(overview).forEach(k => delete overview[k])
     Object.assign(overview, ov)
     const [typeData, diffData, trendData, wrongData, categoryData] = await Promise.all([
-      statsApi.byType(), statsApi.byDifficulty(), statsApi.trend(),
-      statsApi.wrongByCategory(), statsApi.byCategory()
+      statsApi.byType(statsParams()), statsApi.byDifficulty(statsParams()), statsApi.trend(statsParams()),
+      statsApi.wrongByCategory(statsParams()), statsApi.byCategory(statsParams())
     ])
+    charts.forEach(c => c && c.dispose())
+    charts = []
     await nextTick()
     charts = [
       renderPie(typeChartRef.value, '题型分布', typeData),
@@ -130,7 +137,7 @@ async function genReport () {
   reportContent.value = ''
   try {
     const [overview, wrongByCategory, trend] = await Promise.all([
-      statsApi.overview(), statsApi.wrongByCategory(), statsApi.trend()
+      statsApi.overview(statsParams()), statsApi.wrongByCategory(statsParams()), statsApi.trend(statsParams())
     ])
     const prompt = buildReportPrompt({ ...overview, wrongByCategory, recentTrend: trend })
     const content = await aiChat(prompt)
@@ -149,7 +156,18 @@ function onResize () {
   charts.forEach(c => c && c.resize())
 }
 
+async function loadUsers () {
+  if (!userStore.isAdmin) return
+  try {
+    const data = await userApi.list({ pageNum: 1, pageSize: 200 })
+    users.value = data.list || []
+  } catch (e) {
+    users.value = []
+  }
+}
+
 onMounted(() => {
+  loadUsers()
   loadAll()
   window.addEventListener('resize', onResize)
 })
