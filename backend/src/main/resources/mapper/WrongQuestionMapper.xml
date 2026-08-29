@@ -34,8 +34,11 @@
     </select>
 
     <select id="countByUser" resultType="int">
-        SELECT COUNT(*) FROM wrong_question WHERE user_id = #{userId}
-        <if test="mastered != null">AND mastered = #{mastered}</if>
+        SELECT COUNT(*) FROM wrong_question
+        <where>
+            <if test="userId != null">user_id = #{userId}</if>
+            <if test="mastered != null">AND mastered = #{mastered}</if>
+        </where>
     </select>
 
     <select id="countGroupByCategory" resultType="com.qbank.dto.NameValueVO">
@@ -43,7 +46,7 @@
         FROM wrong_question w
         LEFT JOIN question q ON q.id = w.question_id
         LEFT JOIN category c ON c.id = q.category_id
-        WHERE w.user_id = #{userId}
+        <where><if test="userId != null">w.user_id = #{userId}</if></where>
         GROUP BY IFNULL(c.name, '未分类')
         ORDER BY value DESC
         LIMIT 5

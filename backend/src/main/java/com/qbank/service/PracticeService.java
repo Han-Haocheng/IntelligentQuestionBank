@@ -195,6 +195,12 @@ public class PracticeService {
         return result;
     }
 
+    /** 练习筛选条件下的总题数(与抽题同条件; 共享题库按归属者统计) */
+    public int count(Long userId, Long categoryId, Long bankId, Integer difficulty, Integer type, boolean onlyWrong) {
+        Long scope = questionService.resolvePracticeScope(userId, bankId);
+        return questionMapper.countForPractice(scope, categoryId, bankId, difficulty, type, onlyWrong);
+    }
+
     public PageInfo<PracticeRecord> records(Long userId, int pageNum, int pageSize) {
         PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         return new PageInfo<>(recordMapper.selectPage(userId));

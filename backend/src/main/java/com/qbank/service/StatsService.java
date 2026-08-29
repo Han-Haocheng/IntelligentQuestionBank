@@ -44,22 +44,36 @@ public class StatsService {
         this.userMapper = userMapper;
     }
 
-    public OverviewVO overview(Long userId) {
+    /**
+     * 统计作用域: 管理员可传 targetUserId 查看指定用户, 不传则统计全部用户; 普通用户仅本人
+     */
+    private Long scope(Long userId, Integer role, Long targetUserId) {
+        if (role != null && role == Constants.ROLE_ADMIN) {
+            return targetUserId;  // null = 全部
+        }
+        return userId;
+    }
+
+    public OverviewVO overview(Long userId, Integer role, Long targetUserId) {
+        Long scope = scope(userId, role, targetUserId);
         OverviewVO vo = new OverviewVO();
-        vo.setQuestionCount((long) questionMapper.countByUser(userId));
+        vo.setQuestionCount((long) questionMapper.countByUser(scope));
         vo.setCategoryCount((long) categoryMapper.countAll());
-        vo.setFavoriteCount((long) favoriteMapper.countByUser(userId));
-        vo.setWrongCount((long) wrongQuestionMapper.countByUser(userId, null));
-        vo.setPracticeCount((long) practiceRecordMapper.countByUser(userId));
-        PracticeRecord sum = practiceRecordMapper.selectSumStats(userId);
+        vo.setFavoriteCount((long) favoriteMapper.countByUser(scope));
+        vo.setWrongCount((long) wrongQuestionMapper.countByUser(scope, null));
+        vo.setPracticeCount((long) practiceRecordMapper.countByUser(scope));
+        PracticeRecord sum = practiceRecordMapper.selectSumStats(scope);
         long total = sum == null || sum.getTotal() == null ? 0 : sum.getTotal();
         long correct = sum == null || sum.getCorrect() == null ? 0 : sum.getCorrect();
         vo.setAccuracy(total == 0 ? 0.0 : Math.round(correct * 1000.0 / total) / 10.0);
+        if (role != null && role == Constants.ROLE_ADMIN) {
+            vo.setUserCount((long) userMapper.countByUser(null));
+        }
         return vo;
     }
 
-    public List<NameValueVO> byType(Long userId) {
-        List<NameValueVO> raw = questionMapper.countByType(userId);
+    public List<NameValueVO> byType(Long userId, Integer role, Long targetUserId) {
+        List<NameValueVO> raw = questionMapper.countByType(scope(userId, role, targetUserId));
         Map<String, Long> map = toMap(raw);
         List<NameValueVO> result = new ArrayList<>();
         for (int i = 0; i < Constants.TYPE_NAMES.size(); i++) {
@@ -71,8 +85,8 @@ public class StatsService {
         return result;
     }
 
-    public List<NameValueVO> byDifficulty(Long userId) {
-        List<NameValueVO> raw = questionMapper.countByDifficulty(userId);
+    public List<NameValueVO> byDifficulty(Long userId, Integer role, Long targetUserId) {
+        List<NameValueVO> raw = questionMapper.countByDifficulty(scope(userId, role, targetUserId));
         Map<String, Long> map = toMap(raw);
         List<NameValueVO> result = new ArrayList<>();
         for (int i = 0; i < Constants.DIFFICULTY_NAMES.size(); i++) {
@@ -84,18 +98,19 @@ public class StatsService {
         return result;
     }
 
-    public List<NameValueVO> byCategory(Long userId) {
-        return questionMapper.countByCategory(userId);
+    public List<NameValueVO> byCategory(Long userId, Integer role, Long targetUserId) {
+        return questionMapper.countByCategory(scope(userId, role, targetUserId));
     }
 
-    public List<NameValueVO> wrongByCategory(Long userId) {
-        return wrongQuestionMapper.countGroupByCategory(userId);
+    public List<NameValueVO> wrongByCategory(Long userId, Integer role, Long targetUserId) {
+        return wrongQuestionMapper.countGroupByCategory(scope(userId, role, targetUserId));
     }
 
     /** 近14天练习趋势(补零) */
-    public List<TrendVO> trend(Long userId) {
+    public List<TrendVO> trend(Long userId, Integer role, Long targetUserId) {
+        Long scope = scope(userId, role, targetUserId);
         Map<String, TrendVO> byDate = new HashMap<>();
-        for (TrendVO item : practiceRecordMapper.selectTrend(userId)) {
+        for (TrendVO item : practiceRecordMapper.selectTrend(scope)) {
             byDate.put(item.getDate(), item);
         }
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");

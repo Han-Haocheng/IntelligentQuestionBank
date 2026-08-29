@@ -11,12 +11,17 @@
     </select>
 
     <select id="countByUser" resultType="int">
-        SELECT COUNT(*) FROM practice_record WHERE user_id = #{userId}
+        SELECT COUNT(*) FROM practice_record
+        <where><if test="userId != null">user_id = #{userId}</if></where>
     </select>
 
     <select id="selectSumStats" resultType="com.qbank.entity.PracticeRecord">
         SELECT COALESCE(SUM(total), 0) AS total, COALESCE(SUM(correct), 0) AS correct
-        FROM practice_record WHERE user_id = #{userId} AND status = 1
+        FROM practice_record
+        <where>
+            <if test="userId != null">user_id = #{userId}</if>
+            AND status = 1
+        </where>
     </select>
 
     <select id="selectTrend" resultType="com.qbank.dto.TrendVO">
@@ -24,8 +29,11 @@
                COUNT(*) AS total,
                SUM(correct) AS correct
         FROM practice_record
-        WHERE user_id = #{userId} AND status = 1
-          AND finish_time >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
+        <where>
+            <if test="userId != null">user_id = #{userId}</if>
+            AND status = 1
+            AND finish_time >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
+        </where>
         GROUP BY DATE_FORMAT(finish_time, '%Y-%m-%d')
     </select>
 

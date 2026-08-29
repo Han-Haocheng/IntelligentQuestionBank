@@ -220,6 +220,11 @@ public class QuestionService {
         }
     }
 
+    /** 供练习等场景复用: 校验题库共享作用域后返回查询用户 */
+    public Long resolvePracticeScope(Long userId, Long bankId) {
+        return scopeUserId(userId, bankId);
+    }
+
     /**
      * 计算题目查询作用域: 传了 bankId 且该库属于他人时,
      * 校验是否收到过该题库的共享, 通过则改按库归属者查询

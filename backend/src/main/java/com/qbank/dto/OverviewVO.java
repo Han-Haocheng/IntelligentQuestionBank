@@ -10,6 +10,7 @@ public class OverviewVO {
     private Long wrongCount;
     private Long practiceCount;
     private Double accuracy;     // 总正确率(百分比)
+    private Long userCount;      // 全站用户数(仅管理员返回)
 
     public Long getQuestionCount() { return questionCount; }
     public void setQuestionCount(Long questionCount) { this.questionCount = questionCount; }
@@ -23,4 +24,6 @@ public class OverviewVO {
     public void setPracticeCount(Long practiceCount) { this.practiceCount = practiceCount; }
     public Double getAccuracy() { return accuracy; }
     public void setAccuracy(Double accuracy) { this.accuracy = accuracy; }
+    public Long getUserCount() { return userCount; }
+    public void setUserCount(Long userCount) { this.userCount = userCount; }
 }

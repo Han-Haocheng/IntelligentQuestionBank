@@ -16,7 +16,8 @@
     </select>
 
     <select id="countByUser" resultType="int">
-        SELECT COUNT(*) FROM favorite WHERE user_id = #{userId}
+        SELECT COUNT(*) FROM favorite
+        <where><if test="userId != null">user_id = #{userId}</if></where>
     </select>
 
     <select id="selectIdsByUserAndQuestionIds" resultType="long">

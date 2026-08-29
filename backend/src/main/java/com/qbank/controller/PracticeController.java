@@ -44,6 +44,17 @@ public class PracticeController {
         return Result.ok(practiceService.submit(userId, dto));
     }
 
+    /** 练习筛选条件下的总题数 */
+    @GetMapping("/count")
+    public Result<Integer> count(@RequestAttribute("userId") Long userId,
+                                 @RequestParam(required = false) Long categoryId,
+                                 @RequestParam(required = false) Long bankId,
+                                 @RequestParam(required = false) Integer difficulty,
+                                 @RequestParam(required = false) Integer type,
+                                 @RequestParam(required = false, defaultValue = "false") boolean onlyWrong) {
+        return Result.ok(practiceService.count(userId, categoryId, bankId, difficulty, type, onlyWrong));
+    }
+
     @GetMapping("/records")
     public Result<PageInfo<PracticeRecord>> records(@RequestAttribute("userId") Long userId,
                                                     @RequestParam(defaultValue = "1") int pageNum,

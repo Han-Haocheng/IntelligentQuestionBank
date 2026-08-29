@@ -43,6 +43,14 @@ public interface QuestionMapper {
 
     int countByUser(@Param("userId") Long userId);
 
+    /** 练习筛选条件下的题目总数(与抽题同条件) */
+    int countForPractice(@Param("userId") Long userId,
+                         @Param("categoryId") Long categoryId,
+                         @Param("bankId") Long bankId,
+                         @Param("difficulty") Integer difficulty,
+                         @Param("type") Integer type,
+                         @Param("onlyWrong") boolean onlyWrong);
+
     int countByBank(@Param("bankId") Long bankId);
 
     List<Question> selectByBank(@Param("bankId") Long bankId);
