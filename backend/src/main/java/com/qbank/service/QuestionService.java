@@ -203,13 +203,13 @@ public class QuestionService {
         }
     }
 
+    /** 全局分类: 仅校验存在(分类由管理员维护, 所有用户共用) */
     private void checkCategory(Long ownerId, Long categoryId) {
         if (categoryId == null) {
             return;
         }
-        Category category = categoryMapper.findById(categoryId);
-        if (category == null || !category.getUserId().equals(ownerId)) {
-            throw new BusinessException("所选分类不存在或无权使用");
+        if (categoryMapper.findById(categoryId) == null) {
+            throw new BusinessException("所选分类不存在");
         }
     }
 

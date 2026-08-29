@@ -39,20 +39,35 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Result<Void> add(@RequestAttribute("userId") Long userId, @RequestBody Category category) {
+    public Result<Void> add(@RequestAttribute("userId") Long userId,
+                            @RequestAttribute("role") Integer role,
+                            @RequestBody Category category) {
+        requireAdmin(role);
         categoryService.add(userId, category);
         return Result.ok();
     }
 
     @PutMapping
-    public Result<Void> update(@RequestAttribute("userId") Long userId, @RequestBody Category category) {
+    public Result<Void> update(@RequestAttribute("userId") Long userId,
+                               @RequestAttribute("role") Integer role,
+                               @RequestBody Category category) {
+        requireAdmin(role);
         categoryService.update(userId, category);
         return Result.ok();
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
+    public Result<Void> delete(@RequestAttribute("userId") Long userId,
+                               @RequestAttribute("role") Integer role,
+                               @PathVariable Long id) {
+        requireAdmin(role);
         categoryService.delete(userId, id);
         return Result.ok();
+    }
+
+    private void requireAdmin(Integer role) {
+        if (role == null || role != 0) {
+            throw new com.qbank.common.BusinessException("无权限操作");
+        }
     }
 }

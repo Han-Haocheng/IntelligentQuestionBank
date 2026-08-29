@@ -395,8 +395,8 @@ public class QuestionImportService {
     private void checkRefs(Long userId, Long categoryId, Long bankId) {
         if (categoryId != null) {
             Category c = categoryMapper.findById(categoryId);
-            if (c == null || !c.getUserId().equals(userId)) {
-                throw new BusinessException("所选分类不存在或无权使用");
+            if (c == null) {
+                throw new BusinessException("所选分类不存在");
             }
         }
         if (bankId != null) {

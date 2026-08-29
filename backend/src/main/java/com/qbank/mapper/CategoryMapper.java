@@ -15,11 +15,12 @@ public interface CategoryMapper {
 
     Category findById(@Param("id") Long id);
 
-    List<Category> selectByUser(@Param("userId") Long userId);
+    /** 全局分类(所有用户共用) */
+    List<Category> selectAll();
 
-    int countChildren(@Param("userId") Long userId, @Param("parentId") Long parentId);
+    int countChildren(@Param("parentId") Long parentId);
 
     int countQuestions(@Param("categoryId") Long categoryId);
 
-    int countByUser(@Param("userId") Long userId);
+    int countAll();
 }

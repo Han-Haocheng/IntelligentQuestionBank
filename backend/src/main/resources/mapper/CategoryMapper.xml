@@ -6,20 +6,20 @@
         SELECT * FROM category WHERE id = #{id}
     </select>
 
-    <select id="selectByUser" resultType="com.qbank.entity.Category">
-        SELECT * FROM category WHERE user_id = #{userId} ORDER BY sort, id
+    <select id="selectAll" resultType="com.qbank.entity.Category">
+        SELECT * FROM category ORDER BY sort, id
     </select>
 
     <select id="countChildren" resultType="int">
-        SELECT COUNT(*) FROM category WHERE user_id = #{userId} AND parent_id = #{parentId}
+        SELECT COUNT(*) FROM category WHERE parent_id = #{parentId}
     </select>
 
     <select id="countQuestions" resultType="int">
         SELECT COUNT(*) FROM question WHERE category_id = #{categoryId}
     </select>
 
-    <select id="countByUser" resultType="int">
-        SELECT COUNT(*) FROM category WHERE user_id = #{userId}
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM category
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">

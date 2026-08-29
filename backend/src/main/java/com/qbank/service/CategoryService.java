@@ -25,7 +25,7 @@ public class CategoryService {
     }
 
     public List<Category> tree(Long userId) {
-        List<Category> all = categoryMapper.selectByUser(userId);
+        List<Category> all = categoryMapper.selectAll();
         Map<Long, List<Category>> byParent = all.stream()
                 .filter(c -> c.getParentId() != null && c.getParentId() != 0)
                 .collect(Collectors.groupingBy(Category::getParentId));
@@ -42,7 +42,7 @@ public class CategoryService {
     }
 
     public List<Category> list(Long userId) {
-        return categoryMapper.selectByUser(userId);
+        return categoryMapper.selectAll();
     }
 
     public void add(Long userId, Category category) {
@@ -52,11 +52,11 @@ public class CategoryService {
         }
         if (category.getParentId() != 0) {
             Category parent = categoryMapper.findById(category.getParentId());
-            if (parent == null || !parent.getUserId().equals(userId)) {
+            if (parent == null) {
                 throw new BusinessException("父分类不存在");
             }
         }
-        category.setUserId(userId);
+        category.setUserId(userId);  // 记录创建者(全局分类, 普通用户不可调用)
         if (category.getSort() == null) {
             category.setSort(0);
         }
@@ -67,28 +67,27 @@ public class CategoryService {
         if (category.getId() == null) {
             throw new BusinessException("分类ID不能为空");
         }
-        Category exist = requireOwned(userId, category.getId());
+        Category exist = requireExists(category.getId());
         validate(category);
         if (category.getParentId() != null && category.getParentId() != 0) {
             if (category.getParentId().equals(category.getId())) {
                 throw new BusinessException("父分类不能是自身");
             }
             Category parent = categoryMapper.findById(category.getParentId());
-            if (parent == null || !parent.getUserId().equals(userId)) {
+            if (parent == null) {
                 throw new BusinessException("父分类不存在");
             }
             if (exist.getParentId() != null && exist.getParentId() == 0
-                    && categoryMapper.countChildren(userId, category.getId()) > 0) {
+                    && categoryMapper.countChildren(category.getId()) > 0) {
                 throw new BusinessException("该分类包含子分类, 不能改为二级分类");
             }
         }
-        category.setUserId(userId);
         categoryMapper.update(category);
     }
 
     public void delete(Long userId, Long id) {
-        requireOwned(userId, id);
-        if (categoryMapper.countChildren(userId, id) > 0) {
+        requireExists(id);
+        if (categoryMapper.countChildren(id) > 0) {
             throw new BusinessException("请先删除该分类下的子分类");
         }
         if (categoryMapper.countQuestions(id) > 0) {
@@ -97,10 +96,10 @@ public class CategoryService {
         categoryMapper.deleteById(id);
     }
 
-    private Category requireOwned(Long userId, Long id) {
+    private Category requireExists(Long id) {
         Category category = categoryMapper.findById(id);
-        if (category == null || !category.getUserId().equals(userId)) {
-            throw new BusinessException("分类不存在或无权操作");
+        if (category == null) {
+            throw new BusinessException("分类不存在");
         }
         return category;
     }

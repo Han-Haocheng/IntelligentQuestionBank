@@ -47,7 +47,7 @@ public class StatsService {
     public OverviewVO overview(Long userId) {
         OverviewVO vo = new OverviewVO();
         vo.setQuestionCount((long) questionMapper.countByUser(userId));
-        vo.setCategoryCount((long) categoryMapper.countByUser(userId));
+        vo.setCategoryCount((long) categoryMapper.countAll());
         vo.setFavoriteCount((long) favoriteMapper.countByUser(userId));
         vo.setWrongCount((long) wrongQuestionMapper.countByUser(userId, null));
         vo.setPracticeCount((long) practiceRecordMapper.countByUser(userId));
