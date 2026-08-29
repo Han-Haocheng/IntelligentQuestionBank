@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.CategoryMapper">
+
+    <select id="findById" resultType="com.qbank.entity.Category">
+        SELECT * FROM category WHERE id = #{id}
+    </select>
+
+    <select id="selectByUser" resultType="com.qbank.entity.Category">
+        SELECT * FROM category WHERE user_id = #{userId} ORDER BY sort, id
+    </select>
+
+    <select id="countChildren" resultType="int">
+        SELECT COUNT(*) FROM category WHERE user_id = #{userId} AND parent_id = #{parentId}
+    </select>
+
+    <select id="countQuestions" resultType="int">
+        SELECT COUNT(*) FROM question WHERE category_id = #{categoryId}
+    </select>
+
+    <select id="countByUser" resultType="int">
+        SELECT COUNT(*) FROM category WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO category (name, parent_id, sort, user_id)
+        VALUES (#{name}, #{parentId}, #{sort}, #{userId})
+    </insert>
+
+    <update id="update">
+        UPDATE category
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM category WHERE id = #{id}
+    </delete>
+</mapper>

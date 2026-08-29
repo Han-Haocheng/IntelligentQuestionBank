@@ -1,0 +1,18 @@
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Java / Maven
+backend/target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# 本地运行时文件
+*.log
+/tmp/

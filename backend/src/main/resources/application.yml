@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: qbank
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/question_bank?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: "123456"
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.qbank.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    use-generated-keys: true
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+
+logging:
+  level:
+    com.qbank.mapper: debug
+
+# AI 分析配置: 使用 OpenAI 兼容接口(默认适配 DeepSeek)
+# 配置 api-key 后自动启用真实 AI; 未配置时自动降级为本地规则分析
+qbank:
+  ai:
+    enabled: true
+    api-key: ""
+    base-url: https://api.deepseek.com
+    model: deepseek-chat
+    timeout-ms: 60000

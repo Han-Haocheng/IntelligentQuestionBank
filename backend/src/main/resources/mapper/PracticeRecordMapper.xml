@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.PracticeRecordMapper">
+
+    <select id="findById" resultType="com.qbank.entity.PracticeRecord">
+        SELECT * FROM practice_record WHERE id = #{id}
+    </select>
+
+    <select id="selectPage" resultType="com.qbank.entity.PracticeRecord">
+        SELECT * FROM practice_record WHERE user_id = #{userId} ORDER BY id DESC
+    </select>
+
+    <select id="countByUser" resultType="int">
+        SELECT COUNT(*) FROM practice_record WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectSumStats" resultType="com.qbank.entity.PracticeRecord">
+        SELECT COALESCE(SUM(total), 0) AS total, COALESCE(SUM(correct), 0) AS correct
+        FROM practice_record WHERE user_id = #{userId} AND status = 1
+    </select>
+
+    <select id="selectTrend" resultType="com.qbank.dto.TrendVO">
+        SELECT DATE_FORMAT(finish_time, '%Y-%m-%d') AS date,
+               COUNT(*) AS total,
+               SUM(correct) AS correct
+        FROM practice_record
+        WHERE user_id = #{userId} AND status = 1
+          AND finish_time >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
+        GROUP BY DATE_FORMAT(finish_time, '%Y-%m-%d')
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO practice_record (user_id, name, mode, category_id, total, status)
+        VALUES (#{userId}, #{name}, #{mode}, #{categoryId}, #{total}, 0)
+    </insert>
+
+    <update id="updateFinish">
+        UPDATE practice_record
+        SET correct = #{correct}, duration = #{duration}, status = 1, finish_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM practice_record WHERE id = #{id}
+    </delete>
+</mapper>

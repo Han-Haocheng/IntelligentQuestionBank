@@ -1,0 +1,48 @@
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import router from '../router'
+
+// 开发环境走 vite 代理(/api), 打包后(Electron)直连后端, 可用 localStorage 覆盖
+function resolveBase () {
+  const custom = localStorage.getItem('qbank_api_base')
+  if (custom) return custom
+  if (import.meta.env.DEV) return '/api'
+  return 'http://localhost:8080/api'
+}
+
+const request = axios.create({
+  baseURL: resolveBase(),
+  timeout: 60000
+})
+
+request.interceptors.request.use((config) => {
+  const token = localStorage.getItem('qbank_token')
+  if (token) {
+    config.headers.Authorization = 'Bearer ' + token
+  }
+  return config
+})
+
+request.interceptors.response.use(
+  (response) => {
+    const res = response.data
+    if (res.code !== 200) {
+      ElMessage.error(res.msg || '请求失败')
+      return Promise.reject(new Error(res.msg || '请求失败'))
+    }
+    return res.data
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('qbank_token')
+      localStorage.removeItem('qbank_user')
+      ElMessage.error('未登录或登录已过期')
+      router.push('/login')
+    } else {
+      ElMessage.error(error.message || '网络异常')
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default request
