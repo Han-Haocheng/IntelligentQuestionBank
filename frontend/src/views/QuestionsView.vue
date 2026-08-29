@@ -184,6 +184,15 @@
         <el-form-item v-if="shareForm.shareType === 1" label="用户名">
           <el-input v-model="shareForm.toUsername" placeholder="对方的用户名" />
         </el-form-item>
+        <el-form-item label="权限">
+          <div>
+            <el-radio-group v-model="shareForm.permission" :disabled="shareForm.shareType === 2">
+              <el-radio :value="1">只读</el-radio>
+              <el-radio :value="2">可编辑</el-radio>
+            </el-radio-group>
+            <div v-if="shareForm.shareType === 2" class="share-perm-tip">公开共享固定为只读</div>
+          </div>
+        </el-form-item>
         <el-form-item label="留言">
           <el-input v-model="shareForm.message" maxlength="200" placeholder="留言(可选)" />
         </el-form-item>
@@ -221,6 +230,15 @@
         </el-form-item>
         <el-form-item v-if="bankShareForm.shareType === 3" label="用户名">
           <el-input v-model="bankShareForm.toUsername" placeholder="对方的用户名" />
+        </el-form-item>
+        <el-form-item label="权限">
+          <div>
+            <el-radio-group v-model="bankShareForm.permission" :disabled="bankShareForm.shareType === 4">
+              <el-radio :value="1">只读</el-radio>
+              <el-radio :value="2">可编辑</el-radio>
+            </el-radio-group>
+            <div v-if="bankShareForm.shareType === 4" class="share-perm-tip">公开共享固定为只读</div>
+          </div>
         </el-form-item>
         <el-form-item label="留言">
           <el-input v-model="bankShareForm.message" maxlength="200" placeholder="留言(可选)" />
@@ -274,7 +292,7 @@ const bankSaving = ref(false)
 const bankShareVisible = ref(false)
 const bankSharing = ref(false)
 const bankForm = reactive({ id: null, name: '', description: '' })
-const bankShareForm = reactive({ bankId: null, shareType: 3, toUsername: '', message: '' })
+const bankShareForm = reactive({ bankId: null, shareType: 3, toUsername: '', permission: 1, message: '' })
 
 const editVisible = ref(false)
 const saving = ref(false)
@@ -286,7 +304,7 @@ const aiContent = ref('')
 
 const multiAnswer = ref([])
 const form = reactive({ id: null, type: 1, title: '', options: ['', '', '', ''], answer: '', analysis: '', difficulty: 3, categoryId: null, bankId: null, tags: '', source: '' })
-const shareForm = reactive({ questionId: null, shareType: 1, toUsername: '', message: '' })
+const shareForm = reactive({ questionId: null, shareType: 1, toUsername: '', permission: 1, message: '' })
 
 const isChoice = computed(() => form.type === 1 || form.type === 2)
 
@@ -425,6 +443,7 @@ function openBankShare (bank) {
   bankShareForm.bankId = bank.id
   bankShareForm.shareType = 3
   bankShareForm.toUsername = ''
+  bankShareForm.permission = 1
   bankShareForm.message = ''
   bankShareVisible.value = true
 }
@@ -530,6 +549,7 @@ function openShare (row) {
   shareForm.questionId = row.id
   shareForm.shareType = 1
   shareForm.toUsername = ''
+  shareForm.permission = 1
   shareForm.message = ''
   shareVisible.value = true
 }
@@ -664,5 +684,11 @@ onMounted(() => {
 .bank-add {
   width: 100%;
   margin-top: 10px;
+}
+
+.share-perm-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.6;
 }
 </style>

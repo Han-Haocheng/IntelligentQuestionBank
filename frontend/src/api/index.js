@@ -57,7 +57,10 @@ export const shareApi = {
   share: (data) => request.post('/share', data),
   sent: (params) => request.get('/share/sent', { params }),
   received: (params) => request.get('/share/received', { params }),
-  cancel: (id) => request.delete('/share/' + id)
+  cancel: (id) => request.delete('/share/' + id),
+  updatePermission: (id, permission) => request.put('/share/' + id + '/permission', { permission }),
+  subscribe: (id, subscribed) => request.post('/share/' + id + '/subscribe', { subscribed }),
+  copy: (id) => request.post('/share/' + id + '/copy')
 }
 
 // ==================== 练习 ====================

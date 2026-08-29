@@ -12,7 +12,7 @@ const routes = [
       { path: 'questions', name: 'questions', component: () => import('../views/QuestionsView.vue'), meta: { title: '题目管理' } },
       { path: 'banks', redirect: '/questions' },
       { path: 'ai-settings', name: 'ai-settings', component: () => import('../views/AiSettingsView.vue'), meta: { title: 'AI 设置' } },
-      { path: 'categories', name: 'categories', component: () => import('../views/CategoriesView.vue'), meta: { title: '分类管理' } },
+      { path: 'categories', name: 'categories', component: () => import('../views/CategoriesView.vue'), meta: { title: '分类管理', admin: true } },
       { path: 'practice', name: 'practice', component: () => import('../views/PracticeView.vue'), meta: { title: '开始练习' } },
       { path: 'records', name: 'records', component: () => import('../views/RecordsView.vue'), meta: { title: '练习记录' } },
       { path: 'wrong', name: 'wrong', component: () => import('../views/WrongBookView.vue'), meta: { title: '错题本' } },
