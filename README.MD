@@ -89,7 +89,8 @@ npm run electron:build       # 生产模式(加载 dist)
 ```
 
 桌面端生产模式默认请求 `http://localhost:8080/api`；如后端地址不同，
-可在应用内控制台执行 `localStorage.setItem("qbank_api_base", "http://主机:端口/api")` 后刷新。
+可在**登录页底部「⚙️ 后端地址设置」**中选择"自定义远程后端"填入地址（保存在本机浏览器，
+登录/注册及所有请求即发往该地址；远程后端需放行跨域 CORS）。
 
 ## 功能模块
 

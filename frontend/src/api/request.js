@@ -5,7 +5,7 @@ import router from '../router'
 // 开发环境走 vite 代理(/api), 打包后(Electron)直连后端, 可用 localStorage 覆盖
 function resolveBase () {
   const custom = localStorage.getItem('qbank_api_base')
-  if (custom) return custom
+  if (custom) return custom.replace(/\/+$/, '')
   if (import.meta.env.DEV) return '/api'
   return 'http://localhost:8080/api'
 }
@@ -16,6 +16,8 @@ const request = axios.create({
 })
 
 request.interceptors.request.use((config) => {
+  // 每次请求动态解析后端地址: 支持登录页随时切换远程后端, 无需刷新
+  config.baseURL = resolveBase()
   const token = localStorage.getItem('qbank_token')
   if (token) {
     config.headers.Authorization = 'Bearer ' + token
