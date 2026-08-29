@@ -19,6 +19,12 @@
         SELECT COUNT(*) FROM favorite WHERE user_id = #{userId}
     </select>
 
+    <select id="selectIdsByUserAndQuestionIds" resultType="long">
+        SELECT question_id FROM favorite
+        WHERE user_id = #{userId} AND question_id IN
+        <foreach collection="questionIds" item="qid" open="(" separator="," close=")">#{qid}</foreach>
+    </select>
+
     <insert id="insert">
         INSERT INTO favorite (user_id, question_id) VALUES (#{userId}, #{questionId})
     </insert>

@@ -14,6 +14,12 @@
         SELECT * FROM wrong_question WHERE user_id = #{userId} AND question_id = #{questionId}
     </select>
 
+    <select id="findByUserAndQuestionIds" resultType="com.qbank.entity.WrongQuestion">
+        SELECT * FROM wrong_question
+        WHERE user_id = #{userId} AND question_id IN
+        <foreach collection="questionIds" item="qid" open="(" separator="," close=")">#{qid}</foreach>
+    </select>
+
     <select id="selectPage" resultType="com.qbank.entity.WrongQuestion">
         <include refid="baseSelect"/>
         <where>

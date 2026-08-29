@@ -18,5 +18,8 @@ public interface FavoriteMapper {
 
     int countByUser(@Param("userId") Long userId);
 
+    /** 批量查询某批题目中已收藏的题目 id */
+    List<Long> selectIdsByUserAndQuestionIds(@Param("userId") Long userId, @Param("questionIds") List<Long> questionIds);
+
     int deleteByQuestionIds(@Param("ids") List<Long> ids);
 }

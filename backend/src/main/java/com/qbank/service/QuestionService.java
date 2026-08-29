@@ -21,7 +21,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 题目服务
@@ -58,10 +60,19 @@ public class QuestionService {
         result.setPageNum(pageInfo.getPageNum());
         result.setPageSize(pageInfo.getPageSize());
         result.setPages(pageInfo.getPages());
+        // 批量查询本页题目的收藏状态, 避免每行一次 find 查询(N+1)
+        Set<Long> favoritedIds = new HashSet<>();
+        if (!list.isEmpty()) {
+            List<Long> pageIds = new ArrayList<>();
+            for (Question question : list) {
+                pageIds.add(question.getId());
+            }
+            favoritedIds.addAll(favoriteMapper.selectIdsByUserAndQuestionIds(userId, pageIds));
+        }
         List<QuestionDTO> dtoList = new ArrayList<>();
         for (Question question : list) {
             QuestionDTO dto = toDTO(question);
-            dto.setFavorited(favoriteMapper.find(userId, question.getId()) != null);
+            dto.setFavorited(favoritedIds.contains(question.getId()));
             dtoList.add(dto);
         }
         result.setList(dtoList);

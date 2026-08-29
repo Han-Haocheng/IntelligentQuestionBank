@@ -26,5 +26,8 @@ public interface WrongQuestionMapper {
 
     int countByUser(@Param("userId") Long userId, @Param("mastered") Integer mastered);
 
+    /** 批量查询某批题目的错题记录 */
+    List<WrongQuestion> findByUserAndQuestionIds(@Param("userId") Long userId, @Param("questionIds") List<Long> questionIds);
+
     List<NameValueVO> countGroupByCategory(@Param("userId") Long userId);
 }

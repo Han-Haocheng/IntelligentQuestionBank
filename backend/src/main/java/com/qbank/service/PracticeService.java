@@ -156,10 +156,22 @@ public class PracticeService {
         record.setStatus(1);
         recordMapper.updateFinish(record);
 
-        // 错题本维护: 答错入本; 错题重做答对则标记已掌握
+        // 错题本维护: 答错入本; 错题重做答对则标记已掌握(先批量查询已有错题记录, 避免每题一次 find)
+        List<Long> wrongQuestionIds = new ArrayList<>();
         for (PracticeAnswer row : rows) {
             if (row.getIsCorrect() == 0) {
-                WrongQuestion exist = wrongQuestionMapper.find(userId, row.getQuestionId());
+                wrongQuestionIds.add(row.getQuestionId());
+            }
+        }
+        Map<Long, WrongQuestion> wrongMap = new HashMap<>();
+        if (!wrongQuestionIds.isEmpty()) {
+            for (WrongQuestion w : wrongQuestionMapper.findByUserAndQuestionIds(userId, wrongQuestionIds)) {
+                wrongMap.put(w.getQuestionId(), w);
+            }
+        }
+        for (PracticeAnswer row : rows) {
+            if (row.getIsCorrect() == 0) {
+                WrongQuestion exist = wrongMap.get(row.getQuestionId());
                 if (exist == null) {
                     WrongQuestion wrong = new WrongQuestion();
                     wrong.setUserId(userId);
