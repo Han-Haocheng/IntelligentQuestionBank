@@ -109,12 +109,21 @@ const filteredTree = computed(() => {
 
 // 展开状态记忆
 const EXPAND_KEY = 'qbank_cat_expanded'
-const expandedKeys = ref(JSON.parse(localStorage.getItem(EXPAND_KEY) || '[]'))
+// 注意: Element Plus 树表 treeData 的 key 是字符串, expand-row-keys 需用字符串匹配(数字 id 需 String())
+const expandedKeys = ref(((JSON.parse(localStorage.getItem(EXPAND_KEY) || '[]')) || []).map(String))
 function persistExpanded () {
   localStorage.setItem(EXPAND_KEY, JSON.stringify(expandedKeys.value))
 }
-function onExpandChange (row, expandedRows) {
-  expandedKeys.value = (expandedRows || []).map(r => r.id)
+// 树表 expand-change 回调为 (row, expanded: boolean), 据此增量维护展开 key
+function onExpandChange (row, expanded) {
+  const id = String(row.id)
+  const set = new Set(expandedKeys.value)
+  if (expanded) {
+    set.add(id)
+  } else {
+    set.delete(id)
+  }
+  expandedKeys.value = [...set]
   persistExpanded()
 }
 function expandAll () {
@@ -122,7 +131,7 @@ function expandAll () {
     const keys = []
     for (const n of nodes || []) {
       if (n.children && n.children.length) {
-        keys.push(n.id)
+        keys.push(String(n.id))
         keys.push(...collect(n.children))
       }
     }
