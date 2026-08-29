@@ -8,6 +8,7 @@ import com.qbank.common.BusinessException;
 import com.qbank.common.Constants;
 import com.qbank.dto.QuestionDTO;
 import com.qbank.dto.QuestionQuery;
+import com.qbank.entity.Category;
 import com.qbank.entity.Question;
 import com.qbank.mapper.BankMapper;
 import com.qbank.mapper.CategoryMapper;
@@ -185,8 +186,9 @@ public class QuestionService {
         if (categoryId == null) {
             return;
         }
-        if (categoryMapper.findById(categoryId) == null) {
-            throw new BusinessException("所选分类不存在");
+        Category category = categoryMapper.findById(categoryId);
+        if (category == null || !category.getUserId().equals(ownerId)) {
+            throw new BusinessException("所选分类不存在或无权使用");
         }
     }
 
