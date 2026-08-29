@@ -85,7 +85,7 @@ function onCommand (cmd) {
 
 .aside {
   background: #001529;
-  transition: width 0.2s;
+  /* 无宽度动画: 内容(logo/菜单/底部按钮)随 collapsed 状态同拍切换, 避免动画不同步造成的抖动 */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -100,7 +100,6 @@ function onCommand (cmd) {
   letter-spacing: 2px;
   white-space: nowrap;
   overflow: hidden;
-  transition: font-size 0.2s, padding 0.2s;
 }
 
 .logo-mini {
@@ -129,7 +128,6 @@ function onCommand (cmd) {
   justify-content: flex-start;
   padding: 12px 0 12px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  transition: padding 0.2s;
 }
 
 .aside-footer.footer-center {
