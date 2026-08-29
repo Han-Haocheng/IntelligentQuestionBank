@@ -48,6 +48,21 @@
         :title="'共解析 ' + rows.length + ' 行, 其中 ' + errorCount + ' 行存在问题(表格中标红)。导入时将自动跳过这些行。'" />
       <el-alert v-else type="success" :closable="false" style="margin-bottom: 12px"
         :title="'共解析 ' + rows.length + ' 行, 全部校验通过'" />
+
+      <!-- AI 补全缺失的答案/解析 -->
+      <div class="ai-box">
+        <div class="ai-head">
+          <span>AI 补全</span>
+          <span class="ai-sub">对缺失答案或解析的行, 调用本地 AI 生成(单次最多 {{ AI_LIMIT }} 行)</span>
+        </div>
+        <div class="ai-body">
+          <el-button type="primary" size="small" :disabled="!aiTargets.length || aiRunning"
+            :loading="aiRunning" @click="aiFill">AI 补全 {{ aiTargets.length }} 行</el-button>
+          <el-progress v-if="aiRunning || aiDone" :percentage="aiPercent" style="flex: 1; margin-left: 12px" />
+          <span v-if="aiDone && !aiRunning" class="ai-done">已处理 {{ aiDoneCount }} 行</span>
+        </div>
+        <div v-if="aiFailed.length" class="ai-fail">AI 未能补全: 第 {{ aiFailed.join('、') }} 行(可手动在库中补充)</div>
+      </div>
       <el-table :data="rows" max-height="380" size="small" border
         :row-class-name="(r) => r.row.errors && r.row.errors.length ? 'row-error' : ''">
         <el-table-column prop="rowNo" label="行" width="50" />
@@ -96,6 +111,11 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { questionApi, bankApi, categoryApi } from '../api'
+import { aiChat, hasApiKey } from '../utils/ai'
+import { useRouter } from 'vue-router'
+
+const AI_LIMIT = 50
+const router = useRouter()
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const emit = defineEmits(['imported'])
@@ -116,6 +136,83 @@ const uploadRef = ref()
 const errorCount = computed(() => rows.value.filter((r) => r.errors && r.errors.length).length)
 const okCount = computed(() => rows.value.length - errorCount.value)
 
+// ---------- AI 补全 ----------
+const aiRunning = ref(false)
+const aiDone = ref(false)
+const aiDoneCount = ref(0)
+const aiFailed = ref([])
+
+/** 缺失答案或解析的行(排除本身已校验失败的行), 上限 AI_LIMIT */
+const aiTargets = computed(() =>
+  rows.value
+    .filter((r) => !(r.errors && r.errors.length) && (!r.answer || !r.analysis))
+    .slice(0, AI_LIMIT)
+)
+const aiPercent = computed(() =>
+  aiTargets.value.length ? Math.round((aiDoneCount.value / aiTargets.value.length) * 100) : 0
+)
+
+function aiPrompt (row) {
+  const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
+  let p = '你是资深教师。请为下面这道题补全缺失的答案和解析。只输出一个 JSON 对象, 两个键分别是 answer 和 analysis, 值均为字符串, 不要输出 JSON 以外的任何内容。\n'
+  if (row.answer) p += '答案已存在, 请原样保留在 answer 字段: ' + row.answer + '\n'
+  p += '题型: ' + (typeNames[(row.type || 1) - 1]) + '\n'
+  p += '题干: ' + row.title + '\n'
+  if (row.options && row.options.length) {
+    p += '选项:\n'
+    row.options.forEach((o, i) => { p += String.fromCharCode(65 + i) + '. ' + o + '\n' })
+  }
+  if (row.analysis) p += '解析已存在: ' + row.analysis + '\n'
+  p += '要求: 选择题 answer 只填选项字母(多选题字母按字母序); 判断题 answer 只填「对」或「错」; 填空题多空用 ||| 分隔。'
+  return p
+}
+
+function parseAiJson (text) {
+  let s = (text || '').trim()
+  const fence = s.indexOf('{')
+  const end = s.lastIndexOf('}')
+  if (fence < 0 || end <= fence) return null
+  try {
+    return JSON.parse(s.substring(fence, end + 1))
+  } catch (e) {
+    return null
+  }
+}
+
+async function aiFill () {
+  if (!hasApiKey()) {
+    ElMessage.warning('尚未配置 AI, 请先到「AI 设置」填写 API Key')
+    router.push('/ai-settings')
+    return
+  }
+  const targets = aiTargets.value.slice()
+  if (!targets.length) {
+    ElMessage.info('没有需要补全的行')
+    return
+  }
+  aiRunning.value = true
+  aiDone.value = false
+  aiDoneCount.value = 0
+  aiFailed.value = []
+  try {
+    for (const row of targets) {
+      try {
+        const obj = parseAiJson(await aiChat(aiPrompt(row)))
+        if (!obj) throw new Error('bad json')
+        if (!row.answer && obj.answer) row.answer = String(obj.answer).trim()
+        if (!row.analysis && obj.analysis) row.analysis = String(obj.analysis).trim()
+        if (!row.answer && !row.analysis) throw new Error('empty')
+      } catch (e) {
+        aiFailed.value.push(row.rowNo)
+      }
+      aiDoneCount.value++
+    }
+  } finally {
+    aiRunning.value = false
+    aiDone.value = true
+  }
+}
+
 watch(visible, (v) => {
   if (v) {
     step.value = 0
@@ -123,6 +220,10 @@ watch(visible, (v) => {
     rows.value = []
     bankId.value = null
     categoryId.value = null
+    aiRunning.value = false
+    aiDone.value = false
+    aiDoneCount.value = 0
+    aiFailed.value = []
     if (!banks.value.length) {
       bankApi.list().then((list) => { banks.value = list })
     }
@@ -204,6 +305,44 @@ function onClosed () {
 </script>
 
 <style scoped>
+.ai-box {
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: #f5f7fa;
+}
+
+.ai-head {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.ai-sub {
+  color: #909399;
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.ai-body {
+  display: flex;
+  align-items: center;
+}
+
+.ai-done {
+  margin-left: 10px;
+  color: #67c23a;
+  font-size: 12px;
+}
+
+.ai-fail {
+  margin-top: 8px;
+  color: #e6a23c;
+  font-size: 12px;
+}
+
 .dialog-footer {
   margin-top: 16px;
   text-align: right;
