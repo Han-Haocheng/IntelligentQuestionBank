@@ -1,0 +1,76 @@
+# 自动发布工作流
+# 触发方式一: 推送 v* 标签 -> 自动构建后端 jar + 前端 dist 并创建对应 GitHub Release
+# 触发方式二: Actions 页面手动运行(workflow_dispatch), 填入已有标签名, 可为历史标签补发 Release
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要发布的标签 (如 v1.0.1)'
+        required: true
+        type: string
+
+# 创建 Release 需要写内容权限
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      # workflow_dispatch 时按输入的标签检出, tag push 时 ref_name 即标签
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 打包后端
+        run: mvn -B clean package -DskipTests --file backend/pom.xml
+
+      # ELECTRON_SKIP_BINARY_DOWNLOAD: 构建前端无需下载 Electron 二进制, 跳过以加速
+      - name: 构建前端
+        working-directory: frontend
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        run: |
+          npm ci
+          npm run build
+
+      # 产物统一按标签命名, 避免 pom 版本号与标签不一致时找不到文件
+      - name: 整理发布产物
+        run: |
+          JAR=$(ls backend/target/*.jar | head -n 1)
+          cp "$JAR" "qbank-${TAG}.jar"
+          zip -qr "frontend-dist-${TAG}.zip" frontend/dist
+          ls -lh "qbank-${TAG}.jar" "frontend-dist-${TAG}.zip"
+
+      # gh 已预装在 GitHub 托管容器中; --generate-notes 自动按提交生成发布说明
+      - name: 创建 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" \
+            "qbank-${TAG}.jar" \
+            "frontend-dist-${TAG}.zip" \
+            --title "$TAG" \
+            --generate-notes
