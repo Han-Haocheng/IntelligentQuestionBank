@@ -38,8 +38,16 @@ request.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('qbank_token')
       localStorage.removeItem('qbank_user')
+      // 同步清空 Pinia 内存态, 避免残留过期角色(动态引入避免循环依赖)
+      import('../stores/user').then(({ useUserStore }) => {
+        const store = useUserStore()
+        store.token = ''
+        store.userInfo = null
+      }).catch(() => {})
       ElMessage.error('未登录或登录已过期')
       router.push('/login')
+    } else if (error.response && error.response.status === 403) {
+      ElMessage.error('无权限执行该操作')
     } else {
       ElMessage.error(error.message || '网络异常')
     }

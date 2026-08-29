@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useUserStore } from '../stores/user'
 
 const routes = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
@@ -11,7 +12,8 @@ const routes = [
       { path: 'dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { title: '统计看板' } },
       { path: 'questions', name: 'questions', component: () => import('../views/QuestionsView.vue'), meta: { title: '题目管理' } },
       { path: 'banks', redirect: '/questions' },
-      { path: 'ai-settings', name: 'ai-settings', component: () => import('../views/AiSettingsView.vue'), meta: { title: 'AI 设置' } },
+      // AI 设置已并入「我的」页, 保留旧路径重定向(题目/AI 分析等处仍会跳转)
+      { path: 'ai-settings', redirect: '/my?tab=ai-settings' },
       { path: 'admin', name: 'admin', component: () => import('../views/AdminView.vue'), meta: { title: '管理', admin: true } },
       { path: 'categories', redirect: '/admin' },
       { path: 'users', redirect: '/admin' },
@@ -40,6 +42,14 @@ router.beforeEach((to) => {
   }
   if (to.path === '/login' && token) {
     return '/dashboard'
+  }
+  // 管理员页面鉴权: 侧栏只是隐藏入口, 直访地址同样拦截
+  if (to.meta.admin) {
+    const store = useUserStore()
+    if (!store.isAdmin) {
+      ElMessage.warning('无权限访问该页面')
+      return '/dashboard'
+    }
   }
   return true
 })
