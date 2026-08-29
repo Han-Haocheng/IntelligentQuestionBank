@@ -212,7 +212,7 @@
       <div class="q-actions">
         <el-button :disabled="index === 0" @click="index--">上一题</el-button>
         <el-button v-if="index < questions.length - 1" type="primary" @click="index++">下一题</el-button>
-        <el-button type="success" @click="submit">交卷</el-button>
+        <el-button type="success" :loading="submitting" @click="submit">交卷</el-button>
         <el-button @click="quit">放弃</el-button>
       </div>
     </el-card>
@@ -258,8 +258,9 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
+import { confirmAction } from '../utils/confirm'
 import { practiceApi, bankApi, wrongApi, favoriteApi } from '../api'
 import { useCategoryStore } from '../stores/categories'
 import { TYPE_NAMES as typeNames, DIFFICULTY_NAMES as difficultyNames, letter } from '../utils/constants'
@@ -268,6 +269,7 @@ const route = useRoute()
 
 const stage = ref('setup')
 const starting = ref(false)
+const submitting = ref(false)
 const categoryStore = useCategoryStore()
 const flatCategories = computed(() => categoryStore.flat)
 const activeTab = ref('start')
@@ -407,7 +409,7 @@ async function toggleMaster (row) {
 }
 
 async function removeWrong (row) {
-  await ElMessageBox.confirm('确定从错题本移除该题吗?', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定从错题本移除该题吗?'))) return
   await wrongApi.remove(row.questionId)
   ElMessage.success('已移除')
   loadWrong()
@@ -443,7 +445,7 @@ async function openDetail (row) {
 }
 
 async function removeRecord (row) {
-  await ElMessageBox.confirm('确定删除该练习记录吗?', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定删除该练习记录吗?'))) return
   await practiceApi.remove(row.id)
   ElMessage.success('删除成功')
   loadRecords()
@@ -475,23 +477,29 @@ async function start () {
 }
 
 async function submit () {
+  if (submitting.value) return
   const unanswered = questions.value.length - answeredCount.value
   if (unanswered > 0) {
-    await ElMessageBox.confirm('还有 ' + unanswered + ' 题未作答, 确定交卷吗?', '提示', { type: 'warning' })
+    if (!(await confirmAction('还有 ' + unanswered + ' 题未作答, 确定交卷吗?'))) return
   }
-  const payload = {
-    recordId: recordId.value,
-    answers: questions.value
-      .filter(q => (answers[q.id] || '').trim() !== '')
-      .map(q => ({ questionId: q.id, answer: answers[q.id] }))
+  submitting.value = true
+  try {
+    const payload = {
+      recordId: recordId.value,
+      answers: questions.value
+        .filter(q => (answers[q.id] || '').trim() !== '')
+        .map(q => ({ questionId: q.id, answer: answers[q.id] }))
+    }
+    result.value = await practiceApi.submit(payload)
+    stage.value = 'result'
+    ElMessage.success('已交卷, 答错的题目已加入错题本')
+  } finally {
+    submitting.value = false
   }
-  result.value = await practiceApi.submit(payload)
-  stage.value = 'result'
-  ElMessage.success('已交卷, 答错的题目已加入错题本')
 }
 
 async function quit () {
-  await ElMessageBox.confirm('确定放弃本次练习吗? 未交卷不会记录成绩。', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定放弃本次练习吗? 未交卷不会记录成绩。'))) return
   stage.value = 'setup'
 }
 
@@ -501,7 +509,9 @@ function backToSetup () {
 }
 
 onMounted(async () => {
-  await categoryStore.fetchTree()
+  try {
+    await categoryStore.fetchTree()
+  } catch (e) { /* 分类加载失败不阻塞其他初始化 */ }
   bankApi.list().then((list) => { banks.value = list })
   if (route.query.onlyWrong === '1') {
     form.mode = 3

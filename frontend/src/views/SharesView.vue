@@ -108,8 +108,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { shareApi, questionApi } from '../api'
+import { confirmAction } from '../utils/confirm'
 import { TYPE_NAMES as typeNames, letter } from '../utils/constants'
 
 const router = useRouter()
@@ -155,7 +156,7 @@ async function openDetail (row) {
 }
 
 async function cancel (row) {
-  await ElMessageBox.confirm('确定取消该共享吗?', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定取消该共享吗?'))) return
   await shareApi.cancel(row.id)
   ElMessage.success('已取消')
   load()

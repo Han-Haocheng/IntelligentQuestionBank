@@ -116,13 +116,13 @@
 
     <!-- 编辑对话框 -->
     <el-dialog v-model="editVisible" :title="form.id ? '编辑题目' : '新增题目'" width="720px" top="6vh">
-      <el-form :model="form" label-width="76px">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="76px">
         <el-form-item label="题型" required>
           <el-radio-group v-model="form.type" @change="onTypeChange">
             <el-radio-button v-for="(n, i) in typeNames" :key="i" :value="i + 1">{{ n }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="题干" required>
+        <el-form-item label="题干" prop="title" required>
           <el-input v-model="form.title" type="textarea" :rows="3" maxlength="2000" show-word-limit />
         </el-form-item>
         <el-form-item v-if="isChoice" label="选项" required>
@@ -138,7 +138,7 @@
             </el-button>
           </div>
         </el-form-item>
-        <el-form-item label="参考答案" required>
+        <el-form-item label="参考答案" prop="answer" required>
           <el-radio-group v-if="form.type === 1" v-model="form.answer">
             <el-radio v-for="(opt, i) in form.options" :key="i" :value="letter(i)">{{ letter(i) }}</el-radio>
           </el-radio-group>
@@ -274,7 +274,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { confirmAction } from '../utils/confirm'
 import { questionApi, bankApi, favoriteApi, shareApi, userApi } from '../api'
 import { useUserStore } from '../stores/user'
 import { useCategoryStore } from '../stores/categories'
@@ -307,6 +308,7 @@ const bankShareForm = reactive({ bankId: null, shareType: 3, toUsername: '', per
 
 const editVisible = ref(false)
 const saving = ref(false)
+const formRef = ref()
 const shareVisible = ref(false)
 const sharing = ref(false)
 const aiVisible = ref(false)
@@ -318,6 +320,42 @@ const form = reactive({ id: null, type: 1, title: '', options: ['', '', '', ''],
 const shareForm = reactive({ questionId: null, shareType: 1, toUsername: '', permission: 1, message: '' })
 
 const isChoice = computed(() => form.type === 1 || form.type === 2)
+
+// 题目表单校验(按题型动态校验答案/选项)
+const formRules = {
+  title: [{ required: true, message: '请输入题干', trigger: 'blur' }],
+  answer: [{
+    validator: (rule, value, callback) => {
+      if (form.type === 1 || form.type === 2) {
+        const options = (form.options || []).filter(o => (o || '').trim())
+        if (options.length < 2) {
+          callback(new Error('选择题至少需要 2 个有效选项'))
+          return
+        }
+        const letters = String(value || '').toUpperCase().replace(/[^A-Z]/g, '')
+        if (!letters) {
+          callback(new Error('请选择参考答案'))
+          return
+        }
+        if (form.type === 1 && letters.length !== 1) {
+          callback(new Error('单选题答案只能有一个选项'))
+          return
+        }
+        for (const c of letters) {
+          if (c.charCodeAt(0) - 65 >= options.length) {
+            callback(new Error('答案超出选项范围'))
+            return
+          }
+        }
+      } else if (!String(value || '').trim()) {
+        callback(new Error('请填写参考答案'))
+        return
+      }
+      callback()
+    },
+    trigger: 'change'
+  }]
+}
 
 const primaryCategories = computed(() => flatCategories.value.filter(c => c.parentId === 0))
 const secondaryCategories = computed(() => flatCategories.value.filter(c => c.parentId !== 0 && c.parentId === query.parentCategoryId))
@@ -427,9 +465,7 @@ async function saveBank () {
 }
 
 async function removeBank (bank) {
-  await ElMessageBox.confirm(
-    '确定删除题库「' + bank.name + '」吗? 库内 ' + (bank.questionCount || 0) + ' 道题将保留但不再归属任何题库。',
-    '提示', { type: 'warning' })
+  if (!(await confirmAction('确定删除题库「' + bank.name + '」吗? 库内 ' + (bank.questionCount || 0) + ' 道题将保留但不再归属任何题库。'))) return
   await bankApi.remove(bank.id)
   ElMessage.success('删除成功')
   if (query.bankId === bank.id) {
@@ -499,9 +535,14 @@ function openEdit (row) {
 }
 
 async function save () {
-  if (!form.title.trim()) { ElMessage.warning('请输入题干'); return }
   if (form.type === 2) {
     form.answer = [...multiAnswer.value].sort().join('')
+  }
+  try {
+    await formRef.value.validate()
+  } catch (e) {
+    ElMessage.warning('请完善表单必填项')
+    return
   }
   saving.value = true
   try {
@@ -539,7 +580,7 @@ async function toggleFav (row) {
 }
 
 async function removeOne (row) {
-  await ElMessageBox.confirm('确定删除该题目吗? 相关收藏/共享/错题记录将一并删除。', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定删除该题目吗? 相关收藏/共享/错题记录将一并删除。'))) return
   await questionApi.remove([row.id])
   ElMessage.success('删除成功')
   load()
@@ -593,7 +634,9 @@ async function analyze (row) {
 }
 
 onMounted(async () => {
-  await categoryStore.fetchTree()
+  try {
+    await categoryStore.fetchTree()
+  } catch (e) { /* 分类加载失败不阻塞列表加载 */ }
   loadBanks()
   loadUsers()
   if (route.query.bankId) {

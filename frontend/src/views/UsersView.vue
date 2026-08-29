@@ -39,8 +39,8 @@
         </el-table-column>
       </el-table>
       <div class="table-pager">
-        <el-pagination background layout="total, prev, pager, next" :total="total"
-          v-model:current-page="pageNum" :page-size="pageSize" @change="load" />
+        <el-pagination background layout="total, sizes, prev, pager, next" :total="total"
+          v-model:current-page="pageNum" :page-size="pageSize" :page-sizes="[10, 20, 50]" @change="load" />
       </div>
     </el-card>
 
@@ -72,8 +72,9 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { userApi } from '../api'
+import { confirmAction } from '../utils/confirm'
 
 const rows = ref([])
 const total = ref(0)
@@ -127,13 +128,13 @@ async function toggleStatus (row) {
 }
 
 async function resetPwd (row) {
-  await ElMessageBox.confirm('确定将 ' + row.username + ' 的密码重置为 123456 吗?', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定将 ' + row.username + ' 的密码重置为 123456 吗?'))) return
   await userApi.resetPassword(row.id)
   ElMessage.success('已重置为 123456')
 }
 
 async function remove (row) {
-  await ElMessageBox.confirm('确定删除用户 ' + row.username + ' 吗?', '提示', { type: 'warning' })
+  if (!(await confirmAction('确定删除用户 ' + row.username + ' 吗?'))) return
   await userApi.remove(row.id)
   ElMessage.success('删除成功')
   load()

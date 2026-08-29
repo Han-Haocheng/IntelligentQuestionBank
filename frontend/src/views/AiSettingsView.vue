@@ -81,6 +81,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { confirmAction } from '../utils/confirm'
 import {
   AI_PROVIDERS, CUSTOM_BASE_URL,
   getAiConfig, saveAiConfig, testConnection, fetchModels,
@@ -163,7 +164,8 @@ async function test () {
   }
 }
 
-function clear () {
+async function clear () {
+  if (!(await confirmAction('确定清空全部 AI 历史记录吗? 该操作不可恢复。'))) return
   clearAiHistory()
   history.value = []
   ElMessage.success('已清空')

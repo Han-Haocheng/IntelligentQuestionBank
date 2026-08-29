@@ -93,8 +93,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { categoryApi } from '../api'
+import { confirmAction } from '../utils/confirm'
 import { useCategoryStore } from '../stores/categories'
 
 const router = useRouter()
@@ -312,7 +313,7 @@ async function remove (row) {
   const msg = '确定删除分类「' + row.name + '」吗?\n' +
     '该分类及子级下共有 ' + (stats.questionCount || 0) + ' 道题、' + (stats.childCount || 0) + ' 个子分类;\n' +
     '删除后这些题目将变为未分类。'
-  await ElMessageBox.confirm(msg, '提示', { type: 'warning', confirmButtonText: '删除' })
+  if (!(await confirmAction(msg, '提示', { confirmButtonText: '删除' }))) return
   await categoryApi.remove(row.id)
   ElMessage.success('删除成功')
   categoryStore.refresh()
