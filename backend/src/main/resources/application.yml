@@ -6,9 +6,11 @@ spring:
     name: qbank
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/question_bank?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-    username: qbank
-    password: "qbank123"
+    # 连接信息可通过环境变量覆盖(生产环境务必通过环境变量注入, 勿提交真实口令):
+    #   DB_URL / DB_USERNAME / DB_PASSWORD
+    url: ${DB_URL:jdbc:mysql://localhost:3306/question_bank?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:qbank}
+    password: ${DB_PASSWORD:qbank123}
   servlet:
     multipart:
       max-file-size: 10MB
@@ -25,9 +27,15 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
 
-logging:
-  level:
-    com.qbank.mapper: debug
+# JWT 签名密钥(生产环境务必通过环境变量 QBANK_JWT_SECRET 覆盖为高强度随机串)
+qbank:
+  jwt:
+    secret: ${QBANK_JWT_SECRET:dev-only-change-me-in-production-0123456789abcdef}
+
+# 需要排查 SQL 时再临时开启, 勿在生产常开(会打印全部 SQL 与参数)
+#logging:
+#  level:
+#    com.qbank.mapper: debug
 
 # v2 起 AI 分析在前端本地完成(浏览器直连大模型), 后端不再提供 AI 接口
 # 前端配置入口: 系统界面左侧菜单 -> AI 设置
