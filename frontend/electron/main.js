@@ -1,8 +1,18 @@
-const { app, BrowserWindow, shell, Menu } = require('electron')
+const { app, BrowserWindow, shell, Menu, session } = require('electron')
 const path = require('path')
 const fs = require('fs')
 
 const DEV_URL = 'http://localhost:5173'
+
+// 生产模式 CSP: 允许本机后端 API 与 HTTPS AI 直连; Element Plus 需要内联样式
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' http://localhost:8080 https:"
+].join('; ')
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -35,7 +45,20 @@ function createWindow () {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  // 仅生产模式注入 CSP(开发模式 HMR 需要 websocket 与内联脚本, 不干扰)
+  if (app.isPackaged) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [CSP]
+        }
+      })
+    })
+  }
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

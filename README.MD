@@ -112,7 +112,7 @@ npm run electron:build       # 生产模式(加载 dist)
 
 ## API 概览 (统一前缀 /api, 返回 {code, msg, data})
 
-```
+```HTTP
 POST /api/user/register|login|logout|add      登录注册(登录返回token)
 GET  /api/user/info|list                      个人信息/用户列表(管理员)
 PUT  /api/user/update|status|reset-password   资料/状态/重置密码
