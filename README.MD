@@ -66,7 +66,7 @@ cd backend
 mvn spring-boot:run          # 方式一: 开发运行
 # 或
 mvn -DskipTests package      # 方式二: 打包后运行
-java -jar target/qbank-1.0.2.jar
+java -jar target/qbank-1.1.0.jar
 ```
 
 ### 3. 启动前端 (端口 5173)
