@@ -1,7 +1,7 @@
 {
   "name": "intelligent-question-bank",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "智能题库管理系统前端 (Vue3 + Element Plus + Electron)",
   "main": "electron/main.js",
   "scripts": {
