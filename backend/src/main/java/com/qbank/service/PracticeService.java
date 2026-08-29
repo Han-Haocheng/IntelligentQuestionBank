@@ -13,6 +13,7 @@ import com.qbank.entity.PracticeRecord;
 import com.qbank.entity.Question;
 import com.qbank.entity.WrongQuestion;
 import com.qbank.mapper.PracticeAnswerMapper;
+import com.qbank.mapper.PracticeQuestionMapper;
 import com.qbank.mapper.PracticeRecordMapper;
 import com.qbank.mapper.QuestionMapper;
 import com.qbank.mapper.WrongQuestionMapper;
@@ -34,15 +35,18 @@ public class PracticeService {
 
     private final PracticeRecordMapper recordMapper;
     private final PracticeAnswerMapper answerMapper;
+    private final PracticeQuestionMapper practiceQuestionMapper;
     private final QuestionMapper questionMapper;
     private final WrongQuestionMapper wrongQuestionMapper;
     private final QuestionService questionService;
 
     public PracticeService(PracticeRecordMapper recordMapper, PracticeAnswerMapper answerMapper,
+                           PracticeQuestionMapper practiceQuestionMapper,
                            QuestionMapper questionMapper, WrongQuestionMapper wrongQuestionMapper,
                            QuestionService questionService) {
         this.recordMapper = recordMapper;
         this.answerMapper = answerMapper;
+        this.practiceQuestionMapper = practiceQuestionMapper;
         this.questionMapper = questionMapper;
         this.wrongQuestionMapper = wrongQuestionMapper;
         this.questionService = questionService;
@@ -66,6 +70,12 @@ public class PracticeService {
         record.setCategoryId(dto.getCategoryId());
         record.setTotal(questions.size());
         recordMapper.insert(record);
+        // 落库本次练习的会题目快照, 交卷时据此校验提交的题目归属
+        List<Long> sessionQuestionIds = new ArrayList<>();
+        for (Question q : questions) {
+            sessionQuestionIds.add(q.getId());
+        }
+        practiceQuestionMapper.insertBatch(record.getId(), sessionQuestionIds);
 
         PracticeStartVO vo = new PracticeStartVO();
         vo.setRecord(record);
@@ -99,6 +109,18 @@ public class PracticeService {
             }
         }
         List<Long> questionIds = new ArrayList<>(answerMap.keySet());
+        // 交卷完整性: 提交的题目必须属于本次练习会话(旧记录无快照时降级为仅做数量校验)
+        List<Long> sessionQuestionIds = practiceQuestionMapper.selectQuestionIdsByRecord(record.getId());
+        if (!sessionQuestionIds.isEmpty()) {
+            for (Long qid : questionIds) {
+                if (!sessionQuestionIds.contains(qid)) {
+                    throw new BusinessException("交卷数据包含本次练习之外的题目");
+                }
+            }
+        }
+        if (questionIds.size() > record.getTotal()) {
+            throw new BusinessException("交卷题数超过本次练习题目数");
+        }
         List<PracticeAnswer> rows = new ArrayList<>();
         int correctCount = 0;
         if (!questionIds.isEmpty()) {

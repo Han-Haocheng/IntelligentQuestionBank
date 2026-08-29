@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.PracticeQuestionMapper">
+
+    <insert id="insertBatch">
+        INSERT INTO practice_question (record_id, question_id) VALUES
+        <foreach collection="questionIds" item="qid" separator=",">
+            (#{recordId}, #{qid})
+        </foreach>
+    </insert>
+
+    <select id="selectQuestionIdsByRecord" resultType="long">
+        SELECT question_id FROM practice_question WHERE record_id = #{recordId}
+    </select>
+</mapper>

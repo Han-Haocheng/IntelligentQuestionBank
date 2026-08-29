@@ -127,6 +127,16 @@ CREATE TABLE IF NOT EXISTS practice_answer (
   KEY idx_record (record_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='练习答题明细表';
 
+-- 练习会题目快照表 (记录每次练习包含的题目, 交卷时校验归属, 防止提交无关题目)
+CREATE TABLE IF NOT EXISTS practice_question (
+  id          BIGINT   NOT NULL AUTO_INCREMENT COMMENT '会题目ID',
+  record_id   BIGINT   NOT NULL COMMENT '练习记录ID',
+  question_id BIGINT   NOT NULL COMMENT '题目ID',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_record_question (record_id, question_id),
+  KEY idx_question (question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='练习会题目快照表';
+
 -- 错题本
 CREATE TABLE IF NOT EXISTS wrong_question (
   id              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '错题ID',
