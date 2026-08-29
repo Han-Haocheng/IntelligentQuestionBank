@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.PageUtil;
 import com.qbank.entity.WrongQuestion;
 import com.qbank.mapper.WrongQuestionMapper;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class WrongQuestionService {
     }
 
     public PageInfo<WrongQuestion> page(Long userId, Integer mastered, Long categoryId, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         List<WrongQuestion> list = wrongQuestionMapper.selectPage(userId, mastered, categoryId);
         PageInfo<WrongQuestion> pageInfo = new PageInfo<>(list);
         pageInfo.setList(list);

@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.PageUtil;
 import com.qbank.entity.Favorite;
 import com.qbank.entity.Question;
 import com.qbank.mapper.FavoriteMapper;
@@ -40,7 +41,7 @@ public class FavoriteService {
     }
 
     public PageInfo<Question> page(Long userId, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         return new PageInfo<>(favoriteMapper.selectPage(userId));
     }
 

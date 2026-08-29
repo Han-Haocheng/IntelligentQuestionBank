@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.PageUtil;
 import com.qbank.dto.ShareDTO;
 import com.qbank.entity.Bank;
 import com.qbank.entity.Question;
@@ -115,12 +116,12 @@ public class ShareService {
     }
 
     public PageInfo<Share> sent(Long userId, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         return new PageInfo<>(shareMapper.selectSent(userId));
     }
 
     public PageInfo<Share> received(Long userId, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         return new PageInfo<>(shareMapper.selectReceived(userId));
     }
 

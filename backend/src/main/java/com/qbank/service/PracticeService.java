@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.PageUtil;
 import com.qbank.common.Constants;
 import com.qbank.dto.PracticeStartDTO;
 import com.qbank.dto.PracticeStartVO;
@@ -194,7 +195,7 @@ public class PracticeService {
     }
 
     public PageInfo<PracticeRecord> records(Long userId, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         return new PageInfo<>(recordMapper.selectPage(userId));
     }
 

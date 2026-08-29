@@ -3,6 +3,7 @@ package com.qbank.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.common.PageUtil;
 import com.qbank.dto.LoginDTO;
 import com.qbank.dto.LoginVO;
 import com.qbank.dto.RegisterDTO;
@@ -102,7 +103,7 @@ public class UserService {
     }
 
     public PageInfo<User> page(String keyword, int pageNum, int pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
+        PageHelper.startPage(PageUtil.pageNum(pageNum), PageUtil.pageSize(pageSize));
         return new PageInfo<>(userMapper.selectPage(keyword));
     }
 

@@ -25,8 +25,8 @@ public class QuestionQuery {
     public void setDifficulty(Integer difficulty) { this.difficulty = difficulty; }
     public String getTag() { return tag; }
     public void setTag(String tag) { this.tag = tag; }
-    public Integer getPageNum() { return pageNum == null ? 1 : pageNum; }
+    public Integer getPageNum() { return com.qbank.common.PageUtil.pageNum(pageNum == null ? 1 : pageNum); }
     public void setPageNum(Integer pageNum) { this.pageNum = pageNum; }
-    public Integer getPageSize() { return pageSize == null ? 10 : pageSize; }
+    public Integer getPageSize() { return com.qbank.common.PageUtil.pageSize(pageSize == null ? 10 : pageSize); }
     public void setPageSize(Integer pageSize) { this.pageSize = pageSize; }
 }

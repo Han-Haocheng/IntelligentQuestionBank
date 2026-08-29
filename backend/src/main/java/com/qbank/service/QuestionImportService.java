@@ -17,6 +17,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -341,27 +342,54 @@ public class QuestionImportService {
 
     // ==================== 保存 ====================
 
+    /**
+     * 批量入库: 单事务内先批量插入, 若因个别行(如字段超长)失败则降级逐行插入并隔离失败行,
+     * 其余行正常提交; 校验失败的行返回 failures 明细
+     */
+    @Transactional
     public java.util.Map<String, Object> save(Long userId, List<ImportRowDTO> rows,
                                               Long categoryId, Long bankId) {
         checkRefs(userId, categoryId, bankId);
         int success = 0;
         List<java.util.Map<String, Object>> failures = new ArrayList<>();
+        List<Question> toInsert = new ArrayList<>();
+        List<Integer> toInsertRowNos = new ArrayList<>();
         for (ImportRowDTO dto : rows) {
             validate(dto);
             if (dto.getErrors() != null && !dto.getErrors().isEmpty()) {
-                java.util.Map<String, Object> fail = new java.util.HashMap<>();
-                fail.put("rowNo", dto.getRowNo());
-                fail.put("reason", String.join("; ", dto.getErrors()));
-                failures.add(fail);
+                failures.add(failureOf(dto.getRowNo(), String.join("; ", dto.getErrors())));
                 continue;
             }
-            questionMapper.insert(toQuestion(userId, dto, categoryId, bankId));
-            success++;
+            toInsert.add(toQuestion(userId, dto, categoryId, bankId));
+            toInsertRowNos.add(dto.getRowNo());
+        }
+        if (!toInsert.isEmpty()) {
+            try {
+                questionMapper.insertBatch(toInsert);
+                success += toInsert.size();
+            } catch (Exception batchEx) {
+                // 批量失败(如单行数据超长): 逐行重试, 坏行隔离为 failures, 不影响其他行提交
+                for (int i = 0; i < toInsert.size(); i++) {
+                    try {
+                        questionMapper.insert(toInsert.get(i));
+                        success++;
+                    } catch (Exception rowEx) {
+                        failures.add(failureOf(toInsertRowNos.get(i), "数据入库失败(字段可能超长或格式不符)"));
+                    }
+                }
+            }
         }
         java.util.Map<String, Object> result = new java.util.HashMap<>();
         result.put("successCount", success);
         result.put("failures", failures);
         return result;
+    }
+
+    private java.util.Map<String, Object> failureOf(Integer rowNo, String reason) {
+        java.util.Map<String, Object> fail = new java.util.HashMap<>();
+        fail.put("rowNo", rowNo);
+        fail.put("reason", reason);
+        return fail;
     }
 
     private void checkRefs(Long userId, Long categoryId, Long bankId) {

@@ -116,6 +116,13 @@
         VALUES (#{userId}, #{categoryId}, #{bankId}, #{type}, #{title}, #{options}, #{answer}, #{analysis}, #{difficulty}, #{tags}, #{source})
     </insert>
 
+    <insert id="insertBatch">
+        INSERT INTO question (user_id, category_id, bank_id, type, title, options, answer, analysis, difficulty, tags, source) VALUES
+        <foreach collection="list" item="q" separator=",">
+            (#{q.userId}, #{q.categoryId}, #{q.bankId}, #{q.type}, #{q.title}, #{q.options}, #{q.answer}, #{q.analysis}, #{q.difficulty}, #{q.tags}, #{q.source})
+        </foreach>
+    </insert>
+
     <update id="update">
         UPDATE question
         <set>

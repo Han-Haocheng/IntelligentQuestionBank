@@ -11,6 +11,8 @@ public interface QuestionMapper {
 
     int insert(Question question);
 
+    int insertBatch(@Param("list") List<Question> list);
+
     int update(Question question);
 
     int deleteByIds(@Param("ids") List<Long> ids);
