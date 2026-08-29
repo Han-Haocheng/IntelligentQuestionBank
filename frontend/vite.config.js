@@ -1,9 +1,17 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // base: './' 使打包后的 dist 可以被 Electron 以 file:// 方式加载
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    // Element Plus 按需引入: 组件与样式随用随载, 显著减小打包体积
+    AutoImport({ resolvers: [ElementPlusResolver()] }),
+    Components({ resolvers: [ElementPlusResolver()] })
+  ],
   base: './',
   server: {
     port: 5173,
@@ -21,15 +29,12 @@ export default defineConfig({
     }
   },
   build: {
-    // echarts/element-plus 本身体积较大, 拆分后单 chunk 仍 >500kB, 提高阈值避免噪音告警
     chunkSizeWarningLimit: 1500,
-    // 拆分大依赖, 业务代码改动不会使三方库缓存失效
     rollupOptions: {
       output: {
         manualChunks: {
-          vue: ['vue', 'vue-router', 'pinia', 'axios'],
-          'element-plus': ['element-plus', '@element-plus/icons-vue'],
-          echarts: ['echarts']
+          // 仅固定基础运行时; element-plus/echarts 已按需引入, 不再强制整包进单 chunk(避免破坏摇树)
+          vue: ['vue', 'vue-router', 'pinia', 'axios']
         }
       }
     }
