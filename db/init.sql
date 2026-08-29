@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS bank (
   id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '题库ID',
   name        VARCHAR(100) NOT NULL COMMENT '题库名称',
   description VARCHAR(500) DEFAULT NULL COMMENT '题库描述',
+  origin_bank_id BIGINT    DEFAULT NULL COMMENT '拷贝来源题库ID',
   user_id     BIGINT       NOT NULL COMMENT '所属用户',
   create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (id),
@@ -62,6 +63,7 @@ CREATE TABLE IF NOT EXISTS question (
   difficulty  TINYINT       NOT NULL DEFAULT 3 COMMENT '难度 1~5',
   tags        VARCHAR(255)  DEFAULT NULL COMMENT '知识点标签,逗号分隔',
   source      VARCHAR(100)  DEFAULT NULL COMMENT '题目来源',
+  origin_question_id BIGINT DEFAULT NULL COMMENT '拷贝来源题目ID',
   create_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (id),
@@ -91,6 +93,7 @@ CREATE TABLE IF NOT EXISTS share (
   from_user_id BIGINT       NOT NULL COMMENT '共享人ID',
   to_user_id   BIGINT       DEFAULT NULL COMMENT '接收人ID(公开共享为NULL)',
   share_type   TINYINT      NOT NULL DEFAULT 1 COMMENT '1指定用户-题目 2公开-题目 3指定用户-题库 4公开-题库',
+  permission   TINYINT      NOT NULL DEFAULT 1 COMMENT '1只读 2可编辑(公开共享固定只读)',
   message      VARCHAR(200) DEFAULT NULL COMMENT '共享留言',
   create_time  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '共享时间',
   PRIMARY KEY (id),
@@ -101,6 +104,18 @@ CREATE TABLE IF NOT EXISTS share (
   UNIQUE KEY uk_share_question_target (from_user_id, question_id, to_user_id, share_type),
   UNIQUE KEY uk_share_bank_target (from_user_id, bank_id, to_user_id, share_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='共享表';
+
+-- 共享订阅状态表 (收件人侧: 订阅/退订; 公开共享也按用户记录)
+CREATE TABLE IF NOT EXISTS share_member (
+  id          BIGINT      NOT NULL AUTO_INCREMENT COMMENT '订阅ID',
+  share_id    BIGINT      NOT NULL COMMENT '共享ID',
+  user_id     BIGINT      NOT NULL COMMENT '收件人ID',
+  subscribed  TINYINT     NOT NULL DEFAULT 1 COMMENT '1订阅中 0已退订',
+  create_time DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_share_user (share_id, user_id),
+  KEY idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='共享订阅状态(收件人侧)';
 
 -- 练习记录表 (mode: 1-顺序 2-随机 3-错题重做)
 CREATE TABLE IF NOT EXISTS practice_record (
