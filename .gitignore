@@ -1,6 +1,8 @@
 # Node
 node_modules/
 dist/
+release/
+frontend-dist-*.zip
 npm-debug.log*
 
 # Java / Maven

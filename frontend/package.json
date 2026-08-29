@@ -3,27 +3,80 @@
   "private": true,
   "version": "1.0.1",
   "description": "智能题库管理系统前端 (Vue3 + Element Plus + Electron)",
+  "author": {
+    "name": "Han-Haocheng"
+  },
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "electron .",
-    "electron:build": "vite build && electron ."
+    "electron:build": "vite build && electron .",
+    "dist": "vite build && electron-builder",
+    "dist:dir": "vite build && electron-builder --dir"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@vitejs/plugin-vue": "^5.2.1",
     "axios": "^1.7.9",
     "echarts": "^5.5.1",
+    "electron": "^33.2.1",
+    "electron-builder": "^26.15.3",
     "element-plus": "^2.9.1",
     "pinia": "^2.2.6",
+    "vite": "^6.0.5",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.1",
-    "electron": "^33.2.1",
-    "vite": "^6.0.5"
+  "build": {
+    "appId": "com.hanhaocheng.qbank",
+    "productName": "智能题库",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**",
+      "dist/**",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "QBank-Setup-${version}-${arch}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "智能题库"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.education",
+      "identity": null,
+      "artifactName": "QBank-${version}-${arch}.dmg"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education",
+      "artifactName": "QBank-${version}-${arch}.AppImage"
+    }
   },
   "allowScripts": {
     "esbuild@0.25.12": true,
