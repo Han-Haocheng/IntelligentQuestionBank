@@ -28,13 +28,24 @@
           </template>
         </el-table-column>
         <el-table-column prop="lastWrongTime" label="最近错误" width="170" />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-            <el-button link :type="row.mastered ? 'warning' : 'success'" @click="toggleMaster(row)">
-              {{ row.mastered ? '恢复' : '掌握' }}
-            </el-button>
-            <el-button link type="danger" @click="remove(row)">移除</el-button>
+            <el-tooltip :content="row.favorited ? '取消收藏' : '收藏'">
+              <el-button link :type="row.favorited ? 'warning' : 'info'" @click="toggleFav(row)">
+                <el-icon><StarFilled v-if="row.favorited" /><Star v-else /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="详情">
+              <el-button link type="primary" @click="openDetail(row)"><el-icon><View /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip :content="row.mastered ? '恢复未掌握' : '标记掌握'">
+              <el-button link :type="row.mastered ? 'warning' : 'success'" @click="toggleMaster(row)">
+                <el-icon><RefreshLeft v-if="row.mastered" /><CircleCheck v-else /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="移除">
+              <el-button link type="danger" @click="remove(row)"><el-icon><Delete /></el-icon></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -66,7 +77,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { wrongApi } from '../api'
+import { wrongApi, favoriteApi } from '../api'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const router = useRouter()
@@ -100,6 +111,12 @@ async function load () {
 function openDetail (row) {
   current.value = row
   detailVisible.value = true
+}
+
+async function toggleFav (row) {
+  const fav = await favoriteApi.toggle(row.questionId)
+  row.favorited = fav
+  ElMessage.success(fav ? '已收藏' : '已取消收藏')
 }
 
 async function toggleMaster (row) {

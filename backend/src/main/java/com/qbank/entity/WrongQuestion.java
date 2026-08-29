@@ -25,6 +25,7 @@ public class WrongQuestion {
     private String answer;
     private String analysis;
     private String tags;
+    private Boolean favorited;   // 当前用户是否已收藏该题
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -58,4 +59,6 @@ public class WrongQuestion {
     public void setAnalysis(String analysis) { this.analysis = analysis; }
     public String getTags() { return tags; }
     public void setTags(String tags) { this.tags = tags; }
+    public Boolean getFavorited() { return favorited; }
+    public void setFavorited(Boolean favorited) { this.favorited = favorited; }
 }

@@ -80,10 +80,14 @@
             </el-table-column>
             <el-table-column prop="startTime" label="开始时间" width="165" />
             <el-table-column prop="finishTime" label="交卷时间" width="165" />
-            <el-table-column label="操作" width="140" fixed="right">
+            <el-table-column label="操作" width="100" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-                <el-button link type="danger" @click="removeRecord(row)">删除</el-button>
+                <el-tooltip content="详情">
+                  <el-button link type="primary" @click="openDetail(row)"><el-icon><View /></el-icon></el-button>
+                </el-tooltip>
+                <el-tooltip content="删除">
+                  <el-button link type="danger" @click="removeRecord(row)"><el-icon><Delete /></el-icon></el-button>
+                </el-tooltip>
               </template>
             </el-table-column>
           </el-table>
@@ -124,13 +128,24 @@
               </template>
             </el-table-column>
             <el-table-column prop="lastWrongTime" label="最近错误" width="170" />
-            <el-table-column label="操作" width="210" fixed="right">
+            <el-table-column label="操作" width="180" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openWrongDetail(row)">详情</el-button>
-                <el-button link :type="row.mastered ? 'warning' : 'success'" @click="toggleMaster(row)">
-                  {{ row.mastered ? '恢复' : '掌握' }}
-                </el-button>
-                <el-button link type="danger" @click="removeWrong(row)">移除</el-button>
+                <el-tooltip :content="row.favorited ? '取消收藏' : '收藏'">
+                  <el-button link :type="row.favorited ? 'warning' : 'info'" @click="toggleWrongFav(row)">
+                    <el-icon><StarFilled v-if="row.favorited" /><Star v-else /></el-icon>
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip content="详情">
+                  <el-button link type="primary" @click="openWrongDetail(row)"><el-icon><View /></el-icon></el-button>
+                </el-tooltip>
+                <el-tooltip :content="row.mastered ? '恢复未掌握' : '标记掌握'">
+                  <el-button link :type="row.mastered ? 'warning' : 'success'" @click="toggleMaster(row)">
+                    <el-icon><RefreshLeft v-if="row.mastered" /><CircleCheck v-else /></el-icon>
+                  </el-button>
+                </el-tooltip>
+                <el-tooltip content="移除">
+                  <el-button link type="danger" @click="removeWrong(row)"><el-icon><Delete /></el-icon></el-button>
+                </el-tooltip>
               </template>
             </el-table-column>
           </el-table>
@@ -245,7 +260,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
-import { practiceApi, bankApi, wrongApi } from '../api'
+import { practiceApi, bankApi, wrongApi, favoriteApi } from '../api'
 import { useCategoryStore } from '../stores/categories'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
@@ -380,6 +395,12 @@ async function loadWrong () {
 function openWrongDetail (row) {
   wrongCurrent.value = row
   wrongDetailVisible.value = true
+}
+
+async function toggleWrongFav (row) {
+  const fav = await favoriteApi.toggle(row.questionId)
+  row.favorited = fav
+  ElMessage.success(fav ? '已收藏' : '已取消收藏')
 }
 
 async function toggleMaster (row) {
