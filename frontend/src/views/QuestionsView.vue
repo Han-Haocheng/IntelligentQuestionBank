@@ -1,19 +1,55 @@
 <template>
-  <div>
-    <el-card class="page-card">
+  <div class="questions-page">
+    <!-- 左侧题库栏 -->
+    <el-card class="bank-aside" shadow="never">
+      <template #header><b>题库</b></template>
+      <div v-loading="bankLoading" class="bank-list">
+        <div class="bank-item" :class="{ active: !query.bankId }" @click="selectBank(null)">
+          <el-icon class="bank-icon"><Files /></el-icon>
+          <span class="bank-name">全部题目</span>
+        </div>
+        <div v-for="b in banks" :key="b.id" class="bank-item" :class="{ active: query.bankId === b.id }"
+          @click="selectBank(b.id)">
+          <span class="bank-name" :title="b.name">{{ b.name }}</span>
+          <el-tag size="small" type="info">{{ b.questionCount || 0 }}</el-tag>
+          <span class="bank-ops" @click.stop>
+            <el-dropdown trigger="click" @command="(cmd) => onBankCommand(cmd, b)">
+              <el-icon class="bank-more"><MoreFilled /></el-icon>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item command="share">共享</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </span>
+        </div>
+        <div v-if="!bankLoading && banks.length === 0" class="bank-empty">暂无题库, 点击下方按钮创建</div>
+      </div>
+      <el-button type="success" plain class="bank-add" @click="openBankEdit()">
+        <el-icon><Plus /></el-icon>&nbsp;新建题库
+      </el-button>
+    </el-card>
+
+    <!-- 右侧题目区 -->
+    <el-card class="page-card main-card">
       <div class="filter-bar">
-        <el-input v-model="query.keyword" placeholder="搜索题干/标签" clearable style="width: 200px" @keyup.enter="load" />
-        <el-select v-model="query.categoryId" placeholder="分类" clearable style="width: 150px">
+        <el-input v-model="query.keyword" placeholder="搜索题干/标签" clearable style="width: 180px" @keyup.enter="load" />
+        <el-select v-model="query.categoryId" placeholder="分类" clearable style="width: 140px">
           <el-option v-for="c in flatCategories" :key="c.id" :value="c.id" :label="c.pathName" />
         </el-select>
-        <el-select v-model="query.bankId" placeholder="题库" clearable style="width: 150px">
+        <el-select v-model="query.bankId" placeholder="题库" clearable filterable style="width: 140px" @change="selectBank">
           <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name" />
         </el-select>
-        <el-select v-model="query.type" placeholder="题型" clearable style="width: 120px">
+        <el-select v-model="query.type" placeholder="题型" clearable style="width: 110px">
           <el-option v-for="(n, i) in typeNames" :key="i" :value="i + 1" :label="n" />
         </el-select>
-        <el-select v-model="query.difficulty" placeholder="难度" clearable style="width: 120px">
+        <el-select v-model="query.difficulty" placeholder="难度" clearable style="width: 110px">
           <el-option v-for="(n, i) in difficultyNames" :key="i" :value="i + 1" :label="n" />
+        </el-select>
+        <el-select v-if="userStore.isAdmin" v-model="query.userId" placeholder="全部用户" clearable filterable style="width: 130px">
+          <el-option v-for="u in users" :key="u.id" :value="u.id" :label="u.nickname || u.username" />
         </el-select>
         <el-button type="primary" @click="load"><el-icon><Search /></el-icon>&nbsp;搜索</el-button>
         <el-button @click="reset">重置</el-button>
@@ -158,6 +194,44 @@
       </template>
     </el-dialog>
 
+    <!-- 新建/编辑题库对话框 (移植自 BanksView) -->
+    <el-dialog v-model="bankEditVisible" :title="bankForm.id ? '编辑题库' : '新建题库'" width="460px">
+      <el-form :model="bankForm" label-width="80px">
+        <el-form-item label="题库名称" required>
+          <el-input v-model="bankForm.name" maxlength="50" show-word-limit />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="bankForm.description" type="textarea" :rows="3" maxlength="500" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="bankEditVisible = false">取消</el-button>
+        <el-button type="primary" :loading="bankSaving" @click="saveBank">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 题库共享对话框 (移植自 BanksView) -->
+    <el-dialog v-model="bankShareVisible" title="共享题库" width="440px">
+      <el-form label-width="70px">
+        <el-form-item label="方式">
+          <el-radio-group v-model="bankShareForm.shareType">
+            <el-radio :value="3">共享给用户</el-radio>
+            <el-radio :value="4">公开共享</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="bankShareForm.shareType === 3" label="用户名">
+          <el-input v-model="bankShareForm.toUsername" placeholder="对方的用户名" />
+        </el-form-item>
+        <el-form-item label="留言">
+          <el-input v-model="bankShareForm.message" maxlength="200" placeholder="留言(可选)" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="bankShareVisible = false">取消</el-button>
+        <el-button type="primary" :loading="bankSharing" @click="doBankShare">确定共享</el-button>
+      </template>
+    </el-dialog>
+
     <!-- AI 分析对话框 -->
     <el-dialog v-model="aiVisible" title="AI 题目分析" width="680px">
       <div v-loading="aiLoading" class="pre-wrap" style="max-height: 480px; overflow: auto">{{ aiContent }}</div>
@@ -172,22 +246,35 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { questionApi, categoryApi, bankApi, favoriteApi, shareApi } from '../api'
+import { questionApi, categoryApi, bankApi, favoriteApi, shareApi, userApi } from '../api'
+import { useUserStore } from '../stores/user'
 import { aiChat, buildQuestionPrompt, pushAiHistory, hasApiKey } from '../utils/ai'
 import ImportDialog from '../components/ImportDialog.vue'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
 
+const userStore = useUserStore()
+
 const rows = ref([])
 const total = ref(0)
 const loading = ref(false)
 const flatCategories = ref([])
-const query = reactive({ keyword: '', categoryId: null, bankId: null, type: null, difficulty: null, pageNum: 1, pageSize: 10 })
+const query = reactive({ keyword: '', categoryId: null, bankId: null, type: null, difficulty: null, userId: null, pageNum: 1, pageSize: 10 })
 const banks = ref([])
+const bankLoading = ref(false)
+const users = ref([])
 const route = useRoute()
 const router = useRouter()
 const importVisible = ref(false)
+
+// 题库栏: 新建/编辑/共享 (移植自 BanksView)
+const bankEditVisible = ref(false)
+const bankSaving = ref(false)
+const bankShareVisible = ref(false)
+const bankSharing = ref(false)
+const bankForm = reactive({ id: null, name: '', description: '' })
+const bankShareForm = reactive({ bankId: null, shareType: 3, toUsername: '', message: '' })
 
 const editVisible = ref(false)
 const saving = ref(false)
@@ -223,6 +310,25 @@ async function loadCategories () {
   flatCategories.value = flatten(tree, '')
 }
 
+async function loadBanks () {
+  bankLoading.value = true
+  try {
+    banks.value = await bankApi.list()
+  } finally {
+    bankLoading.value = false
+  }
+}
+
+async function loadUsers () {
+  if (!userStore.isAdmin) return
+  try {
+    const data = await userApi.list({ pageNum: 1, pageSize: 200 })
+    users.value = data.list || []
+  } catch (e) {
+    users.value = []
+  }
+}
+
 async function load () {
   loading.value = true
   try {
@@ -232,6 +338,7 @@ async function load () {
       bankId: query.bankId || undefined,
       type: query.type || undefined,
       difficulty: query.difficulty || undefined,
+      userId: userStore.isAdmin ? (query.userId || undefined) : undefined,
       pageNum: query.pageNum,
       pageSize: query.pageSize
     })
@@ -242,16 +349,98 @@ async function load () {
   }
 }
 
+function selectBank (id) {
+  query.bankId = id ? Number(id) : null
+  query.pageNum = 1
+  load()
+}
+
 function reset () {
   query.keyword = ''
   query.categoryId = null
   query.bankId = null
   query.type = null
   query.difficulty = null
+  query.userId = null
   query.pageNum = 1
   load()
 }
 
+// ==================== 题库栏操作 (移植自 BanksView) ====================
+function onBankCommand (cmd, bank) {
+  if (cmd === 'edit') {
+    openBankEdit(bank)
+  } else if (cmd === 'share') {
+    openBankShare(bank)
+  } else if (cmd === 'delete') {
+    removeBank(bank)
+  }
+}
+
+function openBankEdit (row) {
+  if (row) {
+    bankForm.id = row.id
+    bankForm.name = row.name
+    bankForm.description = row.description || ''
+  } else {
+    bankForm.id = null
+    bankForm.name = ''
+    bankForm.description = ''
+  }
+  bankEditVisible.value = true
+}
+
+async function saveBank () {
+  if (!bankForm.name.trim()) { ElMessage.warning('请输入题库名称'); return }
+  bankSaving.value = true
+  try {
+    if (bankForm.id) {
+      await bankApi.update({ id: bankForm.id, name: bankForm.name, description: bankForm.description })
+    } else {
+      await bankApi.add({ name: bankForm.name, description: bankForm.description })
+    }
+    ElMessage.success('保存成功')
+    bankEditVisible.value = false
+    loadBanks()
+  } finally {
+    bankSaving.value = false
+  }
+}
+
+async function removeBank (bank) {
+  await ElMessageBox.confirm(
+    '确定删除题库「' + bank.name + '」吗? 库内 ' + (bank.questionCount || 0) + ' 道题将保留但不再归属任何题库。',
+    '提示', { type: 'warning' })
+  await bankApi.remove(bank.id)
+  ElMessage.success('删除成功')
+  if (query.bankId === bank.id) {
+    query.bankId = null
+    query.pageNum = 1
+  }
+  loadBanks()
+  load()
+}
+
+function openBankShare (bank) {
+  bankShareForm.bankId = bank.id
+  bankShareForm.shareType = 3
+  bankShareForm.toUsername = ''
+  bankShareForm.message = ''
+  bankShareVisible.value = true
+}
+
+async function doBankShare () {
+  bankSharing.value = true
+  try {
+    await shareApi.share(bankShareForm)
+    ElMessage.success('共享成功')
+    bankShareVisible.value = false
+  } finally {
+    bankSharing.value = false
+  }
+}
+
+// ==================== 题目操作 ====================
 function onTypeChange () {
   form.answer = ''
   multiAnswer.value = []
@@ -281,7 +470,7 @@ function openEdit (row) {
     form.analysis = ''
     form.difficulty = 3
     form.categoryId = null
-    form.bankId = null
+    form.bankId = query.bankId || null
     form.tags = ''
     form.source = ''
     multiAnswer.value = []
@@ -317,6 +506,7 @@ async function save () {
     ElMessage.success('保存成功')
     editVisible.value = false
     load()
+    loadBanks()
   } finally {
     saving.value = false
   }
@@ -333,6 +523,7 @@ async function removeOne (row) {
   await questionApi.remove([row.id])
   ElMessage.success('删除成功')
   load()
+  loadBanks()
 }
 
 function openShare (row) {
@@ -382,10 +573,96 @@ async function analyze (row) {
 
 onMounted(() => {
   loadCategories()
-  bankApi.list().then((list) => { banks.value = list })
+  loadBanks()
+  loadUsers()
   if (route.query.bankId) {
-    query.bankId = Number(route.query.bankId)
+    selectBank(Number(route.query.bankId))
+  } else {
+    load()
   }
-  load()
 })
 </script>
+
+<style scoped>
+.questions-page {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.bank-aside {
+  width: 230px;
+  flex-shrink: 0;
+}
+
+.bank-aside :deep(.el-card__body) {
+  padding: 12px;
+}
+
+.main-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.bank-list {
+  min-height: 120px;
+}
+
+.bank-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.bank-item:hover {
+  background: #f5f7fa;
+}
+
+.bank-item.active {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.bank-item .bank-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.bank-icon {
+  color: #409eff;
+}
+
+.bank-ops {
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.bank-item:hover .bank-ops {
+  opacity: 1;
+}
+
+.bank-more {
+  color: #909399;
+  cursor: pointer;
+}
+
+.bank-empty {
+  color: #909399;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.bank-add {
+  width: 100%;
+  margin-top: 10px;
+}
+</style>
