@@ -32,18 +32,28 @@
         </el-table-column>
         <el-table-column prop="message" label="留言" min-width="120" />
         <el-table-column prop="createTime" label="时间" width="160" />
-        <el-table-column label="操作" :width="tab === 'received' ? 220 : 180" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">{{ row.bankId ? '查看题库' : '查看题目' }}</el-button>
+            <el-tooltip :content="row.bankId ? '查看题库' : '查看题目'">
+              <el-button link type="primary" @click="openDetail(row)"><el-icon><View /></el-icon></el-button>
+            </el-tooltip>
             <template v-if="tab === 'sent'">
-              <el-button v-if="!isPublic(row)" link type="warning" @click="openPerm(row)">改权限</el-button>
-              <el-button link type="danger" @click="cancel(row)">取消</el-button>
+              <el-tooltip v-if="!isPublic(row)" content="修改权限">
+                <el-button link type="warning" @click="openPerm(row)"><el-icon><EditPen /></el-icon></el-button>
+              </el-tooltip>
+              <el-tooltip content="取消共享">
+                <el-button link type="danger" @click="cancel(row)"><el-icon><CloseBold /></el-icon></el-button>
+              </el-tooltip>
             </template>
             <template v-else>
-              <el-button link :type="row.subscribed === 1 ? 'warning' : 'success'" @click="toggleSubscribe(row)">
-                {{ row.subscribed === 1 ? '退订' : '重新订阅' }}
-              </el-button>
-              <el-button link type="primary" @click="doCopy(row)">拷贝</el-button>
+              <el-tooltip :content="row.subscribed === 1 ? '退订' : '重新订阅'">
+                <el-button link :type="row.subscribed === 1 ? 'warning' : 'success'" @click="toggleSubscribe(row)">
+                  <el-icon><Bell v-if="row.subscribed === 1" /><RefreshRight v-else /></el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="拷贝">
+                <el-button link type="primary" @click="doCopy(row)"><el-icon><CopyDocument /></el-icon></el-button>
+              </el-tooltip>
             </template>
           </template>
         </el-table-column>

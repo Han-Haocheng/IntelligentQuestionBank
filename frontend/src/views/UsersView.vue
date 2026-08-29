@@ -22,13 +22,19 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
-            <el-button link :type="row.status === 1 ? 'warning' : 'success'" @click="toggleStatus(row)">
-              {{ row.status === 1 ? '禁用' : '启用' }}
-            </el-button>
-            <el-button link type="primary" @click="resetPwd(row)">重置密码</el-button>
-            <el-button link type="danger" @click="remove(row)">删除</el-button>
+            <el-tooltip :content="row.status === 1 ? '禁用' : '启用'">
+              <el-button link :type="row.status === 1 ? 'warning' : 'success'" @click="toggleStatus(row)">
+                <el-icon><Lock v-if="row.status === 1" /><Unlock v-else /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="重置密码">
+              <el-button link type="primary" @click="resetPwd(row)"><el-icon><Key /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除">
+              <el-button link type="danger" @click="remove(row)"><el-icon><Delete /></el-icon></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>

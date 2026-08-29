@@ -14,12 +14,20 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="manage(row)">管理题目</el-button>
-            <el-button link type="primary" @click="openShare(row)">共享</el-button>
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="remove(row)">删除</el-button>
+            <el-tooltip content="管理题目">
+              <el-button link type="primary" @click="manage(row)"><el-icon><Files /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="共享">
+              <el-button link type="primary" @click="openShare(row)"><el-icon><Share /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="编辑">
+              <el-button link type="primary" @click="openEdit(row)"><el-icon><Edit /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除">
+              <el-button link type="danger" @click="remove(row)"><el-icon><Delete /></el-icon></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>

@@ -12,10 +12,14 @@
         <el-table-column label="难度" width="80">
           <template #default="{ row }">{{ row.difficulty }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="140" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-            <el-button link type="danger" @click="remove(row)">取消收藏</el-button>
+            <el-tooltip content="详情">
+              <el-button link type="primary" @click="openDetail(row)"><el-icon><View /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="取消收藏">
+              <el-button link type="danger" @click="remove(row)"><el-icon><StarFilled /></el-icon></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>

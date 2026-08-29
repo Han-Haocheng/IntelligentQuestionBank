@@ -82,15 +82,25 @@
             <el-tag v-for="t in splitTags(row.tags)" :key="t" size="small" type="info" style="margin-right:4px">{{ t }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="190" fixed="right">
           <template #default="{ row }">
-            <el-button link type="warning" @click="toggleFav(row)">
-              <el-icon><StarFilled v-if="row.favorited" /><Star v-else /></el-icon>
-            </el-button>
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="primary" @click="openShare(row)">共享</el-button>
-            <el-button link type="primary" :loading="row.aiLoading" @click="analyze(row)">AI分析</el-button>
-            <el-button link type="danger" @click="removeOne(row)">删除</el-button>
+            <el-tooltip :content="row.favorited ? '取消收藏' : '收藏'">
+              <el-button link :type="row.favorited ? 'warning' : 'info'" @click="toggleFav(row)">
+                <el-icon><StarFilled v-if="row.favorited" /><Star v-else /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="编辑">
+              <el-button link type="primary" @click="openEdit(row)"><el-icon><Edit /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="共享">
+              <el-button link type="primary" @click="openShare(row)"><el-icon><Share /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="AI 分析">
+              <el-button link type="primary" :loading="row.aiLoading" @click="analyze(row)"><el-icon><MagicStick /></el-icon></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除">
+              <el-button link type="danger" @click="removeOne(row)"><el-icon><Delete /></el-icon></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
