@@ -46,19 +46,33 @@
           AND ((share_type = 4 AND from_user_id != #{userId}) OR to_user_id = #{userId})
     </select>
 
+    <select id="countEditable" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE question_id = #{questionId} AND to_user_id = #{userId} AND permission = 2
+    </select>
+
+    <select id="countBankEditable" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE bank_id = #{bankId} AND to_user_id = #{userId} AND permission = 2
+    </select>
+
+    <update id="updatePermission">
+        UPDATE share SET permission = #{permission} WHERE id = #{id}
+    </update>
+
     <select id="countBankPublic" resultType="int">
         SELECT COUNT(*) FROM share
         WHERE bank_id = #{bankId} AND share_type = 4 AND from_user_id = #{fromUserId}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, message)
-        VALUES (#{questionId}, #{bankId}, #{fromUserId}, #{toUserId}, #{shareType}, #{message})
+        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, permission, message)
+        VALUES (#{questionId}, #{bankId}, #{fromUserId}, #{toUserId}, #{shareType}, #{permission}, #{message})
     </insert>
 
     <insert id="insertPublic">
-        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, message)
-        SELECT #{questionId}, #{bankId}, #{fromUserId}, NULL, #{shareType}, #{message}
+        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, permission, message)
+        SELECT #{questionId}, #{bankId}, #{fromUserId}, NULL, #{shareType}, #{permission}, #{message}
         FROM DUAL
         WHERE NOT EXISTS (
             SELECT 1 FROM share

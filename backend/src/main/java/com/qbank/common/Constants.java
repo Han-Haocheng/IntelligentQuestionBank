@@ -29,6 +29,10 @@ public class Constants {
     public static final int SHARE_TYPE_USER_BANK = 3;
     public static final int SHARE_TYPE_PUBLIC_BANK = 4;
 
+    /** 共享权限: 1只读 2可编辑 */
+    public static final int PERMISSION_READ = 1;
+    public static final int PERMISSION_EDIT = 2;
+
     /** 练习模式: 1顺序 2随机 3错题重做 */
     public static final int PRACTICE_MODE_SEQUENCE = 1;
     public static final int PRACTICE_MODE_RANDOM = 2;

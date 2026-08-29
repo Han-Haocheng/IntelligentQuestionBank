@@ -13,6 +13,7 @@ public class Share {
     private Long fromUserId;
     private Long toUserId;
     private Integer shareType;   // 1指定用户 2公开
+    private Integer permission;  // 1只读 2可编辑(公开共享固定只读)
     private String message;
     private LocalDateTime createTime;
 
@@ -34,6 +35,8 @@ public class Share {
     public void setToUserId(Long toUserId) { this.toUserId = toUserId; }
     public Integer getShareType() { return shareType; }
     public void setShareType(Integer shareType) { this.shareType = shareType; }
+    public Integer getPermission() { return permission; }
+    public void setPermission(Integer permission) { this.permission = permission; }
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
     public LocalDateTime getCreateTime() { return createTime; }

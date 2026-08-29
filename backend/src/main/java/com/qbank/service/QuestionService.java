@@ -100,9 +100,10 @@ public class QuestionService {
     public void add(Long userId, QuestionDTO dto) {
         validate(dto);
         checkCategory(userId, dto.getCategoryId());
-        checkBank(userId, dto.getBankId());
+        // 允许加入自己或"可编辑共享"的题库; 新题目归属题库所有者(写回共享者空间)
+        Long ownerId = resolveBankOwner(userId, dto.getBankId());
         Question question = fromDTO(dto);
-        question.setUserId(userId);
+        question.setUserId(ownerId);
         questionMapper.insert(question);
     }
 
@@ -114,12 +115,21 @@ public class QuestionService {
         if (exist == null) {
             throw new BusinessException("题目不存在");
         }
-        if (!exist.getUserId().equals(userId) && (role == null || role != Constants.ROLE_ADMIN)) {
+        boolean owner = exist.getUserId().equals(userId);
+        boolean admin = role != null && role == Constants.ROLE_ADMIN;
+        boolean sharedEdit = shareMapper.countEditable(exist.getId(), userId) > 0
+                || (exist.getBankId() != null && shareMapper.countBankEditable(exist.getBankId(), userId) > 0);
+        if (!owner && !admin && !sharedEdit) {
             throw new BusinessException("无权修改该题目");
         }
         validate(dto);
         checkCategory(exist.getUserId(), dto.getCategoryId());
-        checkBank(exist.getUserId(), dto.getBankId());
+        checkBankOwner(exist.getUserId(), dto.getBankId());
+        if (!owner && !admin) {
+            // 共享编辑者: 仅可改内容, 不可改分类/题库归属
+            dto.setCategoryId(exist.getCategoryId());
+            dto.setBankId(exist.getBankId());
+        }
         Question question = fromDTO(dto);
         question.setId(dto.getId());
         questionMapper.update(question);
@@ -221,7 +231,8 @@ public class QuestionService {
         return bank.getUserId();
     }
 
-    private void checkBank(Long ownerId, Long bankId) {
+    /** 更新场景: 题库必须属于题目所有者(共享编辑者不可改题库归属) */
+    private void checkBankOwner(Long ownerId, Long bankId) {
         if (bankId == null) {
             return;
         }
@@ -229,6 +240,21 @@ public class QuestionService {
         if (bank == null || !bank.getUserId().equals(ownerId)) {
             throw new BusinessException("所选题库不存在或无权使用");
         }
+    }
+
+    /** 新增场景: 本人题库或"可编辑共享"题库可用, 返回题库所有者 */
+    private Long resolveBankOwner(Long userId, Long bankId) {
+        if (bankId == null) {
+            return userId;
+        }
+        com.qbank.entity.Bank bank = bankMapper.findById(bankId);
+        if (bank == null) {
+            throw new BusinessException("所选题库不存在或无权使用");
+        }
+        if (!bank.getUserId().equals(userId) && shareMapper.countBankEditable(bankId, userId) == 0) {
+            throw new BusinessException("所选题库不存在或无权使用");
+        }
+        return bank.getUserId();
     }
 
     /** options: List <-> JSON 字符串 */

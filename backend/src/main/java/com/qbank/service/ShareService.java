@@ -56,6 +56,7 @@ public class ShareService {
         share.setQuestionId(dto.getQuestionId());
         share.setFromUserId(userId);
         share.setShareType(type);
+        share.setPermission(permissionOf(dto, type));
         share.setMessage(dto.getMessage());
         if (type == Constants.SHARE_TYPE_USER_QUESTION) {
             if (!StringUtils.hasText(dto.getToUsername())) {
@@ -80,6 +81,7 @@ public class ShareService {
             pub.setQuestionId(dto.getQuestionId());
             pub.setFromUserId(userId);
             pub.setShareType(Constants.SHARE_TYPE_PUBLIC_QUESTION);
+            pub.setPermission(Constants.PERMISSION_READ);
             pub.setMessage(dto.getMessage());
             if (shareMapper.insertPublic(pub) == 0) {
                 throw new BusinessException("该题目已公开共享");
@@ -98,6 +100,7 @@ public class ShareService {
         share.setBankId(dto.getBankId());
         share.setFromUserId(userId);
         share.setShareType(isPublic ? Constants.SHARE_TYPE_PUBLIC_BANK : Constants.SHARE_TYPE_USER_BANK);
+        share.setPermission(permissionOf(dto, isPublic ? Constants.SHARE_TYPE_PUBLIC_BANK : Constants.SHARE_TYPE_USER_BANK));
         share.setMessage(dto.getMessage());
         if (!isPublic) {
             if (!StringUtils.hasText(dto.getToUsername())) {
@@ -126,6 +129,32 @@ public class ShareService {
                 throw new BusinessException("该题库已公开共享");
             }
         }
+    }
+
+    /** 权限解析: 公开共享固定只读; 指定用户默认只读, 可传 2 表示可编辑 */
+    private int permissionOf(ShareDTO dto, int shareType) {
+        if (shareType == Constants.SHARE_TYPE_PUBLIC_QUESTION || shareType == Constants.SHARE_TYPE_PUBLIC_BANK) {
+            return Constants.PERMISSION_READ;
+        }
+        Integer p = dto.getPermission();
+        return (p != null && p == Constants.PERMISSION_EDIT) ? Constants.PERMISSION_EDIT : Constants.PERMISSION_READ;
+    }
+
+    /** 修改共享权限(仅共享者; 公开共享固定只读) */
+    public void updatePermission(Long fromUserId, Long shareId, Integer permission) {
+        if (permission == null
+                || (permission != Constants.PERMISSION_READ && permission != Constants.PERMISSION_EDIT)) {
+            throw new BusinessException("权限不合法");
+        }
+        Share share = shareMapper.findById(shareId);
+        if (share == null || !share.getFromUserId().equals(fromUserId)) {
+            throw new BusinessException("共享记录不存在或无权操作");
+        }
+        if (share.getShareType() == Constants.SHARE_TYPE_PUBLIC_QUESTION
+                || share.getShareType() == Constants.SHARE_TYPE_PUBLIC_BANK) {
+            throw new BusinessException("公开共享固定只读, 无法修改权限");
+        }
+        shareMapper.updatePermission(shareId, permission);
     }
 
     public PageInfo<Share> sent(Long userId, int pageNum, int pageSize) {

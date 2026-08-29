@@ -7,6 +7,7 @@ import com.qbank.entity.Share;
 import com.qbank.service.ShareService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,6 +52,15 @@ public class ShareController {
     @DeleteMapping("/{id}")
     public Result<Void> cancel(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
         shareService.cancel(userId, id);
+        return Result.ok();
+    }
+
+    /** 修改共享权限(仅共享者): body 传 {"permission": 1|2}; 公开共享固定只读 */
+    @PutMapping("/{id}/permission")
+    public Result<Void> updatePermission(@RequestAttribute("userId") Long userId,
+                                         @PathVariable Long id,
+                                         @RequestBody java.util.Map<String, Integer> body) {
+        shareService.updatePermission(userId, id, body == null ? null : body.get("permission"));
         return Result.ok();
     }
 }
