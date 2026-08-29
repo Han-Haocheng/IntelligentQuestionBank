@@ -15,6 +15,20 @@ export const DEFAULT_AI_CONFIG = {
   useProxy: true
 }
 
+// 常用服务商(OpenAI 兼容接口) —— AI 设置页下拉菜单
+export const AI_PROVIDERS = [
+  { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', format: 'OpenAI 兼容', desc: 'deepseek-chat / deepseek-reasoner' },
+  { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', format: 'OpenAI', desc: 'gpt-4o / gpt-4o-mini' },
+  { name: '阿里云百炼(兼容模式)', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', format: 'OpenAI 兼容', desc: 'qwen-plus / qwen-max' },
+  { name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', format: 'OpenAI 兼容', desc: 'glm-4-flash / glm-4-plus' },
+  { name: 'Kimi (Moonshot)', baseUrl: 'https://api.moonshot.cn/v1', format: 'OpenAI 兼容', desc: 'moonshot-v1-8k / moonshot-v1-32k' },
+  { name: '硅基流动 SiliconFlow', baseUrl: 'https://api.siliconflow.cn/v1', format: 'OpenAI 兼容', desc: 'deepseek-ai/DeepSeek-V3 等' },
+  { name: 'Ollama (本地)', baseUrl: 'http://localhost:11434/v1', format: 'OpenAI 兼容', desc: '本地模型, 无需 API Key' }
+]
+
+/** 下拉菜单中"自定义地址"的占位值 */
+export const CUSTOM_BASE_URL = '__custom__'
+
 export function getAiConfig () {
   try {
     const raw = localStorage.getItem(CONFIG_KEY)
@@ -33,12 +47,53 @@ export function hasApiKey () {
   return !!getAiConfig().apiKey
 }
 
-function resolveUrl (cfg) {
-  let base = cfg.baseUrl || DEFAULT_AI_CONFIG.baseUrl
+/**
+ * 解析生效的接口基础地址:
+ * - 开发模式(vite)下, 仅 DeepSeek 默认地址走 /ai-proxy 本地代理(代理目标固定为 api.deepseek.com),
+ *   其他服务商与生产环境(Electron)均直连, 避免代理把非 DeepSeek 请求转发到错误主机
+ */
+function resolveBase (cfg) {
+  let base = (cfg.baseUrl || DEFAULT_AI_CONFIG.baseUrl).trim()
   if (base.endsWith('/')) base = base.slice(0, -1)
   const isLocalApi = base.indexOf('localhost') >= 0 || base.indexOf('127.0.0.1') >= 0
   const useProxy = cfg.useProxy !== false && import.meta.env.DEV && !isLocalApi
-  return (useProxy ? '/ai-proxy' : base) + '/chat/completions'
+          && base === DEFAULT_AI_CONFIG.baseUrl
+  return useProxy ? '/ai-proxy' : base
+}
+
+function resolveUrl (cfg) {
+  return resolveBase(cfg) + '/chat/completions'
+}
+
+/**
+ * 拉取模型列表(OpenAI 兼容 GET {base}/models)
+ * @param {string} baseUrl
+ * @param {string} apiKey 可空(如 Ollama 本地服务)
+ * @returns {Promise<string[]>} 模型 id 列表(去重)
+ */
+export async function fetchModels (baseUrl, apiKey) {
+  const base = (baseUrl || '').trim().replace(/\/+$/, '')
+  if (!base) {
+    throw new Error('请先填写接口地址')
+  }
+  const url = resolveBase({ baseUrl: base, apiKey, useProxy: true }) + '/models'
+  const resp = await fetch(url, {
+    method: 'GET',
+    headers: apiKey ? { Authorization: 'Bearer ' + apiKey } : {}
+  })
+  if (!resp.ok) {
+    let detail = ''
+    try {
+      const err = await resp.json()
+      detail = (err.error && (err.error.message || err.message)) || ''
+    } catch (e) { /* 忽略解析失败 */ }
+    throw new Error('模型列表获取失败(' + resp.status + ')' + (detail ? ': ' + detail : ''))
+  }
+  const data = await resp.json()
+  const ids = (data && data.data && Array.isArray(data.data))
+    ? data.data.map(m => m && m.id).filter(Boolean)
+    : []
+  return [...new Set(ids)]
 }
 
 /**
