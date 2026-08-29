@@ -7,12 +7,10 @@
         <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon>统计看板</el-menu-item>
         <el-menu-item index="/questions"><el-icon><Document /></el-icon>题目管理</el-menu-item>
         <el-menu-item index="/ai-settings"><el-icon><MagicStick /></el-icon>AI 设置</el-menu-item>
-        <el-menu-item v-if="store.isAdmin" index="/categories"><el-icon><FolderOpened /></el-icon>分类管理</el-menu-item>
+        <el-menu-item v-if="store.isAdmin" index="/admin"><el-icon><Setting /></el-icon>管理</el-menu-item>
         <el-menu-item index="/practice"><el-icon><EditPen /></el-icon>练习</el-menu-item>
-        <el-menu-item index="/wrong"><el-icon><WarningFilled /></el-icon>错题本</el-menu-item>
         <el-menu-item index="/favorites"><el-icon><Star /></el-icon>收藏夹</el-menu-item>
         <el-menu-item index="/shares"><el-icon><Share /></el-icon>共享</el-menu-item>
-        <el-menu-item v-if="store.isAdmin" index="/users"><el-icon><UserFilled /></el-icon>用户管理</el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

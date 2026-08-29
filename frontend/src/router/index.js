@@ -12,14 +12,15 @@ const routes = [
       { path: 'questions', name: 'questions', component: () => import('../views/QuestionsView.vue'), meta: { title: '题目管理' } },
       { path: 'banks', redirect: '/questions' },
       { path: 'ai-settings', name: 'ai-settings', component: () => import('../views/AiSettingsView.vue'), meta: { title: 'AI 设置' } },
-      { path: 'categories', name: 'categories', component: () => import('../views/CategoriesView.vue'), meta: { title: '分类管理', admin: true } },
+      { path: 'admin', name: 'admin', component: () => import('../views/AdminView.vue'), meta: { title: '管理', admin: true } },
+      { path: 'categories', redirect: '/admin' },
+      { path: 'users', redirect: '/admin' },
       { path: 'practice', name: 'practice', component: () => import('../views/PracticeView.vue'), meta: { title: '练习' } },
       { path: 'records', redirect: '/practice' },
-      { path: 'wrong', name: 'wrong', component: () => import('../views/WrongBookView.vue'), meta: { title: '错题本' } },
+      { path: 'wrong', redirect: '/practice' },
       { path: 'favorites', name: 'favorites', component: () => import('../views/FavoritesView.vue'), meta: { title: '收藏夹' } },
       { path: 'shares', name: 'shares', component: () => import('../views/SharesView.vue'), meta: { title: '共享' } },
-      { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { title: '个人资料' } },
-      { path: 'users', name: 'users', component: () => import('../views/UsersView.vue'), meta: { title: '用户管理', admin: true } }
+      { path: 'profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { title: '个人资料' } }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }

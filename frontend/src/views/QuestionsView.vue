@@ -39,9 +39,7 @@
         <el-select v-model="query.categoryId" placeholder="分类" clearable style="width: 140px">
           <el-option v-for="c in flatCategories" :key="c.id" :value="c.id" :label="c.pathName" />
         </el-select>
-        <el-select v-model="query.bankId" placeholder="题库" clearable filterable style="width: 140px" @change="selectBank">
-          <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name" />
-        </el-select>
+        <!-- 题库筛选由左侧题库栏承担, 此处不再重复 -->
         <el-select v-model="query.type" placeholder="题型" clearable style="width: 110px">
           <el-option v-for="(n, i) in typeNames" :key="i" :value="i + 1" :label="n" />
         </el-select>

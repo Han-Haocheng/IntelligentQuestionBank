@@ -93,6 +93,68 @@
           </div>
         </el-card>
       </el-tab-pane>
+
+      <!-- 错题本(并入练习页) -->
+      <el-tab-pane label="错题本" name="wrong">
+        <el-card class="page-card">
+          <div class="filter-bar">
+            <el-select v-model="wrongMastered" placeholder="全部错题" clearable style="width: 150px" @change="loadWrong">
+              <el-option :value="0" label="未掌握" />
+              <el-option :value="1" label="已掌握" />
+            </el-select>
+            <div style="flex: 1"></div>
+            <el-button type="danger" plain @click="redoWrong">
+              <el-icon><RefreshRight /></el-icon>&nbsp;错题重练
+            </el-button>
+          </div>
+          <el-table :data="wrongRows" v-loading="wrongLoading" stripe>
+            <el-table-column label="题干" min-width="280">
+              <template #default="{ row }"><span class="question-title-cell">{{ row.title }}</span></template>
+            </el-table-column>
+            <el-table-column label="题型" width="90">
+              <template #default="{ row }"><el-tag size="small">{{ typeNames[row.type - 1] }}</el-tag></template>
+            </el-table-column>
+            <el-table-column prop="categoryName" label="分类" width="110" />
+            <el-table-column prop="wrongCount" label="错误次数" width="90">
+              <template #default="{ row }"><el-tag type="danger" size="small">{{ row.wrongCount }}</el-tag></template>
+            </el-table-column>
+            <el-table-column label="状态" width="90">
+              <template #default="{ row }">
+                <el-tag :type="row.mastered ? 'success' : 'warning'" size="small">{{ row.mastered ? '已掌握' : '未掌握' }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="lastWrongTime" label="最近错误" width="170" />
+            <el-table-column label="操作" width="210" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" @click="openWrongDetail(row)">详情</el-button>
+                <el-button link :type="row.mastered ? 'warning' : 'success'" @click="toggleMaster(row)">
+                  {{ row.mastered ? '恢复' : '掌握' }}
+                </el-button>
+                <el-button link type="danger" @click="removeWrong(row)">移除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="table-pager">
+            <el-pagination background layout="total, prev, pager, next" :total="wrongTotal"
+              v-model:current-page="wrongPageNum" :page-size="wrongPageSize" @change="loadWrong" />
+          </div>
+        </el-card>
+        <el-dialog v-model="wrongDetailVisible" title="错题详情" width="600px">
+          <template v-if="wrongCurrent">
+            <div class="q-title">{{ wrongCurrent.title }}</div>
+            <div class="review-line">题型: {{ typeNames[wrongCurrent.type - 1] }} | 分类: {{ wrongCurrent.categoryName || '未分类' }} | 难度: {{ wrongCurrent.difficulty }}</div>
+            <div v-if="wrongCurrent.type === 1 || wrongCurrent.type === 2" class="review-line">
+              {{ (wrongCurrent.options || []).map((o, i) => letter(i) + '. ' + o).join('   ') }}
+            </div>
+            <div class="review-line">正确答案: <b>{{ wrongCurrent.answer }}</b></div>
+            <div class="review-line">最近错误答案: {{ wrongCurrent.lastAnswer || '(未作答)' }}</div>
+            <div v-if="wrongCurrent.analysis" class="review-line">解析: {{ wrongCurrent.analysis }}</div>
+          </template>
+          <template #footer>
+            <el-button @click="wrongDetailVisible = false">关闭</el-button>
+          </template>
+        </el-dialog>
+      </el-tab-pane>
     </el-tabs>
 
     <!-- 答题中 -->
@@ -183,7 +245,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
-import { practiceApi, categoryApi, bankApi } from '../api'
+import { practiceApi, categoryApi, bankApi, wrongApi } from '../api'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
@@ -210,6 +272,16 @@ const recordPageNum = ref(1)
 const recordPageSize = ref(10)
 const detailVisible = ref(false)
 const detailAnswers = ref([])
+
+// 错题本(并入练习页)
+const wrongRows = ref([])
+const wrongTotal = ref(0)
+const wrongLoading = ref(false)
+const wrongMastered = ref(null)
+const wrongPageNum = ref(1)
+const wrongPageSize = ref(10)
+const wrongDetailVisible = ref(false)
+const wrongCurrent = ref(null)
 
 const recordId = ref(null)
 const questions = ref([])
@@ -284,6 +356,49 @@ watch(countMode, () => {
 // ==================== 练习记录 (移植自 RecordsView) ====================
 function onTabChange (name) {
   if (name === 'records') loadRecords()
+  if (name === 'wrong') loadWrong()
+}
+
+// ==================== 错题本 (并入练习页) ====================
+async function loadWrong () {
+  wrongLoading.value = true
+  try {
+    const data = await wrongApi.list({
+      mastered: wrongMastered.value === null ? undefined : wrongMastered.value,
+      pageNum: wrongPageNum.value,
+      pageSize: wrongPageSize.value
+    })
+    wrongRows.value = data.list
+    wrongTotal.value = Number(data.total)
+  } finally {
+    wrongLoading.value = false
+  }
+}
+
+function openWrongDetail (row) {
+  wrongCurrent.value = row
+  wrongDetailVisible.value = true
+}
+
+async function toggleMaster (row) {
+  const state = await wrongApi.toggleMaster(row.questionId)
+  row.mastered = state
+  ElMessage.success(state ? '已标记掌握' : '已恢复未掌握')
+}
+
+async function removeWrong (row) {
+  await ElMessageBox.confirm('确定从错题本移除该题吗?', '提示', { type: 'warning' })
+  await wrongApi.remove(row.questionId)
+  ElMessage.success('已移除')
+  loadWrong()
+}
+
+function redoWrong () {
+  // 切回开始练习: 错题重做模式
+  activeTab.value = 'start'
+  form.mode = 3
+  form.onlyWrong = true
+  fetchCount()
 }
 
 function rate (row) {
