@@ -155,10 +155,12 @@ jobs:
       TAG: ${{ inputs.tag || github.ref_name }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - name: 检出代码
+      - name: 检出代码(全量历史, 用于生成发布说明)
         uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag || github.ref_name }}
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: 下载全部产物
         uses: actions/download-artifact@v4
@@ -176,6 +178,9 @@ jobs:
           done
           ls -lh artifacts/
 
+      - name: 生成发布说明 (patch 全量提交 / minor 核心提交 / major 架构变化)
+        run: bash .github/scripts/generate-release-notes.sh
+
       - name: 创建 GitHub Release
         run: |
           FILES=()
@@ -188,4 +193,4 @@ jobs:
           fi
           gh release create "$TAG" "${FILES[@]}" \
             --title "$TAG" \
-            --generate-notes
+            --notes-file release-notes.md
