@@ -50,7 +50,7 @@ public class QuestionService {
 
     public PageInfo<QuestionDTO> page(Long userId, QuestionQuery query) {
         PageHelper.startPage(query.getPageNum(), query.getPageSize());
-        List<Question> list = questionMapper.selectPage(userId, query);
+        List<Question> list = questionMapper.selectPage(scopeUserId(userId, query.getBankId()), query);
         PageInfo<Question> pageInfo = new PageInfo<>(list);
         PageInfo<QuestionDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -188,6 +188,24 @@ public class QuestionService {
         if (categoryMapper.findById(categoryId) == null) {
             throw new BusinessException("所选分类不存在");
         }
+    }
+
+    /**
+     * 计算题目查询作用域: 传了 bankId 且该库属于他人时,
+     * 校验是否收到过该题库的共享, 通过则改按库归属者查询
+     */
+    private Long scopeUserId(Long userId, Long bankId) {
+        if (bankId == null) {
+            return userId;
+        }
+        com.qbank.entity.Bank bank = bankMapper.findById(bankId);
+        if (bank == null || bank.getUserId().equals(userId)) {
+            return userId;
+        }
+        if (shareMapper.countBankAccessible(bankId, userId) == 0) {
+            throw new BusinessException("无权查看该题库");
+        }
+        return bank.getUserId();
     }
 
     private void checkBank(Long ownerId, Long bankId) {
