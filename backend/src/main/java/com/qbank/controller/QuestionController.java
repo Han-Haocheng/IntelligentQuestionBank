@@ -76,14 +76,14 @@ public class QuestionController {
 
     // ==================== 批量导入 ====================
 
-    /** 下载导入模板(.xlsx) */
+    /** 下载导入模板: type=xlsx(默认)/csv/md */
     @GetMapping("/import/template")
-    public ResponseEntity<byte[]> template() {
-        byte[] body = importService.template();
+    public ResponseEntity<byte[]> template(@RequestParam(defaultValue = "xlsx") String type) {
+        QuestionImportService.TemplateFile f = importService.template(type);
         return ResponseEntity.ok()
-                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .header("Content-Disposition", "attachment; filename=question-import-template.xlsx")
-                .body(body);
+                .header("Content-Type", f.contentType())
+                .header("Content-Disposition", "attachment; filename=" + f.filename())
+                .body(f.body());
     }
 
     /** 解析文件返回预览行(不落库) */

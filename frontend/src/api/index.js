@@ -42,7 +42,7 @@ export const questionApi = {
   add: (data) => request.post('/question', data),
   update: (data) => request.put('/question', data),
   remove: (ids) => request.post('/question/delete', ids),
-  importTemplate: () => request.get('/question/import/template', { responseType: 'blob' }),
+  importTemplate: (type) => request.get('/question/import/template', { params: { type }, responseType: 'blob' }),
   importParse: (formData) => request.post('/question/import/parse', formData,
     { headers: { 'Content-Type': 'multipart/form-data' } }),
   importSave: (data) => request.post('/question/import/save', data)

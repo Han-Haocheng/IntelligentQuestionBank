@@ -28,6 +28,8 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 批量导入服务: 支持 Excel(.xlsx) 与 CSV(UTF-8/GBK 自动识别)
@@ -68,7 +70,10 @@ public class QuestionImportService {
             if (lower.endsWith(".csv")) {
                 return parseCsv(in.readAllBytes());
             }
-            throw new BusinessException("仅支持 .xlsx / .csv 文件");
+            if (lower.endsWith(".md") || lower.endsWith(".markdown")) {
+                return parseMarkdown(new String(decode(in.readAllBytes()), StandardCharsets.UTF_8));
+            }
+            throw new BusinessException("仅支持模板化 .xlsx/.csv 与非模板化 .md 文件");
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -116,6 +121,167 @@ public class QuestionImportService {
             rows.add(toDTO(i + 1, cells));
         }
         return rows;
+    }
+
+    // ==================== Markdown 解析(非模板化导入) ====================
+
+    /** ## 题型 段落标记 */
+    private static final Pattern MD_TYPE = Pattern.compile("^##\\s*(单选|多选|填空|判断|简答)");
+    /** ### N. 题干 或 ### 题干 */
+    private static final Pattern MD_QUESTION = Pattern.compile("^###\\s+(?:\\d+[.、]\\s*)?(.+)$");
+    /** A. 选项 / A、 / A) / - A. */
+    private static final Pattern MD_OPTION = Pattern.compile("^\\s*(?:[-*]\\s+)?([A-Fa-f])[.)、]\\s*(.+)$");
+    /** 答案: / 解析: / 难度: / 标签: / 知识点: / 来源: / 题型: (可带 > 引用前缀) */
+    private static final Pattern MD_META = Pattern.compile("^\\s*>?\\s*(答案|解析|难度|标签|知识点|来源|题型)\\s*[:：]\\s*(.*)$");
+
+    private List<ImportRowDTO> parseMarkdown(String text) {
+        if (text.startsWith("\uFEFF")) {
+            text = text.substring(1);
+        }
+        List<ImportRowDTO> rows = new ArrayList<>();
+        MdQuestion cur = null;
+        String curType = null;
+        String[] lines = text.split("\\r?\\n", -1);
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (line.startsWith("#")) {
+                Matcher tm = MD_TYPE.matcher(line);
+                if (tm.find()) {
+                    finishMd(rows, cur);
+                    cur = null;
+                    curType = tm.group(1);
+                    continue;
+                }
+                if (line.startsWith("###")) {
+                    Matcher qm = MD_QUESTION.matcher(line);
+                    if (qm.matches()) {
+                        finishMd(rows, cur);
+                        cur = new MdQuestion(i + 1, qm.group(1).trim(), curType);
+                    }
+                    continue;
+                }
+                // 单 # 或 ####+ 视为注释说明
+                continue;
+            }
+            Matcher om = MD_OPTION.matcher(line);
+            if (om.matches() && cur != null) {
+                cur.options.add(om.group(2).trim());
+                continue;
+            }
+            Matcher mm = MD_META.matcher(line);
+            if (mm.matches() && cur != null) {
+                String key = mm.group(1);
+                String val = mm.group(2).trim();
+                switch (key) {
+                    case "答案": cur.answer = val; break;
+                    case "解析": cur.analysis = val; break;
+                    case "难度": cur.difficulty = val; break;
+                    case "标签":
+                    case "知识点": cur.tags = val; break;
+                    case "来源": cur.source = val; break;
+                    case "题型": cur.typeName = val; break;
+                    default: break;
+                }
+                continue;
+            }
+            // 普通行: 无题则开新题; 仅题干未完则续接题干; 否则视为新题(旧题已结束)
+            if (cur == null) {
+                cur = new MdQuestion(i + 1, line, curType);
+            } else if (cur.options.isEmpty() && cur.answer == null && cur.analysis == null && cur.tags == null) {
+                cur.title = (cur.title + " " + line).trim();
+            } else {
+                finishMd(rows, cur);
+                cur = new MdQuestion(i + 1, line, curType);
+            }
+        }
+        finishMd(rows, cur);
+        return rows;
+    }
+
+    private void finishMd(List<ImportRowDTO> rows, MdQuestion q) {
+        if (q == null || q.title == null || q.title.trim().isEmpty()) {
+            return;
+        }
+        ImportRowDTO dto = new ImportRowDTO();
+        dto.setRowNo(q.line);
+        dto.setTitle(q.title);
+        dto.setTypeName(resolveMdType(q));
+        dto.setOptions(q.options);
+        dto.setAnswer(q.answer);
+        dto.setAnalysis(q.analysis);
+        if (q.difficulty != null && !q.difficulty.isEmpty()) {
+            dto.setDifficulty(Integer.valueOf(safeInt(q.difficulty)));
+        }
+        dto.setTags(q.tags);
+        dto.setSource(q.source);
+        validate(dto);
+        rows.add(dto);
+    }
+
+    /**
+     * 题型判定: 显式声明(题型: 元数据 / ## 段落)优先;
+     * 内容特征(带选项/对错答案/||| 填空)与声明冲突时以内容为准, 避免被错误题型处理
+     */
+    private String resolveMdType(MdQuestion q) {
+        Integer declared = q.typeName == null ? null : resolveType(q.typeName);
+        boolean hasOptions = q.options.size() >= 2;
+        String letters = q.answer == null ? "" : q.answer.toUpperCase().replaceAll("[^A-Z]", "");
+        boolean judge = isJudgeAnswer(q.answer);
+        boolean fill = q.answer != null && q.answer.contains("|||");
+        if (hasOptions && (declared == null || (declared != 1 && declared != 2))) {
+            return letters.length() > 1 ? "多选题" : "单选题";
+        }
+        if (fill && declared != null && declared != 3) {
+            return "填空题";
+        }
+        if (judge && declared != null && declared != 4) {
+            return "判断题";
+        }
+        if (declared != null) {
+            return q.typeName.trim();
+        }
+        if (hasOptions) {
+            return letters.length() > 1 ? "多选题" : "单选题";
+        }
+        if (fill) {
+            return "填空题";
+        }
+        if (judge) {
+            return "判断题";
+        }
+        return "简答题";
+    }
+
+    private boolean isJudgeAnswer(String answer) {
+        if (answer == null || answer.trim().isEmpty()) {
+            return false;
+        }
+        String a = answer.trim();
+        String lower = a.toLowerCase();
+        return "对".equals(a) || "正确".equals(a) || "是".equals(a) || "true".equals(lower) || "t".equals(lower) || a.contains("√")
+                || "错".equals(a) || "错误".equals(a) || "否".equals(a) || "false".equals(lower) || "f".equals(lower) || a.contains("×") || a.contains("x");
+    }
+
+    /** Markdown 题目块(解析中暂存) */
+    private static class MdQuestion {
+        final int line;
+        String title;
+        String typeName;
+        final List<String> options = new ArrayList<>();
+        String answer;
+        String analysis;
+        String difficulty;
+        String tags;
+        String source;
+
+        MdQuestion(int line, String title, String typeName) {
+            this.line = line;
+            this.title = title;
+            this.typeName = typeName;
+        }
     }
 
     /** UTF-8 严格解码, 失败时回退 GBK(Excel 导出的中文 CSV 常见) */
@@ -431,7 +597,24 @@ public class QuestionImportService {
 
     // ==================== 模板下载 ====================
 
-    public byte[] template() {
+    /** 模板文件(字节 + 内容类型 + 文件名) */
+    public record TemplateFile(byte[] body, String contentType, String filename) {
+    }
+
+    public TemplateFile template(String type) {
+        if ("csv".equalsIgnoreCase(type)) {
+            return new TemplateFile(templateCsv(), "text/csv;charset=UTF-8", "question-import-template.csv");
+        }
+        if ("md".equalsIgnoreCase(type) || "markdown".equalsIgnoreCase(type)) {
+            return new TemplateFile(templateMd(), "text/markdown;charset=UTF-8", "question-import-template.md");
+        }
+        return new TemplateFile(templateXlsx(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "question-import-template.xlsx");
+    }
+
+    /** Excel 模板(.xlsx, 模板化导入) */
+    public byte[] templateXlsx() {
         try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = wb.createSheet("题目导入模板");
             Row header = sheet.createRow(0);
@@ -463,6 +646,78 @@ public class QuestionImportService {
         } catch (Exception e) {
             throw new BusinessException("模板生成失败: " + e.getMessage());
         }
+    }
+
+    /** CSV 模板(UTF-8 BOM, Excel 可直接打开, 模板化导入) */
+    public byte[] templateCsv() {
+        StringBuilder sb = new StringBuilder("﻿");
+        sb.append(csvRow(HEADERS));
+        sb.append(csvRow("Java 中，下列哪个关键字用于定义类？", "单选题",
+                "class", "interface", "struct", "package", "", "",
+                "A", "class 用于定义类。", "1", "Java基础,关键字", "自编"));
+        sb.append(csvRow("Java 是一种面向对象的编程语言。", "判断题",
+                "", "", "", "", "", "",
+                "对", "Java 以类和对象为核心。", "1", "Java概述", ""));
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private String csvRow(String... cells) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < cells.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            String c = cells[i] == null ? "" : cells[i];
+            if (c.contains(",") || c.contains("\"") || c.contains("\n") || c.contains("\r")) {
+                sb.append('"').append(c.replace("\"", "\"\"")).append('"');
+            } else {
+                sb.append(c);
+            }
+        }
+        sb.append("\r\n");
+        return sb.toString();
+    }
+
+    /** Markdown 模板(非模板化导入), 附格式说明注释 */
+    public byte[] templateMd() {
+        String tpl = "# 智能题库 Markdown 导入模板(非模板化导入)\n" +
+                "# ------------------------------------------------------------------\n" +
+                "# 格式说明:\n" +
+                "#   1) 每题以 ### 开头(如: ### 1. 题干), 编号可省略; 题干可换行续写\n" +
+                "#   2) 选择题选项用 A. / B. 或 - A. 开头; 判断/填空/简答无需选项\n" +
+                "#   3) 题目下方写 答案: / 解析: / 难度: / 标签: / 来源: (可加 > 引用前缀)\n" +
+                "#   4) ## 题型 切换其后题目的题型(单选/多选/填空/判断/简答); 不写则自动推断\n" +
+                "#   5) 以 # 开头的行(除 ## 题型、### 题号)均为注释, 会被忽略\n" +
+                "# ------------------------------------------------------------------\n" +
+                "\n" +
+                "## 单选题\n" +
+                "\n" +
+                "### 1. Java 中，下列哪个关键字用于定义类？\n" +
+                "A. class\n" +
+                "B. interface\n" +
+                "C. struct\n" +
+                "D. package\n" +
+                "\n" +
+                "答案: A\n" +
+                "解析: class 用于定义类。\n" +
+                "难度: 1\n" +
+                "标签: Java基础,关键字\n" +
+                "来源: 自编\n" +
+                "\n" +
+                "## 判断题\n" +
+                "\n" +
+                "### 2. Java 是一种面向对象的编程语言。\n" +
+                "答案: 对\n" +
+                "解析: Java 以类和对象为核心。\n" +
+                "难度: 1\n" +
+                "标签: Java概述\n" +
+                "\n" +
+                "## 简答题\n" +
+                "\n" +
+                "### 3. 请简述 RESTful 架构的核心思想。\n" +
+                "答案: 资源与状态转移, 使用 HTTP 方法表达对资源的操作。\n" +
+                "解析: 参考答案仅供参考, 简答题按文本宽松比对。\n";
+        return tpl.getBytes(StandardCharsets.UTF_8);
     }
 
 }
