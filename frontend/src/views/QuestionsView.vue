@@ -36,8 +36,11 @@
     <el-card class="page-card main-card">
       <div class="filter-bar">
         <el-input v-model="query.keyword" placeholder="搜索题干/标签" clearable style="width: 180px" @keyup.enter="load" />
-        <el-select v-model="query.categoryId" placeholder="分类" clearable style="width: 140px">
-          <el-option v-for="c in flatCategories" :key="c.id" :value="c.id" :label="c.pathName" />
+        <el-select v-model="query.parentCategoryId" placeholder="一级分类" clearable style="width: 120px" @change="onPrimaryCategoryChange">
+          <el-option v-for="c in primaryCategories" :key="c.id" :value="c.id" :label="c.name" />
+        </el-select>
+        <el-select v-model="query.categoryId" placeholder="二级分类" clearable style="width: 120px" :disabled="!query.parentCategoryId">
+          <el-option v-for="c in secondaryCategories" :key="c.id" :value="c.id" :label="c.name" />
         </el-select>
         <!-- 题库筛选由左侧题库栏承担, 此处不再重复 -->
         <el-select v-model="query.type" placeholder="题型" clearable style="width: 110px">
@@ -276,7 +279,7 @@ const rows = ref([])
 const total = ref(0)
 const loading = ref(false)
 const flatCategories = ref([])
-const query = reactive({ keyword: '', categoryId: null, bankId: null, type: null, difficulty: null, userId: null, pageNum: 1, pageSize: 10 })
+const query = reactive({ keyword: '', parentCategoryId: null, categoryId: null, bankId: null, type: null, difficulty: null, userId: null, pageNum: 1, pageSize: 10 })
 const banks = ref([])
 const bankLoading = ref(false)
 const users = ref([])
@@ -313,13 +316,16 @@ function flatten (list, prefix) {
   const result = []
   for (const item of list) {
     const pathName = prefix ? prefix + ' / ' + item.name : item.name
-    result.push({ id: item.id, name: item.name, pathName })
+    result.push({ id: item.id, name: item.name, pathName, parentId: item.parentId || 0 })
     if (item.children && item.children.length) {
       result.push(...flatten(item.children, pathName))
     }
   }
   return result
 }
+
+const primaryCategories = computed(() => flatCategories.value.filter(c => c.parentId === 0))
+const secondaryCategories = computed(() => flatCategories.value.filter(c => c.parentId !== 0 && c.parentId === query.parentCategoryId))
 
 async function loadCategories () {
   const tree = await categoryApi.tree()
@@ -350,7 +356,7 @@ async function load () {
   try {
     const data = await questionApi.list({
       keyword: query.keyword || undefined,
-      categoryId: query.categoryId || undefined,
+      categoryId: query.categoryId || query.parentCategoryId || undefined,
       bankId: query.bankId || undefined,
       type: query.type || undefined,
       difficulty: query.difficulty || undefined,
@@ -373,11 +379,18 @@ function selectBank (id) {
 
 function reset () {
   query.keyword = ''
+  query.parentCategoryId = null
   query.categoryId = null
   query.bankId = null
   query.type = null
   query.difficulty = null
   query.userId = null
+  query.pageNum = 1
+  load()
+}
+
+function onPrimaryCategoryChange () {
+  query.categoryId = null
   query.pageNum = 1
   load()
 }
