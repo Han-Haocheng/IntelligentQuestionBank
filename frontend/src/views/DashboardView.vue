@@ -10,6 +10,10 @@
         <el-card class="stat-card"><div class="num" style="color:#67c23a">{{ overview.accuracy || 0 }}%</div><div class="label">总正确率</div></el-card>
       </div>
       <div class="filter-bar">
+        <el-select v-if="userStore.isAdmin" v-model="targetUserId" placeholder="全部用户"
+          clearable style="width: 200px" @change="loadAll">
+          <el-option v-for="u in users" :key="u.id" :value="u.id" :label="u.nickname + ' (' + u.username + ')'" />
+        </el-select>
         <el-button type="primary" :loading="reportLoading" @click="genReport">
           <el-icon><MagicStick /></el-icon>&nbsp;AI 学情报告
         </el-button>
@@ -38,7 +42,8 @@ import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
-import { statsApi } from '../api'
+import { statsApi, userApi } from '../api'
+import { useUserStore } from '../stores/user'
 import { aiChat, buildReportPrompt, pushAiHistory, hasApiKey, getAiConfig } from '../utils/ai'
 
 const overview = reactive({})
@@ -52,6 +57,11 @@ const reportVisible = ref(false)
 const reportLoading = ref(false)
 const reportContent = ref('')
 const reportModel = ref('')
+
+// 管理员按用户查看统计
+const userStore = useUserStore()
+const users = ref([])
+const targetUserId = ref(null)
 
 let charts = []
 const router = useRouter()
