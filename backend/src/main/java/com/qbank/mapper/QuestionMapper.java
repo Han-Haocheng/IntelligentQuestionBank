@@ -21,14 +21,23 @@ public interface QuestionMapper {
 
     List<Question> selectByIds(@Param("ids") List<Long> ids);
 
+    /** 顺序练习: 按 id 升序取前 limit 条 */
     List<Question> selectForPractice(@Param("userId") Long userId,
                                      @Param("categoryId") Long categoryId,
                                      @Param("bankId") Long bankId,
                                      @Param("difficulty") Integer difficulty,
                                      @Param("type") Integer type,
                                      @Param("limit") int limit,
-                                     @Param("random") boolean random,
                                      @Param("onlyWrong") boolean onlyWrong);
+
+    /** 随机练习候选 id: 先取候选 id 列表(上限 limit), 由 Java 侧随机取数, 避免全表 ORDER BY RAND() */
+    List<Long> selectPracticeCandidateIds(@Param("userId") Long userId,
+                                          @Param("categoryId") Long categoryId,
+                                          @Param("bankId") Long bankId,
+                                          @Param("difficulty") Integer difficulty,
+                                          @Param("type") Integer type,
+                                          @Param("limit") int limit,
+                                          @Param("onlyWrong") boolean onlyWrong);
 
     int countByUser(@Param("userId") Long userId);
 

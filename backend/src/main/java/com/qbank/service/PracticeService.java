@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,8 +59,10 @@ public class PracticeService {
         int mode = dto.getMode();
         boolean random = mode == 2;
         boolean onlyWrong = dto.getOnlyWrong() || mode == 3;
-        List<Question> questions = questionMapper.selectForPractice(
-                userId, dto.getCategoryId(), dto.getBankId(), dto.getDifficulty(), dto.getType(), count, random, onlyWrong);
+        List<Question> questions = random
+                ? pickRandomQuestions(userId, dto, count, onlyWrong)
+                : questionMapper.selectForPractice(
+                        userId, dto.getCategoryId(), dto.getBankId(), dto.getDifficulty(), dto.getType(), count, onlyWrong);
         if (questions.isEmpty()) {
             throw new BusinessException("没有符合条件的题目, 请调整筛选条件");
         }
@@ -202,6 +205,35 @@ public class PracticeService {
         }
         answerMapper.deleteByRecord(recordId);
         recordMapper.deleteById(recordId);
+    }
+
+    /**
+     * 随机抽题: 候选 id 上限 500, Java 侧随机取数, 避免全表 ORDER BY RAND() 的性能开销
+     */
+    private List<Question> pickRandomQuestions(Long userId, PracticeStartDTO dto, int count, boolean onlyWrong) {
+        List<Long> candidateIds = questionMapper.selectPracticeCandidateIds(
+                userId, dto.getCategoryId(), dto.getBankId(), dto.getDifficulty(), dto.getType(), 500, onlyWrong);
+        if (candidateIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        Collections.shuffle(candidateIds);
+        List<Long> picked = candidateIds.size() > count
+                ? new ArrayList<>(candidateIds.subList(0, count))
+                : candidateIds;
+        List<Question> fetched = questionMapper.selectByIds(picked);
+        Map<Long, Question> byId = new HashMap<>();
+        for (Question q : fetched) {
+            byId.put(q.getId(), q);
+        }
+        // 保持随机选取后的顺序返回
+        List<Question> result = new ArrayList<>();
+        for (Long id : picked) {
+            Question q = byId.get(id);
+            if (q != null) {
+                result.add(q);
+            }
+        }
+        return result;
     }
 
     /** 判分规则 */
