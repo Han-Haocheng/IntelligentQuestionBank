@@ -19,6 +19,11 @@
             <el-option v-for="c in flatCategories" :key="c.id" :value="c.id" :label="c.pathName" />
           </el-select>
         </el-form-item>
+        <el-form-item label="限定题库">
+          <el-select v-model="form.bankId" placeholder="全部题库" clearable style="width: 100%">
+            <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="题型">
           <el-select v-model="form.type" placeholder="全部题型" clearable style="width: 100%">
             <el-option v-for="(n, i) in typeNames" :key="i" :value="i + 1" :label="n" />
@@ -113,7 +118,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
-import { practiceApi, categoryApi } from '../api'
+import { practiceApi, categoryApi, bankApi } from '../api'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
@@ -123,7 +128,8 @@ const stage = ref('setup')
 const starting = ref(false)
 const flatCategories = ref([])
 
-const form = reactive({ name: '', mode: 1, categoryId: null, type: null, difficulty: null, count: 10, onlyWrong: false })
+const form = reactive({ name: '', mode: 1, categoryId: null, bankId: null, type: null, difficulty: null, count: 10, onlyWrong: false })
+const banks = ref([])
 
 const recordId = ref(null)
 const questions = ref([])
@@ -163,6 +169,7 @@ async function start () {
       name: form.name || undefined,
       mode: form.mode,
       categoryId: form.categoryId || undefined,
+  bankId: form.bankId || undefined,
       type: form.type || undefined,
       difficulty: form.difficulty || undefined,
       count: form.count,
@@ -212,6 +219,7 @@ onMounted(async () => {
     return result
   }
   flatCategories.value = flatten(tree, '')
+  bankApi.list().then((list) => { banks.value = list })
   if (route.query.onlyWrong === '1') {
     form.mode = 3
   }

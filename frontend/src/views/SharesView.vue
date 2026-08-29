@@ -6,25 +6,28 @@
         <el-tab-pane label="我发出的" name="sent" />
       </el-tabs>
       <el-table :data="rows" v-loading="loading" stripe>
-        <el-table-column prop="questionTitle" label="题目" min-width="240">
-          <template #default="{ row }"><span class="question-title-cell">{{ row.questionTitle }}</span></template>
+        <el-table-column label="共享内容" min-width="240">
+          <template #default="{ row }">
+            <el-tag v-if="row.bankId" size="small" type="warning" style="margin-right: 6px">题库</el-tag>
+            <span class="question-title-cell">{{ row.bankId ? row.bankName : row.questionTitle }}</span>
+          </template>
         </el-table-column>
         <el-table-column label="类型" width="110">
           <template #default="{ row }">
-            <el-tag size="small" :type="row.shareType === 2 ? 'warning' : 'primary'">
-              {{ row.shareType === 2 ? '公开' : '指定用户' }}
+            <el-tag size="small" :type="(row.shareType === 2 || row.shareType === 4) ? 'warning' : 'primary'">
+              {{ (row.shareType === 2 || row.shareType === 4) ? '公开' : '指定用户' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column v-if="tab === 'received'" prop="fromUsername" label="来自" width="120" />
         <el-table-column v-if="tab === 'sent'" label="共享给" width="120">
-          <template #default="{ row }">{{ row.shareType === 2 ? '所有人' : (row.toUsername || '-') }}</template>
+          <template #default="{ row }">{{ (row.shareType === 2 || row.shareType === 4) ? '所有人' : (row.toUsername || '-') }}</template>
         </el-table-column>
         <el-table-column prop="message" label="留言" min-width="140" />
         <el-table-column prop="createTime" label="时间" width="170" />
         <el-table-column label="操作" width="130" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">查看题目</el-button>
+            <el-button link type="primary" @click="openDetail(row)">{{ row.bankId ? '查看题库' : '查看题目' }}</el-button>
             <el-button v-if="tab === 'sent'" link type="danger" @click="cancel(row)">取消</el-button>
           </template>
         </el-table-column>
@@ -37,7 +40,13 @@
 
     <el-dialog v-model="detailVisible" title="共享题目详情" width="600px">
       <template v-if="current">
-        <div class="q-title">{{ current.questionTitle }}</div>
+        <div class="q-title">
+          <el-tag v-if="current.bankId" size="small" type="warning" style="margin-right: 6px">题库</el-tag>
+          {{ current.bankId ? current.bankName : current.questionTitle }}
+        </div>
+        <div v-if="current.bankId && !question" class="review-line">
+          这是题库共享, 收到的题目可在「题目管理」页按该题库筛选查看。
+        </div>
         <template v-if="question">
           <div class="review-line">题型: {{ typeNames[question.type - 1] }}</div>
           <div v-if="question.type === 1 || question.type === 2" class="review-line">
@@ -56,8 +65,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { shareApi, questionApi } from '../api'
+
+const router = useRouter()
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const tab = ref('received')
@@ -85,6 +97,10 @@ async function load () {
 }
 
 async function openDetail (row) {
+  if (row.bankId) {
+    router.push({ path: '/questions', query: { bankId: row.bankId } })
+    return
+  }
   current.value = row
   question.value = await questionApi.get(row.questionId)
   detailVisible.value = true

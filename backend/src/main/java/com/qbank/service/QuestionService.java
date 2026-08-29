@@ -9,6 +9,7 @@ import com.qbank.common.Constants;
 import com.qbank.dto.QuestionDTO;
 import com.qbank.dto.QuestionQuery;
 import com.qbank.entity.Question;
+import com.qbank.mapper.BankMapper;
 import com.qbank.mapper.CategoryMapper;
 import com.qbank.mapper.FavoriteMapper;
 import com.qbank.mapper.QuestionMapper;
@@ -29,16 +30,18 @@ public class QuestionService {
 
     private final QuestionMapper questionMapper;
     private final CategoryMapper categoryMapper;
+    private final BankMapper bankMapper;
     private final FavoriteMapper favoriteMapper;
     private final ShareMapper shareMapper;
     private final WrongQuestionMapper wrongQuestionMapper;
     private final ObjectMapper objectMapper;
 
     public QuestionService(QuestionMapper questionMapper, CategoryMapper categoryMapper,
-                           FavoriteMapper favoriteMapper, ShareMapper shareMapper,
+                           BankMapper bankMapper, FavoriteMapper favoriteMapper, ShareMapper shareMapper,
                            WrongQuestionMapper wrongQuestionMapper, ObjectMapper objectMapper) {
         this.questionMapper = questionMapper;
         this.categoryMapper = categoryMapper;
+        this.bankMapper = bankMapper;
         this.favoriteMapper = favoriteMapper;
         this.shareMapper = shareMapper;
         this.wrongQuestionMapper = wrongQuestionMapper;
@@ -85,6 +88,7 @@ public class QuestionService {
     public void add(Long userId, QuestionDTO dto) {
         validate(dto);
         checkCategory(userId, dto.getCategoryId());
+        checkBank(userId, dto.getBankId());
         Question question = fromDTO(dto);
         question.setUserId(userId);
         questionMapper.insert(question);
@@ -103,6 +107,7 @@ public class QuestionService {
         }
         validate(dto);
         checkCategory(exist.getUserId(), dto.getCategoryId());
+        checkBank(exist.getUserId(), dto.getBankId());
         Question question = fromDTO(dto);
         question.setId(dto.getId());
         questionMapper.update(question);
@@ -185,10 +190,21 @@ public class QuestionService {
         }
     }
 
+    private void checkBank(Long ownerId, Long bankId) {
+        if (bankId == null) {
+            return;
+        }
+        com.qbank.entity.Bank bank = bankMapper.findById(bankId);
+        if (bank == null || !bank.getUserId().equals(ownerId)) {
+            throw new BusinessException("所选题库不存在或无权使用");
+        }
+    }
+
     /** options: List <-> JSON 字符串 */
     public Question fromDTO(QuestionDTO dto) {
         Question question = new Question();
         question.setCategoryId(dto.getCategoryId());
+        question.setBankId(dto.getBankId());
         question.setType(dto.getType());
         question.setTitle(dto.getTitle().trim());
         question.setAnswer(dto.getAnswer());
@@ -212,6 +228,7 @@ public class QuestionService {
         dto.setId(question.getId());
         dto.setUserId(question.getUserId());
         dto.setCategoryId(question.getCategoryId());
+        dto.setBankId(question.getBankId());
         dto.setType(question.getType());
         dto.setTitle(question.getTitle());
         dto.setOptions(parseOptions(question.getOptions()));
@@ -221,6 +238,7 @@ public class QuestionService {
         dto.setTags(question.getTags());
         dto.setSource(question.getSource());
         dto.setCategoryName(question.getCategoryName());
+        dto.setBankName(question.getBankName());
         dto.setFavorited(question.getFavorited());
         return dto;
     }

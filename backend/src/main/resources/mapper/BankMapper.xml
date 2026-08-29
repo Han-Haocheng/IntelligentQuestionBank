@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.BankMapper">
+
+    <select id="findById" resultType="com.qbank.entity.Bank">
+        SELECT * FROM bank WHERE id = #{id}
+    </select>
+
+    <select id="selectByUser" resultType="com.qbank.entity.Bank">
+        SELECT * FROM bank WHERE user_id = #{userId} ORDER BY id DESC
+    </select>
+
+    <select id="findByName" resultType="com.qbank.entity.Bank">
+        SELECT * FROM bank WHERE user_id = #{userId} AND name = #{name}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO bank (name, description, user_id)
+        VALUES (#{name}, #{description}, #{userId})
+    </insert>
+
+    <update id="update">
+        UPDATE bank
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM bank WHERE id = #{id}
+    </delete>
+</mapper>

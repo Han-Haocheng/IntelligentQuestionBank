@@ -6,6 +6,7 @@ package com.qbank.dto;
 public class QuestionQuery {
     private String keyword;
     private Long categoryId;
+    private Long bankId;
     private Integer type;
     private Integer difficulty;
     private String tag;
@@ -16,6 +17,8 @@ public class QuestionQuery {
     public void setKeyword(String keyword) { this.keyword = keyword; }
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public Long getBankId() { return bankId; }
+    public void setBankId(Long bankId) { this.bankId = bankId; }
     public Integer getType() { return type; }
     public void setType(Integer type) { this.type = type; }
     public Integer getDifficulty() { return difficulty; }

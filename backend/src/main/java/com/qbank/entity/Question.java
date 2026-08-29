@@ -10,6 +10,7 @@ public class Question {
     private Long id;
     private Long userId;
     private Long categoryId;
+    private Long bankId;         // 所属题库
     private Integer type;        // 1单选 2多选 3填空 4判断 5简答
     private String title;
     private String options;      // JSON数组字符串
@@ -23,6 +24,7 @@ public class Question {
 
     /** 非数据库字段 */
     private String categoryName;
+    private String bankName;
     private Boolean favorited;
 
     public Long getId() { return id; }
@@ -31,6 +33,8 @@ public class Question {
     public void setUserId(Long userId) { this.userId = userId; }
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public Long getBankId() { return bankId; }
+    public void setBankId(Long bankId) { this.bankId = bankId; }
     public Integer getType() { return type; }
     public void setType(Integer type) { this.type = type; }
     public String getTitle() { return title; }
@@ -53,6 +57,8 @@ public class Question {
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
     public String getCategoryName() { return categoryName; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public String getBankName() { return bankName; }
+    public void setBankName(String bankName) { this.bankName = bankName; }
     public Boolean getFavorited() { return favorited; }
     public void setFavorited(Boolean favorited) { this.favorited = favorited; }
 }

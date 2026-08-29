@@ -2,12 +2,15 @@ package com.qbank.dto;
 
 public class ShareDTO {
     private Long questionId;
+    private Long bankId;        // 题库共享时使用
     private String toUsername;
-    private Integer shareType;  // 1指定用户 2公开
+    private Integer shareType;  // 1指定用户-题目 2公开-题目 3指定用户-题库 4公开-题库
     private String message;
 
     public Long getQuestionId() { return questionId; }
     public void setQuestionId(Long questionId) { this.questionId = questionId; }
+    public Long getBankId() { return bankId; }
+    public void setBankId(Long bankId) { this.bankId = bankId; }
     public String getToUsername() { return toUsername; }
     public void setToUsername(String toUsername) { this.toUsername = toUsername; }
     public Integer getShareType() { return shareType; }

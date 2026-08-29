@@ -23,6 +23,15 @@ export const categoryApi = {
   remove: (id) => request.delete('/category/' + id)
 }
 
+// ==================== 题库 ====================
+export const bankApi = {
+  list: () => request.get('/bank/list'),
+  get: (id) => request.get('/bank/' + id),
+  add: (data) => request.post('/bank', data),
+  update: (data) => request.put('/bank', data),
+  remove: (id) => request.delete('/bank/' + id)
+}
+
 // ==================== 题目 ====================
 export const questionApi = {
   list: (params) => request.get('/question/list', { params }),

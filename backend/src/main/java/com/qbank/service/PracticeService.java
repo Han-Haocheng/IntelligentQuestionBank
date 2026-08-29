@@ -55,7 +55,7 @@ public class PracticeService {
         boolean random = mode == 2;
         boolean onlyWrong = dto.getOnlyWrong() || mode == 3;
         List<Question> questions = questionMapper.selectForPractice(
-                userId, dto.getCategoryId(), dto.getDifficulty(), dto.getType(), count, random, onlyWrong);
+                userId, dto.getCategoryId(), dto.getBankId(), dto.getDifficulty(), dto.getType(), count, random, onlyWrong);
         if (questions.isEmpty()) {
             throw new BusinessException("没有符合条件的题目, 请调整筛选条件");
         }

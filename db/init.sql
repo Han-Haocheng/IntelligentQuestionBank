@@ -36,11 +36,23 @@ CREATE TABLE IF NOT EXISTS category (
   KEY idx_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='题目分类表';
 
+-- 题库表 (题目分组, 支持整库共享)
+CREATE TABLE IF NOT EXISTS bank (
+  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '题库ID',
+  name        VARCHAR(100) NOT NULL COMMENT '题库名称',
+  description VARCHAR(500) DEFAULT NULL COMMENT '题库描述',
+  user_id     BIGINT       NOT NULL COMMENT '所属用户',
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_user_name (user_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='题库表';
+
 -- 题目表 (type: 1单选 2多选 3填空 4判断 5简答; difficulty: 1~5)
 CREATE TABLE IF NOT EXISTS question (
   id          BIGINT        NOT NULL AUTO_INCREMENT COMMENT '题目ID',
   user_id     BIGINT        NOT NULL COMMENT '所属用户',
   category_id BIGINT        DEFAULT NULL COMMENT '分类ID',
+  bank_id     BIGINT        DEFAULT NULL COMMENT '所属题库',
   type        TINYINT       NOT NULL DEFAULT 1 COMMENT '题型 1单选 2多选 3填空 4判断 5简答',
   title       VARCHAR(2000) NOT NULL COMMENT '题干',
   options     TEXT          DEFAULT NULL COMMENT '选项(JSON数组,选择类题型使用)',
@@ -54,6 +66,7 @@ CREATE TABLE IF NOT EXISTS question (
   PRIMARY KEY (id),
   KEY idx_user (user_id),
   KEY idx_category (category_id),
+  KEY idx_bank (bank_id),
   KEY idx_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='题目表';
 
@@ -67,18 +80,20 @@ CREATE TABLE IF NOT EXISTS favorite (
   UNIQUE KEY uk_user_question (user_id, question_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收藏表';
 
--- 共享表 (share_type: 1-指定用户 2-公开)
+-- 共享表 (share_type: 1指定用户-题目 2公开-题目 3指定用户-题库 4公开-题库)
 CREATE TABLE IF NOT EXISTS share (
   id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '共享ID',
-  question_id  BIGINT       NOT NULL COMMENT '题目ID',
+  question_id  BIGINT       DEFAULT NULL COMMENT '题目ID(题库共享时为NULL)',
+  bank_id      BIGINT       DEFAULT NULL COMMENT '题库ID(题目共享时为NULL)',
   from_user_id BIGINT       NOT NULL COMMENT '共享人ID',
   to_user_id   BIGINT       DEFAULT NULL COMMENT '接收人ID(公开共享为NULL)',
-  share_type   TINYINT      NOT NULL DEFAULT 1 COMMENT '1指定用户 2公开',
+  share_type   TINYINT      NOT NULL DEFAULT 1 COMMENT '1指定用户-题目 2公开-题目 3指定用户-题库 4公开-题库',
   message      VARCHAR(200) DEFAULT NULL COMMENT '共享留言',
   create_time  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '共享时间',
   PRIMARY KEY (id),
   KEY idx_to_user (to_user_id),
-  KEY idx_from_user (from_user_id)
+  KEY idx_from_user (from_user_id),
+  KEY idx_bank (bank_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='共享表';
 
 -- 练习记录表 (mode: 1-顺序 2-随机 3-错题重做)
@@ -125,18 +140,7 @@ CREATE TABLE IF NOT EXISTS wrong_question (
   UNIQUE KEY uk_user_question (user_id, question_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错题本';
 
--- AI分析记录 (type: 1-题目分析 2-学情报告)
-CREATE TABLE IF NOT EXISTS ai_analysis (
-  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '记录ID',
-  user_id     BIGINT       NOT NULL COMMENT '用户ID',
-  question_id BIGINT       DEFAULT NULL COMMENT '题目ID(题目分析时)',
-  type        TINYINT      NOT NULL DEFAULT 1 COMMENT '1题目分析 2学情报告',
-  content     LONGTEXT     COMMENT '分析内容',
-  model       VARCHAR(100) DEFAULT NULL COMMENT '使用的模型/来源',
-  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (id),
-  KEY idx_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI分析记录';
+-- v2 起 AI 分析在前端本地完成, 后端不再存储 AI 记录
 
 -- ============================================================
 -- 种子数据
@@ -160,32 +164,41 @@ INSERT INTO category (id, name, parent_id, sort, user_id) VALUES
 (9, '学习',     0, 1, 2),
 (10, '网络',    9, 1, 2);
 
--- 题目 (admin: 1-12, demo: 13-14) 多空答案用 ||| 分隔
-INSERT INTO question (id, user_id, category_id, type, title, options, answer, analysis, difficulty, tags, source) VALUES
-(1, 1, 7, 1, 'Java 中，下列哪个关键字用于定义类？', '["class","interface","struct","package"]', 'A', 'class 用于定义类；interface 定义接口；Java 中没有 struct；package 用于声明包。', 1, 'Java基础,关键字', '自编'),
-(2, 1, 2, 1, '已知 x + 3 = 7，则 x 的值为？', '["3","4","10","-4"]', 'B', '两边同时减 3，x = 7 - 3 = 4。', 1, '一元一次方程', '自编'),
-(3, 1, 7, 2, '下列哪些是 Java 的基本数据类型？', '["int","String","boolean","Integer"]', 'AC', 'int 和 boolean 是 8 种基本数据类型；String 是引用类型；Integer 是包装类。', 2, '数据类型', '自编'),
-(4, 1, 3, 2, '下列属于平面图形性质的是？', '["三角形内角和为180度","圆的周长为2πr","正方体有6个面","勾股定理"]', 'ABD', '正方体是立体图形，不属于平面图形性质；A、B、D 均为平面几何结论。', 2, '平面几何', '自编'),
-(5, 1, 7, 3, 'Java 中用于定义常量的关键字是____，用于类继承的关键字是____。', NULL, 'final|||extends', 'final 修饰的变量为常量；extends 用于类继承。', 2, '关键字', '自编'),
-(6, 1, 5, 3, '用所给动词的适当形式填空: He ____ (go) to school every day.', NULL, 'goes', '主语 He 是第三人称单数，一般现在时动词加 -es。', 1, '一般现在时', '教材'),
-(7, 1, 7, 4, 'Java 是一种面向对象的编程语言。', NULL, '对', 'Java 以类和对象为核心，支持封装、继承、多态。', 1, 'Java概述', '自编');
+-- 题库 (admin: 1-4, demo: 5)
+INSERT INTO bank (id, name, description, user_id) VALUES
+(1, 'Java 入门题库', 'Java 基础入门题目', 1),
+(2, '数据结构题库', '栈、队列、顺序表等', 1),
+(3, '数学题库', '代数与几何', 1),
+(4, '英语题库', '语法与时态练习', 1),
+(5, '网络基础题库', 'HTTP/TCP 入门', 2);
 
-(8, 1, 2, 4, '所有的质数都是奇数。', NULL, '错', '2 是质数，但 2 是偶数，所以命题不成立。', 2, '质数,奇偶性', '自编'),
-(9, 1, 8, 5, '简述栈和队列的区别。', NULL, '栈是后进先出(LIFO)的线性表，队列是先进先出(FIFO)的线性表。', '栈只能在一端(栈顶)操作；队列一端入队、另一端出队。', 3, '栈,队列', '自编'),
-(10, 1, 8, 1, '在长度为 n 的顺序表中第 i 个位置前插入一个元素，平均需要移动的元素个数为？', '["n","n/2","log n","n*n"]', 'B', '等概率下平均移动次数为 n/2。', 3, '顺序表,插入', '教材'),
-(11, 1, 5, 1, 'She ____ to the party last night.', '["go","goes","went","gone"]', 'C', 'last night 表示过去时间，用一般过去时 went。', 1, '一般过去时', '教材'),
-(12, 1, 3, 5, '简述三角形全等的判定方法（至少写出三种）。', NULL, 'SSS、SAS、ASA、AAS、HL(直角三角形)。', '任选三种作答即可，判定方法共五种。', 3, '全等三角形', '教材'),
-(13, 2, 10, 1, 'HTTP 协议默认使用的端口号是？', '["21","80","443","8080"]', 'B', 'HTTP 默认 80，HTTPS 默认 443，21 是 FTP。', 1, '网络协议', '自编'),
-(14, 2, 10, 4, 'TCP 是一种无连接的传输层协议。', NULL, '错', 'TCP 是面向连接的可靠传输协议，UDP 才是无连接的。', 1, 'TCP,UDP', '自编');
+-- 题目 (admin: 1-12, demo: 13-14) 多空答案用 ||| 分隔
+INSERT INTO question (id, user_id, bank_id, category_id, type, title, options, answer, analysis, difficulty, tags, source) VALUES
+(1, 1, 1, 7, 1, 'Java 中，下列哪个关键字用于定义类？', '["class","interface","struct","package"]', 'A', 'class 用于定义类；interface 定义接口；Java 中没有 struct；package 用于声明包。', 1, 'Java基础,关键字', '自编'),
+(2, 1, 3, 2, 1, '已知 x + 3 = 7，则 x 的值为？', '["3","4","10","-4"]', 'B', '两边同时减 3，x = 7 - 3 = 4。', 1, '一元一次方程', '自编'),
+(3, 1, 1, 7, 2, '下列哪些是 Java 的基本数据类型？', '["int","String","boolean","Integer"]', 'AC', 'int 和 boolean 是 8 种基本数据类型；String 是引用类型；Integer 是包装类。', 2, '数据类型', '自编'),
+(4, 1, 3, 3, 2, '下列属于平面图形性质的是？', '["三角形内角和为180度","圆的周长为2πr","正方体有6个面","勾股定理"]', 'ABD', '正方体是立体图形，不属于平面图形性质；A、B、D 均为平面几何结论。', 2, '平面几何', '自编'),
+(5, 1, 1, 7, 3, 'Java 中用于定义常量的关键字是____，用于类继承的关键字是____。', NULL, 'final|||extends', 'final 修饰的变量为常量；extends 用于类继承。', 2, '关键字', '自编'),
+(6, 1, 4, 5, 3, '用所给动词的适当形式填空: He ____ (go) to school every day.', NULL, 'goes', '主语 He 是第三人称单数，一般现在时动词加 -es。', 1, '一般现在时', '教材'),
+(7, 1, 1, 7, 4, 'Java 是一种面向对象的编程语言。', NULL, '对', 'Java 以类和对象为核心，支持封装、继承、多态。', 1, 'Java概述', '自编');
+
+(8, 1, 3, 2, 4, '所有的质数都是奇数。', NULL, '错', '2 是质数，但 2 是偶数，所以命题不成立。', 2, '质数,奇偶性', '自编'),
+(9, 1, 2, 8, 5, '简述栈和队列的区别。', NULL, '栈是后进先出(LIFO)的线性表，队列是先进先出(FIFO)的线性表。', '栈只能在一端(栈顶)操作；队列一端入队、另一端出队。', 3, '栈,队列', '自编'),
+(10, 1, 2, 8, 1, '在长度为 n 的顺序表中第 i 个位置前插入一个元素，平均需要移动的元素个数为？', '["n","n/2","log n","n*n"]', 'B', '等概率下平均移动次数为 n/2。', 3, '顺序表,插入', '教材'),
+(11, 1, 4, 5, 1, 'She ____ to the party last night.', '["go","goes","went","gone"]', 'C', 'last night 表示过去时间，用一般过去时 went。', 1, '一般过去时', '教材'),
+(12, 1, 3, 3, 5, '简述三角形全等的判定方法（至少写出三种）。', NULL, 'SSS、SAS、ASA、AAS、HL(直角三角形)。', '任选三种作答即可，判定方法共五种。', 3, '全等三角形', '教材'),
+(13, 2, 5, 10, 1, 'HTTP 协议默认使用的端口号是？', '["21","80","443","8080"]', 'B', 'HTTP 默认 80，HTTPS 默认 443，21 是 FTP。', 1, '网络协议', '自编'),
+(14, 2, 5, 10, 4, 'TCP 是一种无连接的传输层协议。', NULL, '错', 'TCP 是面向连接的可靠传输协议，UDP 才是无连接的。', 1, 'TCP,UDP', '自编');
 
 -- 收藏演示 (demo 收藏 admin 的题目)
 INSERT INTO favorite (user_id, question_id) VALUES
 (2, 7),
 (2, 9);
 
--- 共享演示 (admin 公开共享 2 题, 并指定共享 1 题给 demo)
-INSERT INTO share (question_id, from_user_id, to_user_id, share_type, message) VALUES
-(9,  1, NULL, 2, '经典面试题, 大家参考'),
-(10, 1, NULL, 2, NULL),
-(1,  1, 2,    1, '入门题, 做做看');
+-- 共享演示 (题目共享 + 题库共享)
+INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, message) VALUES
+(9,    NULL, 1, NULL, 2, '经典面试题, 大家参考'),
+(10,   NULL, 1, NULL, 2, NULL),
+(1,    NULL, 1, 2,    1, '入门题, 做做看'),
+(NULL, 2,    1, 2,    3, '数据结构题库, 一起学习!');
 

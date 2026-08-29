@@ -23,6 +23,7 @@ public interface QuestionMapper {
 
     List<Question> selectForPractice(@Param("userId") Long userId,
                                      @Param("categoryId") Long categoryId,
+                                     @Param("bankId") Long bankId,
                                      @Param("difficulty") Integer difficulty,
                                      @Param("type") Integer type,
                                      @Param("limit") int limit,
@@ -30,6 +31,10 @@ public interface QuestionMapper {
                                      @Param("onlyWrong") boolean onlyWrong);
 
     int countByUser(@Param("userId") Long userId);
+
+    int countByBank(@Param("bankId") Long bankId);
+
+    int clearBank(@Param("bankId") Long bankId);
 
     List<NameValueVO> countByType(@Param("userId") Long userId);
 

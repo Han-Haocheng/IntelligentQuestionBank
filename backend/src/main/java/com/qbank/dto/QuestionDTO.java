@@ -10,6 +10,7 @@ import java.util.List;
 public class QuestionDTO {
     private Long id;
     private Long categoryId;
+    private Long bankId;
     private Integer type;
     private String title;
     private List<String> options;
@@ -22,14 +23,17 @@ public class QuestionDTO {
     /** 非数据库字段: 题目所属用户(内部使用) */
     @JsonIgnore
     private Long userId;
-    /** 非数据库字段: 分类名称/收藏状态(查询返回) */
+    /** 非数据库字段: 分类名称/题库名称/收藏状态(查询返回) */
     private String categoryName;
+    private String bankName;
     private Boolean favorited;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public Long getBankId() { return bankId; }
+    public void setBankId(Long bankId) { this.bankId = bankId; }
     public Integer getType() { return type; }
     public void setType(Integer type) { this.type = type; }
     public String getTitle() { return title; }
@@ -50,6 +54,8 @@ public class QuestionDTO {
     public void setUserId(Long userId) { this.userId = userId; }
     public String getCategoryName() { return categoryName; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public String getBankName() { return bankName; }
+    public void setBankName(String bankName) { this.bankName = bankName; }
     public Boolean getFavorited() { return favorited; }
     public void setFavorited(Boolean favorited) { this.favorited = favorited; }
 }

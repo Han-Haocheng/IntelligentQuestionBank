@@ -4,9 +4,11 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
 import com.qbank.dto.ShareDTO;
+import com.qbank.entity.Bank;
 import com.qbank.entity.Question;
 import com.qbank.entity.Share;
 import com.qbank.entity.User;
+import com.qbank.mapper.BankMapper;
 import com.qbank.mapper.QuestionMapper;
 import com.qbank.mapper.ShareMapper;
 import com.qbank.mapper.UserMapper;
@@ -23,15 +25,22 @@ public class ShareService {
 
     private final ShareMapper shareMapper;
     private final QuestionMapper questionMapper;
+    private final BankMapper bankMapper;
     private final UserMapper userMapper;
 
-    public ShareService(ShareMapper shareMapper, QuestionMapper questionMapper, UserMapper userMapper) {
+    public ShareService(ShareMapper shareMapper, QuestionMapper questionMapper,
+                        BankMapper bankMapper, UserMapper userMapper) {
         this.shareMapper = shareMapper;
         this.questionMapper = questionMapper;
+        this.bankMapper = bankMapper;
         this.userMapper = userMapper;
     }
 
     public void share(Long userId, ShareDTO dto) {
+        if (dto.getBankId() != null) {
+            shareBank(userId, dto);
+            return;
+        }
         if (dto.getQuestionId() == null) {
             throw new BusinessException("题目ID不能为空");
         }
@@ -66,6 +75,42 @@ public class ShareService {
             shareMapper.insert(share);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             throw new BusinessException("该题目已共享给该用户");
+        }
+    }
+
+    /** 题库共享: shareType 3=指定用户 4=公开 */
+    private void shareBank(Long userId, ShareDTO dto) {
+        Bank bank = bankMapper.findById(dto.getBankId());
+        if (bank == null || !bank.getUserId().equals(userId)) {
+            throw new BusinessException("只能共享自己的题库");
+        }
+        boolean isPublic = dto.getShareType() != null && dto.getShareType() == 4;
+        Share share = new Share();
+        share.setBankId(dto.getBankId());
+        share.setFromUserId(userId);
+        share.setShareType(isPublic ? 4 : 3);
+        share.setMessage(dto.getMessage());
+        if (!isPublic) {
+            if (!StringUtils.hasText(dto.getToUsername())) {
+                throw new BusinessException("请输入要共享给的用户名");
+            }
+            User target = userMapper.findByUsername(dto.getToUsername().trim());
+            if (target == null) {
+                throw new BusinessException("用户不存在: " + dto.getToUsername());
+            }
+            if (target.getId().equals(userId)) {
+                throw new BusinessException("不能共享给自己");
+            }
+            share.setToUserId(target.getId());
+        } else {
+            if (shareMapper.countBankPublic(dto.getBankId(), userId) > 0) {
+                throw new BusinessException("该题库已公开共享");
+            }
+        }
+        try {
+            shareMapper.insert(share);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new BusinessException("该题库已共享给该用户");
         }
     }
 

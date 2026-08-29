@@ -6,6 +6,9 @@
         <el-select v-model="query.categoryId" placeholder="分类" clearable style="width: 150px">
           <el-option v-for="c in flatCategories" :key="c.id" :value="c.id" :label="c.pathName" />
         </el-select>
+        <el-select v-model="query.bankId" placeholder="题库" clearable style="width: 150px">
+          <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name" />
+        </el-select>
         <el-select v-model="query.type" placeholder="题型" clearable style="width: 120px">
           <el-option v-for="(n, i) in typeNames" :key="i" :value="i + 1" :label="n" />
         </el-select>
@@ -33,6 +36,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="categoryName" label="分类" width="110" />
+        <el-table-column label="题库" width="130">
+          <template #default="{ row }">{{ row.bankName || '-' }}</template>
+        </el-table-column>
         <el-table-column label="标签" width="160">
           <template #default="{ row }">
             <el-tag v-for="t in splitTags(row.tags)" :key="t" size="small" type="info" style="margin-right:4px">{{ t }}</el-tag>
@@ -108,6 +114,11 @@
             <el-option v-for="c in flatCategories" :key="c.id" :value="c.id" :label="c.pathName" />
           </el-select>
         </el-form-item>
+        <el-form-item label="题库">
+          <el-select v-model="form.bankId" placeholder="选择题库" clearable style="width: 200px">
+            <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="知识点">
           <el-input v-model="form.tags" placeholder="多个标签用英文逗号分隔, 如: Java基础,关键字" />
         </el-form-item>
@@ -155,8 +166,9 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { questionApi, categoryApi, favoriteApi, shareApi, aiApi } from '../api'
+import { questionApi, categoryApi, bankApi, favoriteApi, shareApi } from '../api'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
@@ -165,7 +177,9 @@ const rows = ref([])
 const total = ref(0)
 const loading = ref(false)
 const flatCategories = ref([])
-const query = reactive({ keyword: '', categoryId: null, type: null, difficulty: null, pageNum: 1, pageSize: 10 })
+const query = reactive({ keyword: '', categoryId: null, bankId: null, type: null, difficulty: null, pageNum: 1, pageSize: 10 })
+const banks = ref([])
+const route = useRoute()
 
 const editVisible = ref(false)
 const saving = ref(false)
@@ -176,7 +190,7 @@ const aiLoading = ref(false)
 const aiContent = ref('')
 
 const multiAnswer = ref([])
-const form = reactive({ id: null, type: 1, title: '', options: ['', '', '', ''], answer: '', analysis: '', difficulty: 3, categoryId: null, tags: '', source: '' })
+const form = reactive({ id: null, type: 1, title: '', options: ['', '', '', ''], answer: '', analysis: '', difficulty: 3, categoryId: null, bankId: null, tags: '', source: '' })
 const shareForm = reactive({ questionId: null, shareType: 1, toUsername: '', message: '' })
 
 const isChoice = computed(() => form.type === 1 || form.type === 2)
@@ -207,6 +221,7 @@ async function load () {
     const data = await questionApi.list({
       keyword: query.keyword || undefined,
       categoryId: query.categoryId || undefined,
+      bankId: query.bankId || undefined,
       type: query.type || undefined,
       difficulty: query.difficulty || undefined,
       pageNum: query.pageNum,
@@ -222,6 +237,7 @@ async function load () {
 function reset () {
   query.keyword = ''
   query.categoryId = null
+  query.bankId = null
   query.type = null
   query.difficulty = null
   query.pageNum = 1
@@ -244,6 +260,7 @@ function openEdit (row) {
     form.analysis = row.analysis || ''
     form.difficulty = row.difficulty
     form.categoryId = row.categoryId
+    form.bankId = row.bankId
     form.tags = row.tags || ''
     form.source = row.source || ''
     multiAnswer.value = row.type === 2 ? (row.answer || '').split('') : []
@@ -256,6 +273,7 @@ function openEdit (row) {
     form.analysis = ''
     form.difficulty = 3
     form.categoryId = null
+    form.bankId = null
     form.tags = ''
     form.source = ''
     multiAnswer.value = []
@@ -279,6 +297,7 @@ async function save () {
       analysis: form.analysis,
       difficulty: form.difficulty,
       categoryId: form.categoryId,
+      bankId: form.bankId,
       tags: form.tags,
       source: form.source
     }
@@ -345,6 +364,10 @@ async function analyze (row) {
 
 onMounted(() => {
   loadCategories()
+  bankApi.list().then((list) => { banks.value = list })
+  if (route.query.bankId) {
+    query.bankId = Number(route.query.bankId)
+  }
   load()
 })
 </script>

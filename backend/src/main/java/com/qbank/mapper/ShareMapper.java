@@ -22,6 +22,14 @@ public interface ShareMapper {
     /** 指定用户能否访问题目(接收人或公开共享) */
     int countAccessible(@Param("questionId") Long questionId, @Param("userId") Long userId);
 
+    /** 指定用户能否访问题库 */
+    int countBankAccessible(@Param("bankId") Long bankId, @Param("userId") Long userId);
+
     /** 题目是否已有公开共享 */
     int countPublic(@Param("questionId") Long questionId, @Param("fromUserId") Long fromUserId);
+
+    /** 题库是否已有公开共享 */
+    int countBankPublic(@Param("bankId") Long bankId, @Param("fromUserId") Long fromUserId);
+
+    int deleteByBank(@Param("bankId") Long bankId);
 }

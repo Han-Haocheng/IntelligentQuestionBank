@@ -7,6 +7,7 @@ public class PracticeStartDTO {
     private String name;
     private Integer mode = 1;       // 1顺序 2随机 3错题重做
     private Long categoryId;
+    private Long bankId;
     private Integer difficulty;
     private Integer type;
     private Integer count = 10;
@@ -18,6 +19,8 @@ public class PracticeStartDTO {
     public void setMode(Integer mode) { this.mode = mode; }
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public Long getBankId() { return bankId; }
+    public void setBankId(Long bankId) { this.bankId = bankId; }
     public Integer getDifficulty() { return difficulty; }
     public void setDifficulty(Integer difficulty) { this.difficulty = difficulty; }
     public Integer getType() { return type; }
