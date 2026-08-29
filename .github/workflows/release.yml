@@ -118,6 +118,7 @@ jobs:
       - name: 诊断构建结果
         if: always()
         working-directory: frontend
+        shell: bash
         run: |
           echo "--- release/ 目录内容:"
           ls -la release/ 2>/dev/null || echo 'release 目录不存在'
