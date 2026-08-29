@@ -16,3 +16,4 @@ backend/target/
 # 本地运行时文件
 *.log
 /tmp/
+.dsh/

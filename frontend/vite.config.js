@@ -13,5 +13,19 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    // echarts/element-plus 本身体积较大, 拆分后单 chunk 仍 >500kB, 提高阈值避免噪音告警
+    chunkSizeWarningLimit: 1500,
+    // 拆分大依赖, 业务代码改动不会使三方库缓存失效
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue', 'vue-router', 'pinia', 'axios'],
+          'element-plus': ['element-plus', '@element-plus/icons-vue'],
+          echarts: ['echarts']
+        }
+      }
+    }
   }
 })
