@@ -112,9 +112,13 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO question (user_id, category_id, bank_id, type, title, options, answer, analysis, difficulty, tags, source)
-        VALUES (#{userId}, #{categoryId}, #{bankId}, #{type}, #{title}, #{options}, #{answer}, #{analysis}, #{difficulty}, #{tags}, #{source})
+        INSERT INTO question (user_id, category_id, bank_id, type, title, options, answer, analysis, difficulty, tags, source, origin_question_id)
+        VALUES (#{userId}, #{categoryId}, #{bankId}, #{type}, #{title}, #{options}, #{answer}, #{analysis}, #{difficulty}, #{tags}, #{source}, #{originQuestionId})
     </insert>
+
+    <select id="selectByBank" resultType="com.qbank.entity.Question">
+        SELECT * FROM question WHERE bank_id = #{bankId} ORDER BY id
+    </select>
 
     <insert id="insertBatch">
         INSERT INTO question (user_id, category_id, bank_id, type, title, options, answer, analysis, difficulty, tags, source) VALUES

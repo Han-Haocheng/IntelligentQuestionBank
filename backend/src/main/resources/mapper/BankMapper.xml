@@ -15,8 +15,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO bank (name, description, user_id)
-        VALUES (#{name}, #{description}, #{userId})
+        INSERT INTO bank (name, description, origin_bank_id, user_id)
+        VALUES (#{name}, #{description}, #{originBankId}, #{userId})
     </insert>
 
     <update id="update">

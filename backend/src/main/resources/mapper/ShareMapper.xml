@@ -23,9 +23,18 @@
     </select>
 
     <select id="selectReceived" resultType="com.qbank.entity.Share">
-        <include refid="baseSelect"/>
-        WHERE (s.share_type IN (2, 4) AND s.from_user_id != #{userId})
-           OR s.to_user_id = #{userId}
+        SELECT s.*, q.title AS question_title, b.name AS bank_name,
+               uf.username AS from_username, ut.username AS to_username,
+               m.subscribed AS subscribed
+        FROM share s
+        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+        LEFT JOIN question q ON q.id = s.question_id
+        LEFT JOIN bank b ON b.id = s.bank_id
+        LEFT JOIN user uf ON uf.id = s.from_user_id
+        LEFT JOIN user ut ON ut.id = s.to_user_id
+        WHERE ((s.share_type IN (2, 4) AND s.from_user_id != #{userId})
+              OR s.to_user_id = #{userId})
+          AND (m.id IS NULL OR m.subscribed = 1)
         ORDER BY s.id DESC
     </select>
 

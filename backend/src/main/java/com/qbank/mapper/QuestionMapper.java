@@ -45,6 +45,8 @@ public interface QuestionMapper {
 
     int countByBank(@Param("bankId") Long bankId);
 
+    List<Question> selectByBank(@Param("bankId") Long bankId);
+
     int clearBank(@Param("bankId") Long bankId);
 
     List<NameValueVO> countByType(@Param("userId") Long userId);

@@ -13,6 +13,7 @@ import com.qbank.entity.User;
 import com.qbank.mapper.BankMapper;
 import com.qbank.mapper.QuestionMapper;
 import com.qbank.mapper.ShareMapper;
+import com.qbank.mapper.ShareMemberMapper;
 import com.qbank.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -28,13 +29,16 @@ public class ShareService {
     private final ShareMapper shareMapper;
     private final QuestionMapper questionMapper;
     private final BankMapper bankMapper;
+    private final ShareMemberMapper shareMemberMapper;
     private final UserMapper userMapper;
 
     public ShareService(ShareMapper shareMapper, QuestionMapper questionMapper,
-                        BankMapper bankMapper, UserMapper userMapper) {
+                        BankMapper bankMapper, ShareMemberMapper shareMemberMapper,
+                        UserMapper userMapper) {
         this.shareMapper = shareMapper;
         this.questionMapper = questionMapper;
         this.bankMapper = bankMapper;
+        this.shareMemberMapper = shareMemberMapper;
         this.userMapper = userMapper;
     }
 
@@ -72,6 +76,7 @@ public class ShareService {
             share.setToUserId(target.getId());
             try {
                 shareMapper.insert(share);
+                shareMemberMapper.upsert(share.getId(), target.getId(), 1);
             } catch (org.springframework.dao.DuplicateKeyException e) {
                 throw new BusinessException("该题目已共享给该用户");
             }
@@ -116,6 +121,7 @@ public class ShareService {
             share.setToUserId(target.getId());
             try {
                 shareMapper.insert(share);
+                shareMemberMapper.upsert(share.getId(), target.getId(), 1);
             } catch (org.springframework.dao.DuplicateKeyException e) {
                 throw new BusinessException("该题库已共享给该用户");
             }
@@ -171,5 +177,83 @@ public class ShareService {
         if (shareMapper.delete(id, userId) == 0) {
             throw new BusinessException("共享记录不存在或无权取消");
         }
+    }
+
+    /** 订阅/退订: 仅收件人可操作 */
+    public void subscribe(Long userId, Long shareId, boolean subscribed) {
+        requireRecipient(userId, shareId);
+        shareMemberMapper.upsert(shareId, userId, subscribed ? 1 : 0);
+    }
+
+    /** 拷贝共享资源为收件人所有: 题目复制 / 题库连同题目整体复制, 记录来源 */
+    public Long copy(Long userId, Long shareId) {
+        Share share = requireRecipient(userId, shareId);
+        if (share.getQuestionId() != null) {
+            Question orig = questionMapper.findById(share.getQuestionId());
+            if (orig == null) {
+                throw new BusinessException("原题目已不存在");
+            }
+            Question copy = new Question();
+            copy.setUserId(userId);
+            copy.setCategoryId(orig.getCategoryId());
+            copy.setBankId(null);
+            copy.setType(orig.getType());
+            copy.setTitle(orig.getTitle());
+            copy.setOptions(orig.getOptions());
+            copy.setAnswer(orig.getAnswer());
+            copy.setAnalysis(orig.getAnalysis());
+            copy.setDifficulty(orig.getDifficulty());
+            copy.setTags(orig.getTags());
+            copy.setSource(orig.getSource());
+            copy.setOriginQuestionId(orig.getId());
+            questionMapper.insert(copy);
+            return copy.getId();
+        }
+        if (share.getBankId() != null) {
+            Bank orig = bankMapper.findById(share.getBankId());
+            if (orig == null) {
+                throw new BusinessException("原题库已不存在");
+            }
+            Bank copy = new Bank();
+            copy.setUserId(userId);
+            copy.setName(orig.getName() + " (副本)");
+            copy.setDescription(orig.getDescription());
+            copy.setOriginBankId(orig.getId());
+            bankMapper.insert(copy);
+            for (Question q : questionMapper.selectByBank(orig.getId())) {
+                Question cq = new Question();
+                cq.setUserId(userId);
+                cq.setCategoryId(q.getCategoryId());
+                cq.setBankId(copy.getId());
+                cq.setType(q.getType());
+                cq.setTitle(q.getTitle());
+                cq.setOptions(q.getOptions());
+                cq.setAnswer(q.getAnswer());
+                cq.setAnalysis(q.getAnalysis());
+                cq.setDifficulty(q.getDifficulty());
+                cq.setTags(q.getTags());
+                cq.setSource(q.getSource());
+                cq.setOriginQuestionId(q.getId());
+                questionMapper.insert(cq);
+            }
+            return copy.getId();
+        }
+        throw new BusinessException("共享内容无效");
+    }
+
+    /** 校验收件人身份并返回共享记录 */
+    private Share requireRecipient(Long userId, Long shareId) {
+        Share share = shareMapper.findById(shareId);
+        if (share == null) {
+            throw new BusinessException("共享记录不存在");
+        }
+        boolean recipient = (share.getToUserId() != null && share.getToUserId().equals(userId))
+                || ((share.getShareType() == Constants.SHARE_TYPE_PUBLIC_QUESTION
+                        || share.getShareType() == Constants.SHARE_TYPE_PUBLIC_BANK)
+                    && !share.getFromUserId().equals(userId));
+        if (!recipient) {
+            throw new BusinessException("无权操作该共享");
+        }
+        return share;
     }
 }

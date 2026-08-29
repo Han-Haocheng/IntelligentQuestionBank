@@ -22,6 +22,7 @@ public class Share {
     private String bankName;
     private String fromUsername;
     private String toUsername;
+    private Integer subscribed;  // 当前用户订阅状态(1订阅中 0已退订), 查询返回
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -49,4 +50,6 @@ public class Share {
     public void setFromUsername(String fromUsername) { this.fromUsername = fromUsername; }
     public String getToUsername() { return toUsername; }
     public void setToUsername(String toUsername) { this.toUsername = toUsername; }
+    public Integer getSubscribed() { return subscribed; }
+    public void setSubscribed(Integer subscribed) { this.subscribed = subscribed; }
 }

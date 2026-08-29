@@ -63,4 +63,21 @@ public class ShareController {
         shareService.updatePermission(userId, id, body == null ? null : body.get("permission"));
         return Result.ok();
     }
+
+    /** 订阅/退订(收件人): body 传 {"subscribed": true|false} */
+    @PostMapping("/{id}/subscribe")
+    public Result<Void> subscribe(@RequestAttribute("userId") Long userId,
+                                  @PathVariable Long id,
+                                  @RequestBody java.util.Map<String, Object> body) {
+        boolean subscribed = body == null || body.get("subscribed") == null
+                || Boolean.TRUE.equals(body.get("subscribed"));
+        shareService.subscribe(userId, id, subscribed);
+        return Result.ok();
+    }
+
+    /** 拷贝共享资源为收件人所有, 返回新资源 id */
+    @PostMapping("/{id}/copy")
+    public Result<Long> copy(@RequestAttribute("userId") Long userId, @PathVariable Long id) {
+        return Result.ok(shareService.copy(userId, id));
+    }
 }

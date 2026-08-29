@@ -19,6 +19,7 @@ public class Question {
     private Integer difficulty;  // 1~5
     private String tags;
     private String source;
+    private Long originQuestionId;  // 拷贝来源题目ID
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
@@ -51,6 +52,8 @@ public class Question {
     public void setTags(String tags) { this.tags = tags; }
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+    public Long getOriginQuestionId() { return originQuestionId; }
+    public void setOriginQuestionId(Long originQuestionId) { this.originQuestionId = originQuestionId; }
     public LocalDateTime getCreateTime() { return createTime; }
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
     public LocalDateTime getUpdateTime() { return updateTime; }

@@ -10,6 +10,7 @@ public class Bank {
     private Long id;
     private String name;
     private String description;
+    private Long originBankId;  // 拷贝来源题库ID
     private Long userId;
     private LocalDateTime createTime;
 
@@ -22,6 +23,8 @@ public class Bank {
     public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public Long getOriginBankId() { return originBankId; }
+    public void setOriginBankId(Long originBankId) { this.originBankId = originBankId; }
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
     public LocalDateTime getCreateTime() { return createTime; }
