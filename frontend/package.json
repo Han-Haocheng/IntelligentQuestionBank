@@ -51,7 +51,7 @@
           "arch": ["x64"]
         }
       ],
-      "artifactName": "QBank-Setup-${version}-${arch}.exe"
+      "artifactName": "qbank-desktop-win-${version}-${arch}.exe"
     },
     "nsis": {
       "oneClick": false,
@@ -69,7 +69,7 @@
       ],
       "category": "public.app-category.education",
       "identity": null,
-      "artifactName": "QBank-${version}-${arch}.dmg"
+      "artifactName": "qbank-desktop-mac-${version}-${arch}.dmg"
     },
     "linux": {
       "category": "Education",
@@ -79,9 +79,10 @@
       ]
     },
     "appImage": {
-      "artifactName": "QBank-${version}-${arch}.AppImage"
+      "artifactName": "qbank-desktop-linux-${version}-${arch}.AppImage"
     },
     "deb": {
+      "artifactName": "qbank-desktop-linux-${version}-${arch}.deb",
       "maintainer": "Han-Haocheng <hanhaocheng@users.noreply.github.com>"
     }
   },

@@ -38,11 +38,17 @@ jobs:
       - name: 打包后端
         run: mvn -B clean package --file backend/pom.xml
 
+      - name: 统一产物命名 (qbank-backend-<version>.jar)
+        run: |
+          JAR=$(ls backend/target/qbank-*.jar | head -1)
+          VER=$(basename "$JAR" .jar | sed 's/^qbank-//')
+          mv "$JAR" "backend/target/qbank-backend-${VER}.jar"
+
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          name: backend-jar
-          path: backend/target/*.jar
+          name: qbank-backend
+          path: backend/target/qbank-backend-*.jar
           if-no-files-found: error
 
   # ---------- 浏览器版 zip (单次) ----------
@@ -69,14 +75,16 @@ jobs:
           npm ci
           npm run build
 
-      - name: 压缩浏览器版
-        run: zip -qr frontend-dist-web.zip frontend/dist
+      - name: 压缩浏览器版 (qbank-web-<version>.zip)
+        run: |
+          VER=$(node -p "require('./frontend/package.json').version")
+          zip -qr "qbank-web-${VER}.zip" frontend/dist
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          name: web-zip
-          path: frontend-dist-web.zip
+          name: qbank-web
+          path: qbank-web-*.zip
           if-no-files-found: error
 
   # ---------- Electron 桌面安装包 (三平台矩阵) ----------
@@ -130,7 +138,7 @@ jobs:
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-${{ matrix.platforms }}
+          name: qbank-desktop-${{ matrix.platforms }}
           # 只上传安装包本体, 排除 *-unpacked 目录 / blockmap / 构建配置快照
           path: |
             frontend/release/*.exe
@@ -160,6 +168,13 @@ jobs:
 
       - name: 查看产物
         run: ls -lh artifacts/
+
+      - name: 统一架构标识 (deb 的 amd64 -> x64)
+        run: |
+          for f in artifacts/*.deb; do
+            [ -e "$f" ] && mv "$f" "${f//amd64/x64}"
+          done
+          ls -lh artifacts/
 
       - name: 创建 GitHub Release
         run: |
