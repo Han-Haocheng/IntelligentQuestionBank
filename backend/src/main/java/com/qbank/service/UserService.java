@@ -9,6 +9,7 @@ import com.qbank.dto.RegisterDTO;
 import com.qbank.dto.UserUpdateDTO;
 import com.qbank.entity.User;
 import com.qbank.mapper.UserMapper;
+import com.qbank.util.LoginRateLimiter;
 import com.qbank.util.PasswordUtil;
 import com.qbank.util.TokenManager;
 import org.springframework.stereotype.Service;
@@ -22,14 +23,19 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final TokenManager tokenManager;
+    private final LoginRateLimiter loginRateLimiter;
 
-    public UserService(UserMapper userMapper, TokenManager tokenManager) {
+    public UserService(UserMapper userMapper, TokenManager tokenManager, LoginRateLimiter loginRateLimiter) {
         this.userMapper = userMapper;
         this.tokenManager = tokenManager;
+        this.loginRateLimiter = loginRateLimiter;
     }
 
     public LoginVO register(RegisterDTO dto) {
         checkUsernamePassword(dto);
+        if (!loginRateLimiter.tryRegister()) {
+            throw new BusinessException("注册过于频繁, 请稍后再试");
+        }
         if (userMapper.findByUsername(dto.getUsername()) != null) {
             throw new BusinessException("用户名已存在");
         }
@@ -47,13 +53,19 @@ public class UserService {
         if (!StringUtils.hasText(dto.getUsername()) || !StringUtils.hasText(dto.getPassword())) {
             throw new BusinessException("请输入用户名和密码");
         }
-        User user = userMapper.findByUsername(dto.getUsername().trim());
+        String username = dto.getUsername().trim();
+        if (loginRateLimiter.isLoginLocked(username)) {
+            throw new BusinessException("尝试次数过多, 请稍后再试");
+        }
+        User user = userMapper.findByUsername(username);
         if (user == null || !PasswordUtil.matches(dto.getPassword(), user.getPassword())) {
+            loginRateLimiter.onLoginFailure(username);
             throw new BusinessException("用户名或密码错误");
         }
         if (user.getStatus() == null || user.getStatus() != 1) {
             throw new BusinessException("账号已被禁用, 请联系管理员");
         }
+        loginRateLimiter.onLoginSuccess(username);
         // 存量旧格式(盐:sha256)账号登录成功后自动升级为 BCrypt, 无需用户感知
         if (PasswordUtil.isLegacySha256(user.getPassword())) {
             userMapper.updatePassword(user.getId(), PasswordUtil.encode(dto.getPassword()));
