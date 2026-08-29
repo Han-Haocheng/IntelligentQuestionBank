@@ -9,9 +9,9 @@ import com.qbank.dto.RegisterDTO;
 import com.qbank.dto.UserUpdateDTO;
 import com.qbank.entity.User;
 import com.qbank.mapper.UserMapper;
+import com.qbank.util.JwtTokenManager;
 import com.qbank.util.LoginRateLimiter;
 import com.qbank.util.PasswordUtil;
-import com.qbank.util.TokenManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -22,10 +22,10 @@ import org.springframework.util.StringUtils;
 public class UserService {
 
     private final UserMapper userMapper;
-    private final TokenManager tokenManager;
+    private final JwtTokenManager tokenManager;
     private final LoginRateLimiter loginRateLimiter;
 
-    public UserService(UserMapper userMapper, TokenManager tokenManager, LoginRateLimiter loginRateLimiter) {
+    public UserService(UserMapper userMapper, JwtTokenManager tokenManager, LoginRateLimiter loginRateLimiter) {
         this.userMapper = userMapper;
         this.tokenManager = tokenManager;
         this.loginRateLimiter = loginRateLimiter;

@@ -1,20 +1,21 @@
 package com.qbank.interceptor;
 
-import com.qbank.util.TokenManager;
+import com.qbank.util.JwtTokenManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * 登录鉴权拦截器: 校验 Authorization 头(Bearer token)或 token 参数
+ * 登录鉴权拦截器: 仅校验 Authorization 头(Bearer token)
+ * 不再支持 URL ?token= 传参, 避免令牌泄露进访问日志/浏览器历史
  */
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
-    private final TokenManager tokenManager;
+    private final JwtTokenManager tokenManager;
 
-    public AuthInterceptor(TokenManager tokenManager) {
+    public AuthInterceptor(JwtTokenManager tokenManager) {
         this.tokenManager = tokenManager;
     }
 
@@ -27,10 +28,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        if (token == null || token.isEmpty()) {
-            token = request.getParameter("token");
-        }
-        TokenManager.TokenInfo info = tokenManager.verify(token);
+        JwtTokenManager.TokenInfo info = tokenManager.verify(token);
         if (info == null) {
             response.setStatus(401);
             response.setContentType("application/json;charset=UTF-8");
