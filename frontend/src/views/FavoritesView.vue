@@ -24,8 +24,8 @@
         </el-table-column>
       </el-table>
       <div class="table-pager">
-        <el-pagination background layout="total, prev, pager, next" :total="total"
-          v-model:current-page="pageNum" :page-size="pageSize" @change="load" />
+        <el-pagination background layout="total, sizes, prev, pager, next" :total="total"
+          v-model:current-page="pageNum" :page-size="pageSize" :page-sizes="[10, 20, 50]" @change="load" />
       </div>
     </el-card>
 
@@ -50,8 +50,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { favoriteApi } from '../api'
-
-const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
+import { TYPE_NAMES as typeNames, letter } from '../utils/constants'
 const rows = ref([])
 const total = ref(0)
 const loading = ref(false)
@@ -59,8 +58,6 @@ const pageNum = ref(1)
 const pageSize = ref(10)
 const detailVisible = ref(false)
 const current = ref(null)
-
-function letter (i) { return String.fromCharCode(65 + i) }
 
 async function load () {
   loading.value = true

@@ -59,8 +59,8 @@
         </el-table-column>
       </el-table>
       <div class="table-pager">
-        <el-pagination background layout="total, prev, pager, next" :total="total"
-          v-model:current-page="pageNum" :page-size="pageSize" @change="load" />
+        <el-pagination background layout="total, sizes, prev, pager, next" :total="total"
+          v-model:current-page="pageNum" :page-size="pageSize" :page-sizes="[10, 20, 50]" @change="load" />
       </div>
     </el-card>
 
@@ -110,10 +110,9 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { shareApi, questionApi } from '../api'
+import { TYPE_NAMES as typeNames, letter } from '../utils/constants'
 
 const router = useRouter()
-
-const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const tab = ref('received')
 const rows = ref([])
 const total = ref(0)
@@ -128,8 +127,6 @@ const question = ref(null)
 const permVisible = ref(false)
 const permSaving = ref(false)
 const permForm = reactive({ id: null, permission: 1 })
-
-function letter (i) { return String.fromCharCode(65 + i) }
 
 function isPublic (row) {
   return row.shareType === 2 || row.shareType === 4

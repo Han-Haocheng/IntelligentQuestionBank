@@ -92,8 +92,8 @@
             </el-table-column>
           </el-table>
           <div class="table-pager">
-            <el-pagination background layout="total, prev, pager, next" :total="recordTotal"
-              v-model:current-page="recordPageNum" :page-size="recordPageSize" @change="loadRecords" />
+            <el-pagination background layout="total, sizes, prev, pager, next" :total="recordTotal"
+              v-model:current-page="recordPageNum" :page-size="recordPageSize" :page-sizes="[10, 20, 50]" @change="loadRecords" />
           </div>
         </el-card>
       </el-tab-pane>
@@ -150,8 +150,8 @@
             </el-table-column>
           </el-table>
           <div class="table-pager">
-            <el-pagination background layout="total, prev, pager, next" :total="wrongTotal"
-              v-model:current-page="wrongPageNum" :page-size="wrongPageSize" @change="loadWrong" />
+            <el-pagination background layout="total, sizes, prev, pager, next" :total="wrongTotal"
+              v-model:current-page="wrongPageNum" :page-size="wrongPageSize" :page-sizes="[10, 20, 50]" @change="loadWrong" />
           </div>
         </el-card>
         <el-dialog v-model="wrongDetailVisible" title="错题详情" width="600px">
@@ -262,9 +262,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { practiceApi, bankApi, wrongApi, favoriteApi } from '../api'
 import { useCategoryStore } from '../stores/categories'
+import { TYPE_NAMES as typeNames, DIFFICULTY_NAMES as difficultyNames, letter } from '../utils/constants'
 
-const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
-const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
 const route = useRoute()
 
 const stage = ref('setup')
@@ -320,8 +319,6 @@ const resultTitle = computed(() => {
   const rate = r.total ? Math.round(r.correct * 100 / r.total) : 0
   return '正确率 ' + rate + '%'
 })
-
-function letter (i) { return String.fromCharCode(65 + i) }
 
 function onMultiChange (val) {
   answers[current.value.id] = [...val].sort().join('')

@@ -280,9 +280,7 @@ import { useUserStore } from '../stores/user'
 import { useCategoryStore } from '../stores/categories'
 import { aiChat, buildQuestionPrompt, pushAiHistory, hasApiKey } from '../utils/ai'
 import ImportDialog from '../components/ImportDialog.vue'
-
-const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
-const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
+import { TYPE_NAMES as typeNames, DIFFICULTY_NAMES as difficultyNames, letter, splitTags } from '../utils/constants'
 
 const userStore = useUserStore()
 const categoryStore = useCategoryStore()
@@ -320,21 +318,6 @@ const form = reactive({ id: null, type: 1, title: '', options: ['', '', '', ''],
 const shareForm = reactive({ questionId: null, shareType: 1, toUsername: '', permission: 1, message: '' })
 
 const isChoice = computed(() => form.type === 1 || form.type === 2)
-
-function letter (i) { return String.fromCharCode(65 + i) }
-function splitTags (tags) { return tags ? tags.split(',').filter(t => t) : [] }
-
-function flatten (list, prefix) {
-  const result = []
-  for (const item of list) {
-    const pathName = prefix ? prefix + ' / ' + item.name : item.name
-    result.push({ id: item.id, name: item.name, pathName, parentId: item.parentId || 0 })
-    if (item.children && item.children.length) {
-      result.push(...flatten(item.children, pathName))
-    }
-  }
-  return result
-}
 
 const primaryCategories = computed(() => flatCategories.value.filter(c => c.parentId === 0))
 const secondaryCategories = computed(() => flatCategories.value.filter(c => c.parentId !== 0 && c.parentId === query.parentCategoryId))

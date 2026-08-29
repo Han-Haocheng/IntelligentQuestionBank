@@ -8,10 +8,17 @@
 
     <!-- 第一步: 上传 -->
     <div v-if="step === 0">
-      <el-alert type="info" :closable="false" style="margin-bottom: 12px"
-        title="支持 .xlsx / .csv, 第一列题干、第二列题型为必填。建议先下载模板按格式填写。">
+      <el-alert type="info" :closable="false" style="margin-bottom: 12px">
+        <template #title>
+          两种导入方式, 任选其一:
+          <b>模板化导入</b>(.xlsx/.csv 固定列表格) 或 <b>非模板化导入</b>(.md Markdown 自然格式)
+        </template>
         <template #default>
-          <el-link type="primary" :underline="false" @click="downloadTemplate">下载 Excel 导入模板</el-link>
+          <div class="tpl-links">
+            <el-link type="primary" :underline="false" @click="downloadTemplate('xlsx')">下载 Excel 模板</el-link>
+            <el-link type="primary" :underline="false" @click="downloadTemplate('csv')">下载 CSV 模板</el-link>
+            <el-link type="primary" :underline="false" @click="downloadTemplate('md')">下载 Markdown 模板</el-link>
+          </div>
         </template>
       </el-alert>
       <el-form label-width="90px">
@@ -26,14 +33,22 @@
           </el-select>
         </el-form-item>
         <el-form-item label="文件">
-          <el-upload ref="uploadRef" drag accept=".xlsx,.xls,.csv" :limit="1"
+          <el-upload ref="uploadRef" drag accept=".xlsx,.xls,.csv,.md,.markdown" :limit="1"
             :auto-upload="false" :on-change="onFileChange" :on-exceed="onExceed">
             <div style="padding: 14px 0">
               <el-icon style="font-size: 34px; color: #909399"><UploadFilled /></el-icon>
               <div>拖拽文件到此处, 或点击选择文件</div>
-              <div class="sub">仅支持 .xlsx / .xls / .csv, 单次建议不超过 500 行</div>
+              <div class="sub">模板化: .xlsx / .xls / .csv ｜ 非模板化: .md / .markdown, 单次建议不超过 500 题</div>
             </div>
           </el-upload>
+          <div v-if="fileMode" style="margin-top: 8px">
+            <el-tag :type="fileMode === 'md' ? 'warning' : 'primary'" size="small">
+              {{ fileMode === 'md' ? '非模板化 · Markdown' : '模板化 · 表格' }}
+            </el-tag>
+            <span class="sub" style="margin-left: 8px">
+              {{ fileMode === 'md' ? '按 Markdown 格式解析(## 题型 / ### 题号 / 答案: 等)' : '按固定列表格模板解析(第一列题干, 第二列题型)' }}
+            </span>
+          </div>
         </el-form-item>
       </el-form>
       <div class="dialog-footer">
@@ -114,11 +129,10 @@ import { questionApi, bankApi } from '../api'
 import { aiChat, hasApiKey } from '../utils/ai'
 import { useRouter } from 'vue-router'
 import { useCategoryStore } from '../stores/categories'
+import { TYPE_NAMES as typeNames } from '../utils/constants'
 
 const AI_LIMIT = 50
 const router = useRouter()
-
-const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const emit = defineEmits(['imported'])
 
 const visible = defineModel({ default: false })
@@ -138,6 +152,13 @@ const uploadRef = ref()
 const errorCount = computed(() => rows.value.filter((r) => r.errors && r.errors.length).length)
 const okCount = computed(() => rows.value.length - errorCount.value)
 
+/** 文件导入方式: md=非模板化(Markdown), table=模板化(表格) */
+const fileMode = computed(() => {
+  if (!file.value) return null
+  const n = file.value.name.toLowerCase()
+  return n.endsWith('.md') || n.endsWith('.markdown') ? 'md' : 'table'
+})
+
 // ---------- AI 补全 ----------
 const aiRunning = ref(false)
 const aiDone = ref(false)
@@ -155,7 +176,6 @@ const aiPercent = computed(() =>
 )
 
 function aiPrompt (row) {
-  const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
   let p = '你是资深教师。请为下面这道题补全缺失的答案和解析。只输出一个 JSON 对象, 两个键分别是 answer 和 analysis, 值均为字符串, 不要输出 JSON 以外的任何内容。\n'
   if (row.answer) p += '答案已存在, 请原样保留在 answer 字段: ' + row.answer + '\n'
   p += '题型: ' + (typeNames[(row.type || 1) - 1]) + '\n'
@@ -243,12 +263,18 @@ function onExceed () {
   ElMessage.warning('只能选择一个文件, 请先移除已选文件')
 }
 
-async function downloadTemplate () {
-  const blob = await questionApi.importTemplate()
-  const url = URL.createObjectURL(new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+const TEMPLATE_MIME = {
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  csv: 'text/csv;charset=UTF-8',
+  md: 'text/markdown;charset=UTF-8'
+}
+
+async function downloadTemplate (type) {
+  const blob = await questionApi.importTemplate(type)
+  const url = URL.createObjectURL(new Blob([blob], { type: TEMPLATE_MIME[type] || 'application/octet-stream' }))
   const a = document.createElement('a')
   a.href = url
-  a.download = 'question-import-template.xlsx'
+  a.download = 'question-import-template.' + type
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -338,6 +364,12 @@ function onClosed () {
 .dialog-footer {
   margin-top: 16px;
   text-align: right;
+}
+
+.tpl-links {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
 }
 
 .sub {
