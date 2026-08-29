@@ -28,14 +28,33 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="170" />
-        <el-table-column label="操作" width="250">
+        <!-- 每种操作独立一列, 保证一级/二级分类的相同操作始终在同一列 -->
+        <el-table-column label="子分类" width="72" align="center">
           <template #default="{ row }">
-            <el-button v-if="isTop(row)" link type="primary" @click="openAdd(row)">
-              <el-icon><Plus /></el-icon>&nbsp;子分类
-            </el-button>
-            <el-button link type="primary" @click="jumpQuestions(row)">查看题目</el-button>
-            <el-button link type="warning" @click="openMerge(row)">合并</el-button>
-            <el-button link type="danger" @click="remove(row)">删除</el-button>
+            <el-tooltip v-if="isTop(row)" content="新增子分类">
+              <el-button link type="primary" @click="openAdd(row)"><el-icon><Plus /></el-icon></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column label="查看题目" width="72" align="center">
+          <template #default="{ row }">
+            <el-tooltip content="查看该分类下题目">
+              <el-button link type="primary" @click="jumpQuestions(row)"><el-icon><View /></el-icon></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column label="合并" width="72" align="center">
+          <template #default="{ row }">
+            <el-tooltip content="合并到其他分类">
+              <el-button link type="warning" @click="openMerge(row)"><el-icon><Connection /></el-icon></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column label="删除" width="72" align="center">
+          <template #default="{ row }">
+            <el-tooltip content="删除分类">
+              <el-button link type="danger" @click="remove(row)"><el-icon><Delete /></el-icon></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
