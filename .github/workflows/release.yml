@@ -113,7 +113,18 @@ jobs:
         run: |
           npm ci
           npm run build
-          npx electron-builder --${{ matrix.platforms }}
+          npx electron-builder --${{ matrix.platforms }} --publish never
+
+      - name: 诊断构建结果
+        if: always()
+        working-directory: frontend
+        run: |
+          echo "--- release/ 目录内容:"
+          ls -la release/ 2>/dev/null || echo 'release 目录不存在'
+          echo "--- 全仓库安装包搜索:"
+          find .. -maxdepth 4 \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' \) 2>/dev/null || true
+          echo "--- dist 是否存在:"
+          ls dist/index.html 2>/dev/null || echo 'dist 不存在'
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
@@ -150,6 +161,10 @@ jobs:
           for f in artifacts/*.exe artifacts/*.dmg artifacts/*.AppImage artifacts/*.deb artifacts/*.zip artifacts/*.jar; do
             [ -e "$f" ] && FILES+=("$f")
           done
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo '::error::没有任何产物可发布'
+            exit 1
+          fi
           gh release create "$TAG" "${FILES[@]}" \
             --title "$TAG" \
             --generate-notes
