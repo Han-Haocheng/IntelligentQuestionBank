@@ -19,6 +19,7 @@
         <el-button @click="reset">重置</el-button>
         <div style="flex: 1"></div>
         <el-button type="success" @click="openEdit()"><el-icon><Plus /></el-icon>&nbsp;新增题目</el-button>
+        <el-button type="warning" plain @click="importVisible = true"><el-icon><Upload /></el-icon>&nbsp;批量导入</el-button>
       </div>
 
       <el-table :data="rows" v-loading="loading" stripe>
@@ -62,6 +63,9 @@
           :page-sizes="[10, 20, 50]" @change="load" />
       </div>
     </el-card>
+
+    <!-- 批量导入 -->
+    <ImportDialog v-model="importVisible" @imported="load" />
 
     <!-- 编辑对话框 -->
     <el-dialog v-model="editVisible" :title="form.id ? '编辑题目' : '新增题目'" width="720px" top="6vh">
@@ -170,6 +174,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { questionApi, categoryApi, bankApi, favoriteApi, shareApi } from '../api'
 import { aiChat, buildQuestionPrompt, pushAiHistory, hasApiKey } from '../utils/ai'
+import ImportDialog from '../components/ImportDialog.vue'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
@@ -182,6 +187,7 @@ const query = reactive({ keyword: '', categoryId: null, bankId: null, type: null
 const banks = ref([])
 const route = useRoute()
 const router = useRouter()
+const importVisible = ref(false)
 
 const editVisible = ref(false)
 const saving = ref(false)

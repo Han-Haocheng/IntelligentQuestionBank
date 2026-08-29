@@ -38,7 +38,11 @@ export const questionApi = {
   get: (id) => request.get('/question/' + id),
   add: (data) => request.post('/question', data),
   update: (data) => request.put('/question', data),
-  remove: (ids) => request.post('/question/delete', ids)
+  remove: (ids) => request.post('/question/delete', ids),
+  importTemplate: () => request.get('/question/import/template', { responseType: 'blob' }),
+  importParse: (formData) => request.post('/question/import/parse', formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }),
+  importSave: (data) => request.post('/question/import/save', data)
 }
 
 // ==================== 收藏 ====================
