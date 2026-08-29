@@ -1,6 +1,6 @@
 # 智能题库管理系统
 
-一个接入 AI 分析的题库系统，提供完整的题目保存、共享、分析和练习。
+一个接入 AI 分析的题库系统，提供完整的题目保存、题库分组、共享、批量导入和练习。
 
 ## 技术栈
 
@@ -10,32 +10,35 @@
 | 数据库 | MySQL 8.0+ (utf8mb4) |
 | 前端 | Vue 3 / Vite / Element Plus / ECharts / Pinia / Vue Router |
 | 桌面端 | Electron |
-| AI | OpenAI 兼容接口(默认 DeepSeek), 未配置 Key 自动降级本地规则分析 |
+| AI | 浏览器本地直连 OpenAI 兼容接口(默认 DeepSeek), 配置存于前端 |
 
 ## 项目结构
 
 ```
 IntelligentQuestionBank/
 ├── db/init.sql                  # 建库建表 + 演示数据(一键导入)
+├── db/upgrade-v2.sql            # v1 存量库升级脚本(v2 题库分组)
 ├── backend/                     # Spring Boot 后端
 │   ├── pom.xml
 │   └── src/main/java/com/qbank/
 │       ├── common/              # 统一响应/全局异常/常量
 │       ├── config/              # Web配置/CORS/Jackson
-│       ├── entity/              # 9 张表实体
+│       ├── entity/              # 9 张表实体(bank/题目/共享等)
 │       ├── dto/                 # 入参出参
 │       ├── mapper/              # MyBatis 接口 (XML 在 resources/mapper)
 │       ├── service/             # 业务服务(9 个)
 │       ├── controller/          # REST 接口(9 个)
 │       ├── interceptor/         # 登录鉴权拦截器
-│       └── util/                # Token/密码/AI客户端
+│       └── util/                # Token/密码
 └── frontend/                    # Vue3 + Electron
     ├── electron/main.js         # 桌面壳
     └── src/
         ├── api/                 # axios 封装 + 全部接口
         ├── stores/              # Pinia 用户状态
         ├── router/              # 路由与登录守卫
-        └── views/               # 13 个页面
+        ├── utils/ai.js          # 前端本地 AI 客户端(v2)
+        ├── components/          # 通用组件(批量导入向导等)
+        └── views/               # 15 个页面
 ```
 
 ## 快速开始
@@ -90,17 +93,22 @@ npm run electron:build       # 生产模式(加载 dist)
 
 ## 功能模块
 
-- **题目管理**: 增删改查，支持单选/多选/填空/判断/简答 5 种题型、难度、知识点标签、分类、关键词检索、分页
+- **题目管理**: 增删改查，支持单选/多选/填空/判断/简答 5 种题型、难度、知识点标签、分类、题库归属、关键词检索、分页
+- **题库管理(v2)**: 题目分组到题库，题库增删改查与题目计数；删除题库时题目保留仅解除归属
+- **批量导入(v2)**: 下载 Excel 模板或按固定格式准备 .xlsx/.csv，三步向导(上传→预览校验→导入)，
+  错误行自动标红跳过；预览时可选用 AI 补全缺失的答案与解析(单次上限 50 行)
 - **分类管理**: 二级树形分类，增删改查（有子分类或题目时禁止删除）
 - **用户管理**: 注册/登录/个人资料/修改密码；管理员可新增/禁用/重置密码/删除用户
 - **收藏**: 一键收藏/取消，收藏夹分页浏览
-- **共享**: 共享给指定用户或公开共享，发出/收到列表，可取消共享
+- **共享**: 题目或整个题库共享给指定用户或公开共享，发出/收到列表，可取消共享；
+  收到的题库共享可在题目管理中按该题库浏览
 - **练习**: 顺序/随机/错题重做三种模式，可按分类/题型/难度筛选；练习中不返回答案防作弊，
   交卷自动判分（单选/多选/判断精确匹配，填空多空用 ||| 分隔，简答宽松匹配）
 - **错题本**: 答错自动入本并累计错误次数，支持标记掌握/恢复/移除、错题重练
 - **统计**: 题目/分类/收藏/错题/练习总览，题型与难度分布、分类占比、近 14 天正确率趋势、易错分类 Top5
-- **AI 分析**: 题目质量分析（考点/难度/表述建议/解题提示）与个人学情报告（薄弱点/学习建议/练习计划），
-  分析结果落库可查历史；配置见 backend/src/main/resources/AI-CONFIG.md
+- **AI 分析(v2)**: 题目质量分析（考点/难度/表述建议/解题提示）与个人学情报告（薄弱点/学习建议/练习计划），
+  由前端本地直连大模型完成，配置(API Key/模型/接口地址)保存在浏览器 localStorage，
+  入口为左侧菜单「AI 设置」，支持测试连接与本地历史(最近 50 条)
 
 ## API 概览 (统一前缀 /api, 返回 {code, msg, data})
 
@@ -112,16 +120,20 @@ GET  /api/category/tree|list                  分类树/平铺列表
 POST PUT DELETE /api/category                 分类增删改
 GET  /api/question/list|{id}                  题目分页查询/详情
 POST PUT /api/question, POST /question/delete 题目增改/批量删
+GET  /api/question/import/template            批量导入模板下载(.xlsx)
+POST /api/question/import/parse|save          批量导入解析预览/批量入库
+GET  /api/bank/list|{id}                      题库列表/详情
+POST PUT DELETE /api/bank, DELETE /api/bank/{id}  题库增删改
 POST /api/favorite/{id}/toggle                收藏切换
-POST /api/share, GET /share/sent|received     共享与列表
+POST /api/share, GET /share/sent|received     题目/题库共享与列表(题库共享 shareType 3/4)
 POST /api/practice/start|submit               开始练习(隐藏答案)/交卷判分
 GET  /api/practice/records|records/{id}       练习记录/详情
 GET  /api/wrong/list, PUT /api/wrong/master/{id}  错题本/掌握切换
 GET  /api/stats/overview|question-by-type|question-by-difficulty
 GET  /api/stats/question-by-category|practice-trend|wrong-by-category
-POST /api/ai/analyze/question/{id}|report     AI题目分析/学情报告
-GET  /api/ai/history                          AI分析历史
 ```
+
+> v2 起 AI 分析不再走后端接口，由前端本地直连大模型（见 utils/ai.js）。
 
 鉴权方式: 登录后请求头携带 Authorization: Bearer {token}（前端已自动处理）。
 
@@ -129,5 +141,10 @@ GET  /api/ai/history                          AI分析历史
 
 - **登录报“用户名或密码错误”**: 确认已导入 db/init.sql 且种子数据未被修改。
 - **后端启动失败**: 检查 MySQL 是否运行、application.yml 中的账号密码是否正确。
-- **AI 分析显示“本地规则分析”**: 未配置 api-key，属正常降级；配置后重启后端即可（见 AI-CONFIG.md）。
+- **AI 分析未生效**: 在前端「AI 设置」页填写 API Key 并保存（浏览器本地存储，不经过后端）；
+  开发模式默认经 Vite 代理转发，Electron 生产模式直连。可在设置页点「测试连接」验证。
+- **存量库从 v1 升级**: 执行 `mysql -uroot -p < db/upgrade-v2.sql`（新增题库表与题目归属，
+  并移除已废弃的 ai_analysis 表）；新环境直接导入 init.sql 即可。
+- **批量导入模板在哪**: 题目管理页「批量导入」向导第一步可下载 Excel 模板；CSV 需 UTF-8
+  编码(自动兼容 GBK)，列顺序与模板一致。
 - **npm install 时 electron 下载慢**: 可设置镜像 `export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 后执行 npm rebuild electron。

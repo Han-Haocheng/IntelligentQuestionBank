@@ -1,17 +1,17 @@
-# AI 分析配置说明
+# AI 分析配置说明 (v2: 前端本地)
 
-后端通过 OpenAI 兼容接口调用大模型(默认适配 DeepSeek, 也可换任意兼容服务)。
+v2 起 AI 分析由**前端浏览器本地直连**大模型完成，不再经过后端。
 
-编辑 backend/src/main/resources/application.yml:
+配置入口: 系统界面左侧菜单 -> 「AI 设置」
 
-    qbank:
-      ai:
-        enabled: true
-        api-key: "你的API Key"   # 在 platform.deepseek.com 申请
-        base-url: https://api.deepseek.com
-        model: deepseek-chat
-        timeout-ms: 60000
+- 接口地址: 默认 https://api.deepseek.com (任意 OpenAI 兼容服务均可)
+- API Key: 在 platform.deepseek.com 申请, 仅保存在本机浏览器 localStorage
+- 模型: 默认 deepseek-chat, 可换同服务商其他模型
+- 测试连接: 保存后点击即可验证配置
 
-- 配置 api-key 后: 题目分析 / 学情报告调用真实大模型。
-- api-key 为空时: 自动降级为内置本地规则分析(无需联网), 结果会标注来源。
-- 更换服务商: 修改 base-url 与 model(如通义/智谱/Kimi 的 OpenAI 兼容地址)。
+网络说明:
+
+- 开发模式(npm run dev): 请求经 Vite 代理 /ai-proxy 转发到接口地址, 规避浏览器跨域限制
+- Electron 生产模式: 无跨域限制, 直接连接接口地址
+
+历史记录: 题目分析与学情报告结果保存在本机浏览器(localStorage, 最近 50 条), 可在设置页清空。
