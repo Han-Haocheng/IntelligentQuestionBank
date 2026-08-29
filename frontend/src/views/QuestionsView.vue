@@ -265,8 +265,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { questionApi, categoryApi, bankApi, favoriteApi, shareApi, userApi } from '../api'
+import { questionApi, bankApi, favoriteApi, shareApi, userApi } from '../api'
 import { useUserStore } from '../stores/user'
+import { useCategoryStore } from '../stores/categories'
 import { aiChat, buildQuestionPrompt, pushAiHistory, hasApiKey } from '../utils/ai'
 import ImportDialog from '../components/ImportDialog.vue'
 
@@ -274,11 +275,12 @@ const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答�
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
 
 const userStore = useUserStore()
+const categoryStore = useCategoryStore()
 
 const rows = ref([])
 const total = ref(0)
 const loading = ref(false)
-const flatCategories = ref([])
+const flatCategories = computed(() => categoryStore.flat)
 const query = reactive({ keyword: '', parentCategoryId: null, categoryId: null, bankId: null, type: null, difficulty: null, userId: null, pageNum: 1, pageSize: 10 })
 const banks = ref([])
 const bankLoading = ref(false)
@@ -326,11 +328,6 @@ function flatten (list, prefix) {
 
 const primaryCategories = computed(() => flatCategories.value.filter(c => c.parentId === 0))
 const secondaryCategories = computed(() => flatCategories.value.filter(c => c.parentId !== 0 && c.parentId === query.parentCategoryId))
-
-async function loadCategories () {
-  const tree = await categoryApi.tree()
-  flatCategories.value = flatten(tree, '')
-}
 
 async function loadBanks () {
   bankLoading.value = true
@@ -602,15 +599,28 @@ async function analyze (row) {
   }
 }
 
-onMounted(() => {
-  loadCategories()
+onMounted(async () => {
+  await categoryStore.fetchTree()
   loadBanks()
   loadUsers()
   if (route.query.bankId) {
     selectBank(Number(route.query.bankId))
-  } else {
-    load()
   }
+  if (route.query.categoryId) {
+    // 分类管理跳转联动: 按分类过滤(一级设 parentCategoryId, 二级两者都设)
+    const c = flatCategories.value.find(x => x.id === Number(route.query.categoryId))
+    if (c) {
+      if (c.parentId === 0) {
+        query.parentCategoryId = c.id
+      } else {
+        query.parentCategoryId = c.parentId
+        query.categoryId = c.id
+      }
+      load()
+      return
+    }
+  }
+  load()
 })
 </script>
 

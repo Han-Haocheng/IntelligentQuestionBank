@@ -245,7 +245,8 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute } from 'vue-router'
-import { practiceApi, categoryApi, bankApi, wrongApi } from '../api'
+import { practiceApi, bankApi, wrongApi } from '../api'
+import { useCategoryStore } from '../stores/categories'
 
 const typeNames = ['单选题', '多选题', '填空题', '判断题', '简答题']
 const difficultyNames = ['入门', '简单', '中等', '较难', '困难']
@@ -253,7 +254,8 @@ const route = useRoute()
 
 const stage = ref('setup')
 const starting = ref(false)
-const flatCategories = ref([])
+const categoryStore = useCategoryStore()
+const flatCategories = computed(() => categoryStore.flat)
 const activeTab = ref('start')
 
 const form = reactive({ name: '', mode: 1, categoryId: null, bankId: null, type: null, difficulty: null, count: 10, onlyWrong: false })
@@ -481,17 +483,7 @@ function backToSetup () {
 }
 
 onMounted(async () => {
-  const tree = await categoryApi.tree()
-  function flatten (list, prefix) {
-    const result = []
-    for (const item of list) {
-      const pathName = prefix ? prefix + ' / ' + item.name : item.name
-      result.push({ id: item.id, name: item.name, pathName })
-      if (item.children && item.children.length) result.push(...flatten(item.children, pathName))
-    }
-    return result
-  }
-  flatCategories.value = flatten(tree, '')
+  await categoryStore.fetchTree()
   bankApi.list().then((list) => { banks.value = list })
   if (route.query.onlyWrong === '1') {
     form.mode = 3

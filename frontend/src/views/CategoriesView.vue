@@ -2,12 +2,18 @@
   <div>
     <el-card class="page-card">
       <div class="filter-bar">
+        <el-input v-model="search" placeholder="搜索分类名称" clearable style="width: 200px" />
         <el-button type="success" @click="openAdd(null)"><el-icon><Plus /></el-icon>&nbsp;新增顶级分类</el-button>
-        <span class="drag-tip">💡 拖动二级分类到顶级分类上可移动归属; 点击分类名称可直接改名</span>
+        <el-button size="small" @click="expandAll">展开全部</el-button>
+        <el-button size="small" @click="collapseAll">收起全部</el-button>
+        <span class="drag-tip">💡 拖动二级分类到顶级分类上=移动归属; 拖到同级分类上=调整顺序; 点击名称=改名</span>
       </div>
-      <el-table :data="tree" v-loading="loading" row-key="id" default-expand-all
-        :tree-props="{ children: 'children' }">
-        <el-table-column label="分类名称" min-width="340">
+      <el-table :data="filteredTree" v-loading="loading" row-key="id"
+        :tree-props="{ children: 'children' }"
+        :default-expand-all="!!search"
+        :expand-row-keys="search ? [] : expandedKeys"
+        @expand-change="onExpandChange">
+        <el-table-column label="分类名称" min-width="300">
           <template #default="{ row }">
             <el-input v-if="renamingId === row.id" v-model="renameValue" size="small"
               style="width: 200px" maxlength="20" @keyup.enter="confirmRename(row)" @blur="confirmRename(row)" />
@@ -21,12 +27,14 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="220">
+        <el-table-column prop="createTime" label="创建时间" width="170" />
+        <el-table-column label="操作" width="250">
           <template #default="{ row }">
             <el-button v-if="isTop(row)" link type="primary" @click="openAdd(row)">
               <el-icon><Plus /></el-icon>&nbsp;子分类
             </el-button>
+            <el-button link type="primary" @click="jumpQuestions(row)">查看题目</el-button>
+            <el-button link type="warning" @click="openMerge(row)">合并</el-button>
             <el-button link type="danger" @click="remove(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -48,32 +56,104 @@
         <el-button type="primary" :loading="saving" @click="save">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 合并分类 -->
+    <el-dialog v-model="mergeVisible" :title="'合并「' + (mergeFrom ? mergeFrom.name : '') + '」到'" width="440px">
+      <el-select v-model="mergeTargetId" filterable placeholder="选择目标分类" style="width: 100%">
+        <el-option v-for="c in mergeCandidates" :key="c.id" :value="c.id" :label="c.pathName" />
+      </el-select>
+      <div class="merge-hint">合并后, 该分类及子级下的题目将全部迁移到目标分类(目标不能是它自身或其子分类)。</div>
+      <template #footer>
+        <el-button @click="mergeVisible = false">取消</el-button>
+        <el-button type="warning" :loading="merging" :disabled="!mergeTargetId" @click="doMerge">合并</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { categoryApi } from '../api'
+import { useCategoryStore } from '../stores/categories'
 
-const tree = ref([])
+const router = useRouter()
+const categoryStore = useCategoryStore()
+
 const loading = ref(false)
 const dialogVisible = ref(false)
 const saving = ref(false)
 const parentName = ref('无(顶级分类)')
 const form = reactive({ id: null, parentId: 0, name: '' })
 
+// 搜索过滤
+const search = ref('')
+const tree = computed(() => categoryStore.tree)
+const filteredTree = computed(() => {
+  if (!search.value) return tree.value
+  const kw = search.value.trim().toLowerCase()
+  const filter = (nodes) => {
+    const result = []
+    for (const node of nodes || []) {
+      const hit = (node.name || '').toLowerCase().includes(kw)
+      const children = filter(node.children)
+      if (hit || children.length) {
+        result.push({ ...node, children: hit ? node.children : children })
+      }
+    }
+    return result
+  }
+  return filter(tree.value)
+})
+
+// 展开状态记忆
+const EXPAND_KEY = 'qbank_cat_expanded'
+const expandedKeys = ref(JSON.parse(localStorage.getItem(EXPAND_KEY) || '[]'))
+function persistExpanded () {
+  localStorage.setItem(EXPAND_KEY, JSON.stringify(expandedKeys.value))
+}
+function onExpandChange (row, expandedRows) {
+  expandedKeys.value = (expandedRows || []).map(r => r.id)
+  persistExpanded()
+}
+function expandAll () {
+  const collect = (nodes) => {
+    const keys = []
+    for (const n of nodes || []) {
+      if (n.children && n.children.length) {
+        keys.push(n.id)
+        keys.push(...collect(n.children))
+      }
+    }
+    return keys
+  }
+  expandedKeys.value = collect(tree.value)
+  persistExpanded()
+}
+function collapseAll () {
+  expandedKeys.value = []
+  persistExpanded()
+}
+
 // 点击改名
 const renamingId = ref(null)
 const renameValue = ref('')
 
+// 合并
+const mergeVisible = ref(false)
+const mergeFrom = ref(null)
+const mergeTargetId = ref(null)
+const merging = ref(false)
+const mergeCandidates = computed(() => categoryStore.flat.filter(c => c.id !== (mergeFrom.value && mergeFrom.value.id) && c.parentId !== (mergeFrom.value && mergeFrom.value.id)))
+
 function isTop (row) { return !row.parentId || row.parentId === 0 }
 function isSub (row) { return row.parentId && row.parentId !== 0 }
 
-function findName (id, list) {
+function findNode (id, list) {
   for (const item of list || []) {
-    if (item.id === id) return item.name
-    const child = findName(id, item.children)
+    if (item.id === id) return item
+    const child = findNode(id, item.children)
     if (child) return child
   }
   return null
@@ -82,7 +162,7 @@ function findName (id, list) {
 async function load () {
   loading.value = true
   try {
-    tree.value = await categoryApi.tree()
+    await categoryStore.fetchTree()
   } finally {
     loading.value = false
   }
@@ -103,13 +183,13 @@ async function save () {
     await categoryApi.add({ name: form.name, parentId: form.parentId })
     ElMessage.success('保存成功')
     dialogVisible.value = false
-    load()
+    categoryStore.refresh()
   } finally {
     saving.value = false
   }
 }
 
-// ==================== 拖拽移动二级分类 ====================
+// ==================== 拖拽: 移动归属 / 同级排序 ====================
 function onDragStart (e, row) {
   if (!isSub(row)) return
   e.dataTransfer.setData('text/plain', String(row.id))
@@ -117,19 +197,40 @@ function onDragStart (e, row) {
 }
 
 function onDragOver (e, row) {
-  if (isTop(row)) e.preventDefault()  // 仅顶级分类可作为放置目标
+  e.preventDefault()
 }
 
 async function onDrop (e, row) {
-  if (!isTop(row)) return
   e.preventDefault()
   const dragId = Number(e.dataTransfer.getData('text/plain'))
   if (!dragId || dragId === row.id) return
-  const name = findName(dragId, tree.value)
-  if (!name) return
-  await categoryApi.update({ id: dragId, name, parentId: row.id })
-  ElMessage.success('已移动到「' + row.name + '」')
-  load()
+  const dragged = findNode(dragId, tree.value)
+  if (!dragged || !isSub(dragged)) return
+  const name = dragged.name
+
+  if (isTop(row)) {
+    // 拖到顶级: 移动归属
+    if (dragged.parentId !== row.id) {
+      await categoryApi.update({ id: dragId, name, parentId: row.id })
+      ElMessage.success('已移动到「' + row.name + '」')
+    }
+  } else {
+    // 拖到同级/其他子级: 先移动归属到目标父级, 再同级排序(插到目标之后)
+    const targetParentId = row.parentId
+    if (dragged.parentId !== targetParentId) {
+      await categoryApi.update({ id: dragId, name, parentId: targetParentId })
+    }
+    const parent = findNode(targetParentId, tree.value)
+    const siblings = (parent && parent.children) ? parent.children.map(c => c.id) : []
+    const idx = siblings.indexOf(row.id)
+    const from = siblings.indexOf(dragId)
+    if (from >= 0) siblings.splice(from, 1)
+    const insertAt = idx >= 0 ? idx : siblings.length
+    siblings.splice(insertAt, 0, dragId)
+    await categoryApi.sort(targetParentId, siblings)
+    ElMessage.success('已调整顺序')
+  }
+  categoryStore.refresh()
 }
 
 // ==================== 点击改名 ====================
@@ -146,14 +247,47 @@ async function confirmRename (row) {
   if (name.length > 20) { ElMessage.warning('分类名称不能超过20个字符'); return }
   await categoryApi.update({ id: row.id, name })
   ElMessage.success('已改名')
-  load()
+  categoryStore.refresh()
 }
 
+// ==================== 查看题目(跳转联动) ====================
+function jumpQuestions (row) {
+  router.push('/questions?categoryId=' + row.id)
+}
+
+// ==================== 合并分类 ====================
+function openMerge (row) {
+  mergeFrom.value = row
+  mergeTargetId.value = null
+  mergeVisible.value = true
+}
+
+async function doMerge () {
+  if (!mergeTargetId.value) return
+  merging.value = true
+  try {
+    const moved = await categoryApi.merge(mergeFrom.value.id, mergeTargetId.value)
+    ElMessage.success('已迁移 ' + moved + ' 道题到目标分类')
+    mergeVisible.value = false
+    categoryStore.refresh()
+  } finally {
+    merging.value = false
+  }
+}
+
+// ==================== 删除(带影响面提示) ====================
 async function remove (row) {
-  await ElMessageBox.confirm('确定删除分类「' + row.name + '」吗?', '提示', { type: 'warning' })
+  let stats = { questionCount: 0, childCount: 0 }
+  try {
+    stats = await categoryApi.count(row.id)
+  } catch (e) { /* 提示信息仍可展示 */ }
+  const msg = '确定删除分类「' + row.name + '」吗?\n' +
+    '该分类及子级下共有 ' + (stats.questionCount || 0) + ' 道题、' + (stats.childCount || 0) + ' 个子分类;\n' +
+    '删除后这些题目将变为未分类。'
+  await ElMessageBox.confirm(msg, '提示', { type: 'warning', confirmButtonText: '删除' })
   await categoryApi.remove(row.id)
   ElMessage.success('删除成功')
-  load()
+  categoryStore.refresh()
 }
 
 onMounted(load)
@@ -185,5 +319,12 @@ onMounted(load)
   visibility: hidden;
   color: #909399;
   cursor: grab;
+}
+
+.merge-hint {
+  margin-top: 8px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.6;
 }
 </style>

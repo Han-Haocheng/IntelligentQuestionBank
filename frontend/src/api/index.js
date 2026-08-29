@@ -20,7 +20,10 @@ export const categoryApi = {
   list: () => request.get('/category/list'),
   add: (data) => request.post('/category', data),
   update: (data) => request.put('/category', data),
-  remove: (id) => request.delete('/category/' + id)
+  remove: (id) => request.delete('/category/' + id),
+  sort: (data) => request.post('/category/sort', data),
+  merge: (id, targetId) => request.post('/category/' + id + '/merge', { targetId }),
+  count: (id) => request.get('/category/' + id + '/count')
 }
 
 // ==================== 题库 ====================

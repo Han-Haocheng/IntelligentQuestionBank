@@ -110,9 +110,10 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { questionApi, bankApi, categoryApi } from '../api'
+import { questionApi, bankApi } from '../api'
 import { aiChat, hasApiKey } from '../utils/ai'
 import { useRouter } from 'vue-router'
+import { useCategoryStore } from '../stores/categories'
 
 const AI_LIMIT = 50
 const router = useRouter()
@@ -130,7 +131,8 @@ const saving = ref(false)
 const bankId = ref(null)
 const categoryId = ref(null)
 const banks = ref([])
-const flatCategories = ref([])
+const categoryStore = useCategoryStore()
+const flatCategories = computed(() => categoryStore.flat)
 const uploadRef = ref()
 
 const errorCount = computed(() => rows.value.filter((r) => r.errors && r.errors.length).length)
@@ -227,21 +229,11 @@ watch(visible, (v) => {
     if (!banks.value.length) {
       bankApi.list().then((list) => { banks.value = list })
     }
-    if (!flatCategories.value.length) {
-      categoryApi.tree().then((tree) => { flatCategories.value = flatten(tree, '') })
+    if (!categoryStore.loaded) {
+      categoryStore.fetchTree()
     }
   }
 })
-
-function flatten (list, prefix) {
-  const out = []
-  for (const item of list) {
-    const pathName = prefix ? prefix + ' / ' + item.name : item.name
-    out.push({ id: item.id, name: item.name, pathName })
-    if (item.children && item.children.length) out.push(...flatten(item.children, pathName))
-  }
-  return out
-}
 
 function onFileChange (f) {
   file.value = f.raw || null
