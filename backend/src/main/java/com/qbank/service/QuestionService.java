@@ -129,14 +129,14 @@ public class QuestionService {
         if (!owner && !admin && !sharedEdit) {
             throw new BusinessException("无权修改该题目");
         }
-        validate(dto);
-        checkCategory(exist.getUserId(), dto.getCategoryId());
-        checkBankOwner(exist.getUserId(), dto.getBankId());
         if (!owner && !admin) {
-            // 共享编辑者: 仅可改内容, 不可改分类/题库归属
+            // 共享编辑者: 仅可改内容, 分类/题库归属一律还原为原值(不做校验)
             dto.setCategoryId(exist.getCategoryId());
             dto.setBankId(exist.getBankId());
         }
+        validate(dto);
+        checkCategory(exist.getUserId(), dto.getCategoryId());
+        checkBankOwner(exist.getUserId(), dto.getBankId());
         Question question = fromDTO(dto);
         question.setId(dto.getId());
         questionMapper.update(question);
