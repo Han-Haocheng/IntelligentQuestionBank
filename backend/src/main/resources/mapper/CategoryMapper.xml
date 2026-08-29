@@ -10,6 +10,10 @@
         SELECT * FROM category ORDER BY sort, id
     </select>
 
+    <select id="selectChildren" resultType="com.qbank.entity.Category">
+        SELECT * FROM category WHERE parent_id = #{parentId} ORDER BY sort, id
+    </select>
+
     <select id="countChildren" resultType="int">
         SELECT COUNT(*) FROM category WHERE parent_id = #{parentId}
     </select>
@@ -35,6 +39,22 @@
             <if test="sort != null">sort = #{sort},</if>
         </set>
         WHERE id = #{id}
+    </update>
+
+    <update id="updateSort">
+        UPDATE category SET sort = #{sort} WHERE id = #{id}
+    </update>
+
+    <select id="countQuestionsInSubtree" resultType="int">
+        SELECT COUNT(*) FROM question
+        WHERE category_id = #{categoryId}
+           OR category_id IN (SELECT id FROM category WHERE parent_id = #{categoryId})
+    </select>
+
+    <update id="moveQuestions">
+        UPDATE question SET category_id = #{toId}
+        WHERE category_id = #{fromId}
+           OR category_id IN (SELECT id FROM category WHERE parent_id = #{fromId})
     </update>
 
     <delete id="deleteById">

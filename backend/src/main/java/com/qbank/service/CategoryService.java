@@ -96,6 +96,49 @@ public class CategoryService {
         categoryMapper.deleteById(id);
     }
 
+    /** 同级拖拽排序: 按传入顺序写 sort */
+    public void sort(Long parentId, List<Long> ids) {
+        if (ids == null) {
+            return;
+        }
+        for (int i = 0; i < ids.size(); i++) {
+            if (ids.get(i) != null) {
+                categoryMapper.updateSort(ids.get(i), i);
+            }
+        }
+    }
+
+    /** 合并分类: 把 from 及其子级下的题目迁移到 to, 返回迁移数量 */
+    public int merge(Long fromId, Long toId) {
+        if (fromId == null || toId == null || fromId.equals(toId)) {
+            throw new BusinessException("请选择两个不同的分类");
+        }
+        if (categoryMapper.findById(fromId) == null || categoryMapper.findById(toId) == null) {
+            throw new BusinessException("分类不存在");
+        }
+        // 禁止合并到自己的子分类(会形成循环归属)
+        if (categoryMapper.countChildren(fromId) > 0) {
+            List<Category> children = categoryMapper.selectChildren(fromId);
+            for (Category c : children) {
+                if (c.getId().equals(toId)) {
+                    throw new BusinessException("不能合并到自己的子分类");
+                }
+            }
+        }
+        return categoryMapper.moveQuestions(fromId, toId);
+    }
+
+    /** 分类影响面: 该分类及子级的题目数 + 子分类数(删除确认/统计) */
+    public java.util.Map<String, Object> count(Long categoryId) {
+        if (categoryMapper.findById(categoryId) == null) {
+            throw new BusinessException("分类不存在");
+        }
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("questionCount", categoryMapper.countQuestionsInSubtree(categoryId));
+        map.put("childCount", categoryMapper.countChildren(categoryId));
+        return map;
+    }
+
     private Category requireExists(Long id) {
         Category category = categoryMapper.findById(id);
         if (category == null) {

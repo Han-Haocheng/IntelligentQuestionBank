@@ -65,6 +65,42 @@ public class CategoryController {
         return Result.ok();
     }
 
+    /** 同级拖拽排序(管理员): body {"parentId": N, "ids": [按新顺序排列的分类id]} */
+    @PostMapping("/sort")
+    public Result<Void> sort(@RequestAttribute("role") Integer role,
+                             @RequestBody java.util.Map<String, Object> body) {
+        requireAdmin(role);
+        Long parentId = body == null || body.get("parentId") == null ? null
+                : ((Number) body.get("parentId")).longValue();
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        if (body != null && body.get("ids") instanceof java.util.List<?> list) {
+            for (Object v : list) {
+                if (v != null) {
+                    ids.add(((Number) v).longValue());
+                }
+            }
+        }
+        categoryService.sort(parentId, ids);
+        return Result.ok();
+    }
+
+    /** 合并分类(管理员): 把该分类及子级的题目迁移到 targetId, 返回迁移数量 */
+    @PostMapping("/{id}/merge")
+    public Result<Integer> merge(@RequestAttribute("role") Integer role,
+                                 @PathVariable Long id,
+                                 @RequestBody java.util.Map<String, Object> body) {
+        requireAdmin(role);
+        Long targetId = body == null || body.get("targetId") == null ? null
+                : ((Number) body.get("targetId")).longValue();
+        return Result.ok(categoryService.merge(id, targetId));
+    }
+
+    /** 分类影响面统计(任意登录用户): 该分类及子级题目数/子分类数 */
+    @GetMapping("/{id}/count")
+    public Result<java.util.Map<String, Object>> count(@PathVariable Long id) {
+        return Result.ok(categoryService.count(id));
+    }
+
     private void requireAdmin(Integer role) {
         if (role == null || role != 0) {
             throw new com.qbank.common.BusinessException("无权限操作");
