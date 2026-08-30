@@ -66,4 +66,86 @@ class QuestionImportServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("仅支持");
     }
+
+    // ==================== validate 补充 ====================
+
+    private ImportRowDTO row(String title, String typeName, List<String> options, String answer, Integer difficulty) {
+        ImportRowDTO dto = new ImportRowDTO();
+        dto.setTitle(title);
+        dto.setTypeName(typeName);
+        dto.setOptions(options);
+        dto.setAnswer(answer);
+        dto.setDifficulty(difficulty);
+        return dto;
+    }
+
+    @Test
+    void validateSingleChoiceNormalizesAnswer() {
+        ImportRowDTO dto = row("单选", "单选题", List.of("A", "B"), "b", 1);
+        service.validate(dto);
+        assertThat(dto.getType()).isEqualTo(1);
+        assertThat(dto.getAnswer()).isEqualTo("B");
+        assertThat(dto.getErrors()).isEmpty();
+    }
+
+    @Test
+    void validateMultipleChoiceSortsLetters() {
+        ImportRowDTO dto = row("多选", "多选题", List.of("A", "B", "C"), "CBA", 1);
+        service.validate(dto);
+        assertThat(dto.getType()).isEqualTo(2);
+        assertThat(dto.getAnswer()).isEqualTo("ABC");
+        assertThat(dto.getErrors()).isEmpty();
+    }
+
+    @Test
+    void validateJudgeNormalizes() {
+        ImportRowDTO dto = row("判断", "判断题", null, "正确", 1);
+        service.validate(dto);
+        assertThat(dto.getType()).isEqualTo(4);
+        assertThat(dto.getAnswer()).isEqualTo("对");
+        assertThat(dto.getErrors()).isEmpty();
+    }
+
+    @Test
+    void validateUnrecognizedTypeAddsError() {
+        ImportRowDTO dto = row("题", "名词解释", null, "x", 1);
+        service.validate(dto);
+        assertThat(dto.getErrors()).anyMatch(e -> e.startsWith("题型无法识别"));
+    }
+
+    @Test
+    void validateChoiceMissingOptionsAddsError() {
+        ImportRowDTO dto = row("单选", "单选题", null, "A", 1);
+        service.validate(dto);
+        assertThat(dto.getErrors()).contains("选择题至少需要 2 个选项");
+    }
+
+    @Test
+    void validateChoiceAnswerOutOfRangeAddsError() {
+        ImportRowDTO dto = row("单选", "单选题", List.of("A", "B"), "C", 1);
+        service.validate(dto);
+        assertThat(dto.getErrors()).contains("答案 C 超出选项范围");
+    }
+
+    @Test
+    void validateFillBlankAnswerEmptyAddsError() {
+        ImportRowDTO dto = row("填空", "填空题", null, "", 1);
+        service.validate(dto);
+        assertThat(dto.getErrors()).anyMatch(e -> e.startsWith("填空题答案不能为空"));
+    }
+
+    @Test
+    void validateDifficultyOutOfRangeAddsError() {
+        ImportRowDTO dto = row("判断", "判断题", null, "对", 9);
+        service.validate(dto);
+        assertThat(dto.getErrors()).contains("难度须为 1-5");
+    }
+
+    @Test
+    void validateDefaultsDifficultyTo3() {
+        ImportRowDTO dto = row("判断", "判断题", null, "对", null);
+        service.validate(dto);
+        assertThat(dto.getDifficulty()).isEqualTo(3);
+        assertThat(dto.getErrors()).isEmpty();
+    }
 }

@@ -1,9 +1,13 @@
 package com.qbank.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
+import com.qbank.dto.ShareDTO;
 import com.qbank.entity.Bank;
 import com.qbank.entity.Question;
 import com.qbank.entity.Share;
+import com.qbank.entity.User;
 import com.qbank.mapper.BankMapper;
 import com.qbank.mapper.QuestionMapper;
 import com.qbank.mapper.ShareMapper;
@@ -18,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -138,5 +143,191 @@ class ShareServiceTest {
         assertThatThrownBy(() -> service.copy(1L, 12L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("无权操作");
+    }
+
+    // ==================== share 补充 ====================
+
+    @Test
+    void shareUserQuestionOk() {
+        ShareMapper sm = mock(ShareMapper.class);
+        QuestionMapper qm = mock(QuestionMapper.class);
+        Question q = new Question();
+        q.setId(3L);
+        q.setUserId(1L);
+        when(qm.findById(3L)).thenReturn(q);
+        User target = new User();
+        target.setId(8L);
+        UserMapper um = mock(UserMapper.class);
+        when(um.findByUsername("bob")).thenReturn(target);
+        ShareMemberMapper smm = mock(ShareMemberMapper.class);
+        ShareService service = newService(sm, qm, mock(BankMapper.class), smm, um);
+
+        ShareDTO dto = new ShareDTO();
+        dto.setQuestionId(3L);
+        dto.setToUsername("bob");
+        service.share(1L, dto);
+        verify(sm).insert(any(Share.class));
+        verify(smm).upsert(any(), eq(8L), eq(1));
+    }
+
+    @Test
+    void shareQuestionMissingTargetUserThrows() {
+        ShareMapper sm = mock(ShareMapper.class);
+        QuestionMapper qm = mock(QuestionMapper.class);
+        Question q = new Question();
+        q.setId(3L);
+        q.setUserId(1L);
+        when(qm.findById(3L)).thenReturn(q);
+        UserMapper um = mock(UserMapper.class);
+        when(um.findByUsername("nobody")).thenReturn(null);
+        ShareService service = newService(sm, qm, mock(BankMapper.class),
+                mock(ShareMemberMapper.class), um);
+        ShareDTO dto = new ShareDTO();
+        dto.setQuestionId(3L);
+        dto.setToUsername("nobody");
+        assertThatThrownBy(() -> service.share(1L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("用户不存在");
+        verify(sm, never()).insert(any(Share.class));
+    }
+
+    @Test
+    void shareQuestionToSelfThrows() {
+        QuestionMapper qm = mock(QuestionMapper.class);
+        Question q = new Question();
+        q.setId(3L);
+        q.setUserId(1L);
+        when(qm.findById(3L)).thenReturn(q);
+        User target = new User();
+        target.setId(1L);
+        UserMapper um = mock(UserMapper.class);
+        when(um.findByUsername("me")).thenReturn(target);
+        ShareService service = newService(mock(ShareMapper.class), qm, mock(BankMapper.class),
+                mock(ShareMemberMapper.class), um);
+        ShareDTO dto = new ShareDTO();
+        dto.setQuestionId(3L);
+        dto.setToUsername("me");
+        assertThatThrownBy(() -> service.share(1L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("不能共享给自己");
+    }
+
+    @Test
+    void shareQuestionPublicAlreadyPublicThrows() {
+        ShareMapper sm = mock(ShareMapper.class);
+        QuestionMapper qm = mock(QuestionMapper.class);
+        Question q = new Question();
+        q.setId(3L);
+        q.setUserId(1L);
+        when(qm.findById(3L)).thenReturn(q);
+        when(sm.insertPublic(any(Share.class))).thenReturn(0);
+        ShareService service = newService(sm, qm, mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        ShareDTO dto = new ShareDTO();
+        dto.setQuestionId(3L);
+        dto.setShareType(2);
+        assertThatThrownBy(() -> service.share(1L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("已公开共享");
+    }
+
+    @Test
+    void shareBankNotOwnedThrows() {
+        BankMapper bm = mock(BankMapper.class);
+        Bank bank = new Bank();
+        bank.setId(2L);
+        bank.setUserId(9L);
+        when(bm.findById(2L)).thenReturn(bank);
+        ShareService service = newService(mock(ShareMapper.class), mock(QuestionMapper.class),
+                bm, mock(ShareMemberMapper.class), mock(UserMapper.class));
+        ShareDTO dto = new ShareDTO();
+        dto.setBankId(2L);
+        assertThatThrownBy(() -> service.share(1L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("只能共享自己的题库");
+    }
+
+    @Test
+    void updatePermissionInvalidThrows() {
+        ShareService service = newService(mock(ShareMapper.class), mock(QuestionMapper.class),
+                mock(BankMapper.class), mock(ShareMemberMapper.class), mock(UserMapper.class));
+        assertThatThrownBy(() -> service.updatePermission(1L, 1L, 3))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("权限不合法");
+    }
+
+    @Test
+    void updatePermissionNotOwnerThrows() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.findById(1L)).thenReturn(shareOf(1L, 3L, null, 8L, 1));
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        assertThatThrownBy(() -> service.updatePermission(9L, 1L, 2))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("无权操作");
+    }
+
+    @Test
+    void updatePermissionPublicFixedReadThrows() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.findById(1L)).thenReturn(shareOf(1L, 3L, null, null, 2));
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        assertThatThrownBy(() -> service.updatePermission(1L, 1L, 2))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("公开共享固定只读");
+    }
+
+    @Test
+    void updatePermissionOk() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.findById(1L)).thenReturn(shareOf(1L, 3L, null, 8L, 1));
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        service.updatePermission(1L, 1L, 2);
+        verify(sm).updatePermission(1L, 2);
+    }
+
+    @Test
+    void cancelNotOwnerThrows() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.delete(1L, 9L)).thenReturn(0);
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        assertThatThrownBy(() -> service.cancel(9L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("无权取消");
+    }
+
+    @Test
+    void cancelOk() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.delete(1L, 1L)).thenReturn(1);
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        service.cancel(1L, 1L);
+        verify(sm).delete(1L, 1L);
+    }
+
+    @Test
+    void sentDelegates() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.selectSent(1L)).thenReturn(List.of(shareOf(1L, 3L, null, 8L, 1)));
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        PageInfo<Share> page = service.sent(1L, 1, 10);
+        assertThat(page.getList()).hasSize(1);
+        PageHelper.clearPage();
+    }
+
+    @Test
+    void receivedDelegates() {
+        ShareMapper sm = mock(ShareMapper.class);
+        when(sm.selectReceived(8L)).thenReturn(List.of(shareOf(1L, 3L, null, 8L, 1)));
+        ShareService service = newService(sm, mock(QuestionMapper.class), mock(BankMapper.class),
+                mock(ShareMemberMapper.class), mock(UserMapper.class));
+        PageInfo<Share> page = service.received(8L, 1, 10);
+        assertThat(page.getList()).hasSize(1);
+        PageHelper.clearPage();
     }
 }

@@ -1,6 +1,12 @@
 package com.qbank.util;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,5 +58,19 @@ class JwtTokenManagerTest {
         JwtTokenManager other = new JwtTokenManager("another-secret-0123456789abcdef0123456789abcdef");
         String token = other.create(7L, 1);
         assertThat(manager.verify(token)).isNull();
+    }
+
+    @Test
+    void rejectsExpiredToken() {
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        long now = System.currentTimeMillis();
+        String expired = Jwts.builder()
+                .subject("1")
+                .claim("role", 1)
+                .issuedAt(new Date(now - 100_000))
+                .expiration(new Date(now - 10_000))
+                .signWith(key)
+                .compact();
+        assertThat(manager.verify(expired)).isNull();
     }
 }
