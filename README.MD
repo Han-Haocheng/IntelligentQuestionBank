@@ -16,9 +16,8 @@
 
 ```
 IntelligentQuestionBank/
-├── db/schema.sql                # 数据库结构脚本(建库建表, 不含数据)
-├── db/data.sql                  # 演示数据脚本(种子账号/分类/题目等)
-├── db/upgrade-v2.sql            # v1 存量库升级脚本(v2 题库分组)
+├── db/init.sql                  # 建库建表 + 演示数据(一键导入, 幂等可重跑)
+├── db/upgrade.sql               # v1 存量库升级脚本(v2-v5 合并, 一次性执行)
 ├── backend/                     # Spring Boot 后端
 │   ├── pom.xml
 │   └── src/main/java/com/qbank/
@@ -46,14 +45,14 @@ IntelligentQuestionBank/
 
 ### 1. 初始化数据库
 
-要求 MySQL 8.0+。依次导入结构脚本与数据脚本, 会自动创建 question_bank 库、11 张表和演示数据:
+要求 MySQL 8.0+。一键导入会自动创建 question_bank 库、11 张表和演示数据:
 
 ```bash
-mysql -uroot -p < db/schema.sql   # 建库建表
-mysql -uroot -p < db/data.sql     # 演示数据(默认账号 admin/demo)
+mysql -uroot -p < db/init.sql
 ```
 
-> 仅需建表不含数据: 只执行 schema.sql; 数据脚本含显式主键, 重复执行会主键冲突, 重置演示数据请先清空对应表。
+> 脚本幂等可重复执行(数据部分只重置种子行, 不影响用户自建数据);
+> 存量 v1 库请改用 db/upgrade.sql 一次性升级。
 
 默认账号(密码均为 123456):
 
@@ -145,12 +144,12 @@ GET  /api/stats/question-by-category|practice-trend|wrong-by-category (管理员
 
 ## 常见问题
 
-- **登录报“用户名或密码错误”**: 确认已导入 db/schema.sql + db/data.sql 且种子数据未被修改。
+- **登录报“用户名或密码错误”**: 确认已导入 db/init.sql 且种子数据未被修改。
 - **后端启动失败**: 检查 MySQL 是否运行、application.yml 中的账号密码是否正确。
 - **AI 分析未生效**: 在前端「AI 设置」页填写 API Key 并保存（浏览器本地存储，不经过后端）；
   开发模式默认经 Vite 代理转发，Electron 生产模式直连。可在设置页点「测试连接」验证。
-- **存量库从 v1 升级**: 执行 `mysql -uroot -p < db/upgrade-v2.sql`（新增题库表与题目归属，
-  并移除已废弃的 ai_analysis 表）；新环境直接导入 schema.sql + data.sql 即可。
+- **存量库从 v1 升级**: 执行 `mysql -uroot -p < db/upgrade.sql`（v2-v5 合并: 题库分组/练习快照/索引唯一键/权限订阅,
+  并移除已废弃的 ai_analysis 表）；新环境直接导入 init.sql 即可。
 - **批量导入模板在哪**: 题目管理页「批量导入」向导第一步可下载 Excel 模板；CSV 需 UTF-8
   编码(自动兼容 GBK)，列顺序与模板一致。
 - **npm install 时 electron 下载慢**: 可设置镜像 `export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 后执行 npm rebuild electron。
