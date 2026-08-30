@@ -49,4 +49,17 @@ class LoginRateLimiterTest {
         }
         assertThat(limiter.tryRegister()).isFalse();
     }
+
+    @Test
+    void nullOrEmptyUsernameNoop() {
+        LoginRateLimiter limiter = new LoginRateLimiter();
+        assertThat(limiter.isLoginLocked("")).isFalse();
+        assertThat(limiter.isLoginLocked(null)).isFalse();
+        limiter.onLoginFailure("");
+        limiter.onLoginFailure(null);
+        limiter.onLoginSuccess("");
+        limiter.onLoginSuccess(null);
+        // 空输入不应污染其他用户
+        assertThat(limiter.isLoginLocked("x")).isFalse();
+    }
 }

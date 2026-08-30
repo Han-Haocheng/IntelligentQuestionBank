@@ -1,8 +1,11 @@
 package com.qbank.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.qbank.common.BusinessException;
 import com.qbank.dto.QuestionDTO;
+import com.qbank.dto.QuestionQuery;
 import com.qbank.entity.Bank;
 import com.qbank.entity.Category;
 import com.qbank.entity.Question;
@@ -157,5 +160,178 @@ class QuestionServiceTest {
         dto.setBankId(2L);
         service.add(7L, dto);
         verify(questionMapper).insert(any(Question.class));
+    }
+
+    // ==================== page / get 补充 ====================
+
+    @Test
+    void pageAdminUsesQueryUserId() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        QuestionQuery query = new QuestionQuery();
+        query.setUserId(5L);
+        when(questionMapper.selectPage(5L, query)).thenReturn(List.of());
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        PageInfo<QuestionDTO> page = service.page(1L, 0, query);
+        assertThat(page.getList()).isEmpty();
+        verify(questionMapper).selectPage(5L, query);
+        PageHelper.clearPage();
+    }
+
+    @Test
+    void pageNormalUserUsesOwnScope() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        QuestionQuery query = new QuestionQuery();
+        when(questionMapper.selectPage(7L, query)).thenReturn(List.of());
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        PageInfo<QuestionDTO> page = service.page(7L, 1, query);
+        assertThat(page.getList()).isEmpty();
+        verify(questionMapper).selectPage(7L, query);
+        PageHelper.clearPage();
+    }
+
+    @Test
+    void pageForeignBankWithoutAccessThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        BankMapper bankMapper = mock(BankMapper.class);
+        ShareMapper shareMapper = mock(ShareMapper.class);
+        Bank foreign = new Bank();
+        foreign.setId(2L);
+        foreign.setUserId(99L);
+        when(bankMapper.findById(2L)).thenReturn(foreign);
+        when(shareMapper.countBankAccessible(2L, 7L)).thenReturn(0);
+        QuestionQuery query = new QuestionQuery();
+        query.setBankId(2L);
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                bankMapper, mock(FavoriteMapper.class), shareMapper, mock(WrongQuestionMapper.class));
+        assertThatThrownBy(() -> service.page(7L, 1, query))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("无权查看该题库");
+        PageHelper.clearPage();
+    }
+
+    @Test
+    void getForeignPrivateThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        when(questionMapper.findById(3L)).thenReturn(existing(3L, 99L, null));
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        assertThatThrownBy(() -> service.get(7L, 1, 3L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("无权查看该题目");
+    }
+
+    @Test
+    void getSharedAccessibleExposesOwner() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        ShareMapper shareMapper = mock(ShareMapper.class);
+        when(questionMapper.findById(3L)).thenReturn(existing(3L, 99L, null));
+        when(shareMapper.countAccessible(3L, 7L)).thenReturn(1);
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), shareMapper,
+                mock(WrongQuestionMapper.class));
+        QuestionDTO dto = service.get(7L, 1, 3L);
+        assertThat(dto.getUserId()).isEqualTo(99L);
+    }
+
+    @Test
+    void getMissingThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        when(questionMapper.findById(3L)).thenReturn(null);
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        assertThatThrownBy(() -> service.get(7L, 1, 3L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("题目不存在");
+    }
+
+    // ==================== add / delete 补充 ====================
+
+    @Test
+    void addEmptyTitleThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        QuestionDTO dto = validDTO();
+        dto.setTitle("  ");
+        assertThatThrownBy(() -> service.add(7L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("题干不能为空");
+        verify(questionMapper, never()).insert(any());
+    }
+
+    @Test
+    void addSingleChoiceAnswerOutOfRangeThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        QuestionDTO dto = validDTO();
+        dto.setAnswer("C");  // 仅 A/B 两个选项
+        assertThatThrownBy(() -> service.add(7L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("答案必须是选项中的一个字母");
+        verify(questionMapper, never()).insert(any());
+    }
+
+    @Test
+    void addMultipleChoiceAnswerOutOfRangeThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        QuestionDTO dto = validDTO();
+        dto.setType(2);
+        dto.setAnswer("AC");  // C 超出 A/B 范围
+        assertThatThrownBy(() -> service.add(7L, dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("超出选项范围");
+        verify(questionMapper, never()).insert(any());
+    }
+
+    @Test
+    void deleteEmptyIdsThrows() {
+        QuestionService service = newService(mock(QuestionMapper.class), mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        assertThatThrownBy(() -> service.delete(7L, 1, List.of()))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("请选择要删除的题目");
+    }
+
+    @Test
+    void deleteForeignNotAdminThrows() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        when(questionMapper.findById(1L)).thenReturn(existing(1L, 99L, null));
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
+                mock(WrongQuestionMapper.class));
+        assertThatThrownBy(() -> service.delete(7L, 1, List.of(1L)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("无权删除题目");
+        verify(questionMapper, never()).deleteByIds(any());
+    }
+
+    @Test
+    void deleteOkCleansUp() {
+        QuestionMapper questionMapper = mock(QuestionMapper.class);
+        FavoriteMapper favoriteMapper = mock(FavoriteMapper.class);
+        ShareMapper shareMapper = mock(ShareMapper.class);
+        WrongQuestionMapper wrongQuestionMapper = mock(WrongQuestionMapper.class);
+        when(questionMapper.findById(1L)).thenReturn(existing(1L, 7L, null));
+        when(questionMapper.findById(2L)).thenReturn(null);  // 不存在的题目跳过
+        QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
+                mock(BankMapper.class), favoriteMapper, shareMapper, wrongQuestionMapper);
+        service.delete(7L, 1, List.of(1L, 2L));
+        verify(questionMapper).deleteByIds(List.of(1L, 2L));
+        verify(favoriteMapper).deleteByQuestionIds(List.of(1L, 2L));
+        verify(shareMapper).deleteByQuestionIds(List.of(1L, 2L));
+        verify(wrongQuestionMapper).deleteByQuestionIds(List.of(1L, 2L));
     }
 }
