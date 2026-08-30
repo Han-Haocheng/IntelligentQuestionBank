@@ -3,11 +3,24 @@
 -- 环境: MySQL 8.0+ / utf8mb4
 -- 使用: mysql -uroot -p < db/data.sql (需先执行 db/schema.sql)
 -- 默认账号: admin/123456(管理员)  demo/123456(普通用户)
--- 注意: 种子行均带显式主键, 重复执行会因主键冲突报错;
---       如需重置演示数据请先清空对应表(或对已有库跳过本脚本)
+-- 说明: 采用「先按种子主键/唯一标识删除, 再插入」的幂等方式,
+--       可安全重复执行; 只重置种子行, 不影响用户自建的数据;
+--       如需完全重置全部数据, 请删除库后重新导入 schema.sql
 -- ============================================================
 SET NAMES utf8mb4;
 USE question_bank;
+
+-- ============ 1. 清除种子数据(可重复执行) ============
+DELETE FROM share WHERE (from_user_id = 1 AND share_type = 2 AND question_id IN (9, 10))
+   OR (from_user_id = 1 AND share_type = 1 AND question_id = 1 AND to_user_id = 2)
+   OR (from_user_id = 1 AND share_type = 3 AND bank_id = 2 AND to_user_id = 2);
+DELETE FROM favorite WHERE user_id = 2 AND question_id IN (7, 9);
+DELETE FROM question WHERE id BETWEEN 1 AND 14;
+DELETE FROM bank WHERE id BETWEEN 1 AND 5;
+DELETE FROM category WHERE id BETWEEN 1 AND 10;
+DELETE FROM user WHERE id BETWEEN 1 AND 2;
+
+-- ============ 2. 插入种子数据 ============
 
 -- 账号 (密码均为 123456, BCrypt)
 INSERT INTO user (id, username, password, nickname, role) VALUES
