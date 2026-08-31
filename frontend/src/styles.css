@@ -1,3 +1,18 @@
+/* ==================== 主题变量(管理员在「管理-界面主题」维护, 由 stores/theme.js 写入) ==================== */
+:root {
+  --q-primary: #409eff;      /* 主色 */
+  --q-page-bg: #f5f7fa;      /* 页面背景 */
+  --q-card-bg: #ffffff;      /* 卡片背景 */
+  --q-header-bg: #ffffff;    /* 顶栏背景 */
+  --q-header-text: #303133;  /* 顶栏文字 */
+  --q-aside-bg: #001529;     /* 侧栏背景 */
+  --q-aside-text: #a6adb4;   /* 侧栏文字 */
+  --q-aside-active: #ffffff; /* 侧栏高亮文字 */
+  --q-login-from: #1f6feb;   /* 登录页渐变起色 */
+  --q-login-to: #6e40c9;     /* 登录页渐变止色 */
+  --q-radius: 4px;           /* 圆角 */
+}
+
 * {
   box-sizing: border-box;
 }
@@ -9,7 +24,12 @@ body,
   margin: 0;
   padding: 0;
   font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
-  background: #f5f7fa;
+  background: var(--q-page-bg);
+}
+
+/* Element Plus 卡片背景跟随主题(深色样式下内容区随之变深) */
+.el-card {
+  background-color: var(--q-card-bg);
 }
 
 .page-card {
@@ -54,7 +74,7 @@ body,
 .stat-card .num {
   font-size: 28px;
   font-weight: 600;
-  color: #409eff;
+  color: var(--q-primary);
 }
 
 .stat-card .label {

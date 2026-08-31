@@ -197,11 +197,12 @@ async function doRegister () {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1f6feb 0%, #6e40c9 100%);
+  background: linear-gradient(135deg, var(--q-login-from, #1f6feb) 0%, var(--q-login-to, #6e40c9) 100%);
 }
 
 .login-card {
   width: 420px;
+  background: var(--q-card-bg, #fff);
   padding: 10px 10px 4px;
 }
 
@@ -212,7 +213,7 @@ async function doRegister () {
 
 .login-title h2 {
   margin: 0;
-  color: #303133;
+  color: var(--q-header-text, #303133);
 }
 
 .login-title p {

@@ -8,6 +8,9 @@
       <el-tab-pane label="用户管理" name="users">
         <UsersView />
       </el-tab-pane>
+      <el-tab-pane label="界面主题" name="themes">
+        <ThemeSettingsView />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -16,6 +19,7 @@
 import { ref } from 'vue'
 import CategoriesView from './CategoriesView.vue'
 import UsersView from './UsersView.vue'
+import ThemeSettingsView from './ThemeSettingsView.vue'
 
 const tab = ref('categories')
 </script>

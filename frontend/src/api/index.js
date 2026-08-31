@@ -93,4 +93,20 @@ export const statsApi = {
   wrongByCategory: (params) => request.get('/stats/wrong-by-category', { params })
 }
 
+
+// ==================== 前端样式主题 ====================
+export const themeApi = {
+  // 当前全局生效主题(无需登录, 登录页/应用启动时拉取)
+  active: () => request.get('/theme/active'),
+  // 启用的主题列表(登录用户用于切换样式)
+  enabled: () => request.get('/theme/enabled'),
+  // 以下接口仅管理员可用
+  list: () => request.get('/theme/list'),
+  add: (data) => request.post('/theme', data),
+  update: (data) => request.put('/theme', data),
+  updateStatus: (id, enabled) => request.put('/theme/' + id + '/status', null, { params: { enabled } }),
+  setDefault: (id) => request.put('/theme/' + id + '/default'),
+  remove: (id) => request.delete('/theme/' + id)
+}
+
 // AI 分析已迁移到前端本地, 见 src/utils/ai.js (v2)
