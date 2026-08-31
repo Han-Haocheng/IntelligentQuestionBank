@@ -44,7 +44,10 @@ request.interceptors.response.use(
         store.token = ''
         store.userInfo = null
       }).catch(() => {})
-      ElMessage.error('未登录或登录已过期')
+      // 主动退出(silent401)时不弹过期提示: 由退出流程统一提示「已退出登录」
+      if (!error.config || !error.config.silent401) {
+        ElMessage.error('未登录或登录已过期')
+      }
       router.push('/login')
     } else if (error.response && error.response.status === 403) {
       ElMessage.error('无权限执行该操作')
