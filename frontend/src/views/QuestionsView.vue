@@ -11,8 +11,13 @@
         <div v-for="b in banks" :key="b.id" class="bank-item" :class="{ active: query.bankId === b.id }"
           @click="selectBank(b.id)">
           <span class="bank-name" :title="b.name">{{ b.name }}</span>
+          <el-tag v-if="b.sharedByMe === 1" size="small" type="warning">已共享</el-tag>
+          <el-tag v-else-if="b.incomingPermission" size="small"
+            :type="b.incomingPermission === 2 ? 'success' : 'info'">
+            {{ b.incomingPermission === 2 ? '可编辑' : '只读' }}
+          </el-tag>
           <el-tag size="small" type="info">{{ b.questionCount || 0 }}</el-tag>
-          <span class="bank-ops" @click.stop>
+          <span v-if="isBankOwner(b)" class="bank-ops" @click.stop>
             <el-dropdown trigger="click" @command="(cmd) => onBankCommand(cmd, b)">
               <el-icon class="bank-more"><MoreFilled /></el-icon>
               <template #dropdown>
@@ -77,6 +82,16 @@
         <el-table-column label="题库" width="130">
           <template #default="{ row }">{{ row.bankName || '-' }}</template>
         </el-table-column>
+        <el-table-column label="共享" width="160">
+          <template #default="{ row }">
+            <el-tag v-if="row.sharedByMe === 1" size="small" type="warning">已共享</el-tag>
+            <el-tag v-if="row.incomingPermission" size="small"
+              :type="row.incomingPermission === 2 ? 'success' : 'info'" style="margin-left: 4px">
+              {{ row.incomingPermission === 2 ? '被共享·可编辑' : '被共享·只读' }}
+            </el-tag>
+            <span v-if="!row.sharedByMe && !row.incomingPermission" style="color:#c0c4cc">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="标签" width="160">
           <template #default="{ row }">
             <el-tag v-for="t in splitTags(row.tags)" :key="t" size="small" type="info" style="margin-right:4px">{{ t }}</el-tag>
@@ -89,16 +104,16 @@
                 <el-icon><StarFilled v-if="row.favorited" /><Star v-else /></el-icon>
               </el-button>
             </el-tooltip>
-            <el-tooltip content="编辑">
-              <el-button link type="primary" @click="openEdit(row)"><el-icon><Edit /></el-icon></el-button>
+            <el-tooltip :content="canEdit(row) ? '编辑' : '只读共享, 不可编辑'">
+              <el-button link type="primary" :disabled="!canEdit(row)" @click="openEdit(row)"><el-icon><Edit /></el-icon></el-button>
             </el-tooltip>
-            <el-tooltip content="共享">
+            <el-tooltip v-if="isOwner(row)" content="共享">
               <el-button link type="primary" @click="openShare(row)"><el-icon><Share /></el-icon></el-button>
             </el-tooltip>
             <el-tooltip content="AI 分析">
               <el-button link type="primary" :loading="row.aiLoading" @click="analyze(row)"><el-icon><MagicStick /></el-icon></el-button>
             </el-tooltip>
-            <el-tooltip content="删除">
+            <el-tooltip v-if="isOwner(row) || userStore.isAdmin" content="删除">
               <el-button link type="danger" @click="removeOne(row)"><el-icon><Delete /></el-icon></el-button>
             </el-tooltip>
           </template>
@@ -167,7 +182,8 @@
         </el-form-item>
         <el-form-item label="题库">
           <el-select v-model="form.bankId" placeholder="选择题库" clearable style="width: 200px">
-            <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name" />
+            <el-option v-for="b in banks" :key="b.id" :value="b.id" :label="b.name"
+              :disabled="!isBankOwner(b) && b.incomingPermission !== 2" />
           </el-select>
         </el-form-item>
         <el-form-item label="知识点">
@@ -285,6 +301,29 @@ import { TYPE_NAMES as typeNames, DIFFICULTY_NAMES as difficultyNames, letter, s
 
 const userStore = useUserStore()
 const categoryStore = useCategoryStore()
+
+// ==================== 共享状态/权限辅助 ====================
+const myId = computed(() => (userStore.userInfo ? userStore.userInfo.id : null))
+
+/** 题目是否本人所有 */
+function isOwner (row) {
+  return myId.value !== null && row.userId === myId.value
+}
+
+/** 题目可编辑: 所有者 / 收到的可编辑共享 / 管理员 */
+function canEdit (row) {
+  return isOwner(row) || row.incomingPermission === 2 || userStore.isAdmin
+}
+
+/** 题库是否本人所有(共享/编辑/删除仅所有者) */
+function isBankOwner (bank) {
+  return myId.value !== null && bank.userId === myId.value
+}
+
+/** 新增/编辑题目时可选题库: 本人所有 或 收到的可编辑共享 */
+const editableBanks = computed(() =>
+  banks.value.filter(b => isBankOwner(b) || b.incomingPermission === 2)
+)
 
 const rows = ref([])
 const total = ref(0)
@@ -526,7 +565,8 @@ function openEdit (row) {
     form.analysis = ''
     form.difficulty = 3
     form.categoryId = null
-    form.bankId = query.bankId || null
+    const currentBank = banks.value.find(b => b.id === query.bankId)
+    form.bankId = (currentBank && (isBankOwner(currentBank) || currentBank.incomingPermission === 2)) ? query.bankId : null
     form.tags = ''
     form.source = ''
     multiAnswer.value = []
