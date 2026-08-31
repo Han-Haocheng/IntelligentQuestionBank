@@ -21,8 +21,10 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,14 +55,17 @@ public class QuestionService {
 
     public PageInfo<QuestionDTO> page(Long userId, Integer role, QuestionQuery query) {
         Long scope = userId;
+        boolean includeShared = false;
         if (role != null && role == Constants.ROLE_ADMIN) {
             // 管理员: 传 userId 查看指定用户, 不传查看全部
             scope = query.getUserId() != null ? query.getUserId() : null;
         } else {
             scope = scopeUserId(userId, query.getBankId());
+            // 普通用户「全部题目」同时包含收到的共享题目; 按题库浏览时仍限定库内题目
+            includeShared = query.getBankId() == null;
         }
         PageHelper.startPage(query.getPageNum(), query.getPageSize());
-        List<Question> list = questionMapper.selectPage(scope, query);
+        List<Question> list = questionMapper.selectPage(scope, query, includeShared);
         PageInfo<Question> pageInfo = new PageInfo<>(list);
         PageInfo<QuestionDTO> result = new PageInfo<>();
         result.setTotal(pageInfo.getTotal());
@@ -76,14 +81,40 @@ public class QuestionService {
             }
             favoritedIds.addAll(favoriteMapper.selectIdsByUserAndQuestionIds(userId, pageIds));
         }
+        // 批量查询共享状态(已共享/被共享权限), 避免每行一次查询
+        Map<Long, Integer> sharedByMe = new HashMap<>();
+        Map<Long, Integer> incomingPermission = new HashMap<>();
+        if (!list.isEmpty()) {
+            for (Map<String, Object> row : shareMapper.selectQuestionShareStatus(idsOf(list), userId)) {
+                Long qid = ((Number) row.get("id")).longValue();
+                Number mine = (Number) row.get("sharedByMe");
+                if (mine != null && mine.intValue() > 0) {
+                    sharedByMe.put(qid, 1);
+                }
+                Number perm = (Number) row.get("incomingPermission");
+                if (perm != null && perm.intValue() > 0) {
+                    incomingPermission.put(qid, perm.intValue());
+                }
+            }
+        }
         List<QuestionDTO> dtoList = new ArrayList<>();
         for (Question question : list) {
             QuestionDTO dto = toDTO(question);
             dto.setFavorited(favoritedIds.contains(question.getId()));
+            dto.setSharedByMe(sharedByMe.getOrDefault(question.getId(), 0));
+            dto.setIncomingPermission(incomingPermission.get(question.getId()));
             dtoList.add(dto);
         }
         result.setList(dtoList);
         return result;
+    }
+
+    private List<Long> idsOf(List<Question> list) {
+        List<Long> ids = new ArrayList<>();
+        for (Question question : list) {
+            ids.add(question.getId());
+        }
+        return ids;
     }
 
     public QuestionDTO get(Long userId, Integer role, Long id) {

@@ -43,4 +43,10 @@ public interface ShareMapper {
     int countBankPublic(@Param("bankId") Long bankId, @Param("fromUserId") Long fromUserId);
 
     int deleteByBank(@Param("bankId") Long bankId);
+
+    /** 批量题目共享状态: 返回 [{id, sharedByMe, incomingPermission}] (sharedByMe=1 我发出过共享; incomingPermission=1只读/2可编辑, 无则未收到) */
+    List<java.util.Map<String, Object>> selectQuestionShareStatus(@Param("ids") List<Long> ids, @Param("userId") Long userId);
+
+    /** 批量题库共享状态: 同上(share_type 3/4) */
+    List<java.util.Map<String, Object>> selectBankShareStatus(@Param("ids") List<Long> ids, @Param("userId") Long userId);
 }

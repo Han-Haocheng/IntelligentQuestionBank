@@ -19,7 +19,9 @@ public interface QuestionMapper {
 
     Question findById(@Param("id") Long id);
 
-    List<Question> selectPage(@Param("userId") Long userId, @Param("q") QuestionQuery query);
+    /** 分页查询; includeShared=true 时(普通用户未按题库过滤)同时包含收到的共享题目 */
+    List<Question> selectPage(@Param("userId") Long userId, @Param("q") QuestionQuery query,
+                              @Param("includeShared") boolean includeShared);
 
     List<Question> selectByIds(@Param("ids") List<Long> ids);
 

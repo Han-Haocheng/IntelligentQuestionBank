@@ -16,6 +16,9 @@ public class Bank {
 
     /** 非数据库字段: 题库内题目数量 */
     private Long questionCount;
+    /** 非数据库字段: 共享状态 - sharedByMe: 1我共享过; incomingPermission: 收到权限 1只读 2可编辑(null=未收到) */
+    private Integer sharedByMe;
+    private Integer incomingPermission;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -31,4 +34,8 @@ public class Bank {
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
     public Long getQuestionCount() { return questionCount; }
     public void setQuestionCount(Long questionCount) { this.questionCount = questionCount; }
+    public Integer getSharedByMe() { return sharedByMe; }
+    public void setSharedByMe(Integer sharedByMe) { this.sharedByMe = sharedByMe; }
+    public Integer getIncomingPermission() { return incomingPermission; }
+    public void setIncomingPermission(Integer incomingPermission) { this.incomingPermission = incomingPermission; }
 }

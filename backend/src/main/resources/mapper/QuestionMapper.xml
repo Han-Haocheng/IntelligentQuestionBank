@@ -15,7 +15,20 @@
         LEFT JOIN category c ON c.id = q.category_id
         LEFT JOIN bank b ON b.id = q.bank_id
         <where>
-            <if test="userId != null">AND q.user_id = #{userId}</if>
+            <if test="userId != null">
+                (q.user_id = #{userId}
+                <!-- 普通用户「全部题目」同时包含收到的共享题目(指定共享或已订阅的公开共享) -->
+                <if test="includeShared">
+                    OR q.id IN (
+                        SELECT s.question_id FROM share s
+                        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+                        WHERE s.question_id IS NOT NULL
+                          AND (s.to_user_id = #{userId} OR (s.share_type = 2 AND s.from_user_id != #{userId}))
+                          AND (m.id IS NULL OR m.subscribed = 1)
+                    )
+                </if>
+                )
+            </if>
             <if test="q.keyword != null and q.keyword != ''">
                 AND (q.title LIKE CONCAT('%', #{q.keyword}, '%') OR q.tags LIKE CONCAT('%', #{q.keyword}, '%'))
             </if>

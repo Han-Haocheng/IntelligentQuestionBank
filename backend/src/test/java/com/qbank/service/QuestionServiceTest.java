@@ -169,13 +169,13 @@ class QuestionServiceTest {
         QuestionMapper questionMapper = mock(QuestionMapper.class);
         QuestionQuery query = new QuestionQuery();
         query.setUserId(5L);
-        when(questionMapper.selectPage(5L, query)).thenReturn(List.of());
+        when(questionMapper.selectPage(5L, query, false)).thenReturn(List.of());
         QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
                 mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
                 mock(WrongQuestionMapper.class));
         PageInfo<QuestionDTO> page = service.page(1L, 0, query);
         assertThat(page.getList()).isEmpty();
-        verify(questionMapper).selectPage(5L, query);
+        verify(questionMapper).selectPage(5L, query, false);
         PageHelper.clearPage();
     }
 
@@ -183,13 +183,13 @@ class QuestionServiceTest {
     void pageNormalUserUsesOwnScope() {
         QuestionMapper questionMapper = mock(QuestionMapper.class);
         QuestionQuery query = new QuestionQuery();
-        when(questionMapper.selectPage(7L, query)).thenReturn(List.of());
+        when(questionMapper.selectPage(7L, query, true)).thenReturn(List.of());
         QuestionService service = newService(questionMapper, mock(CategoryMapper.class),
                 mock(BankMapper.class), mock(FavoriteMapper.class), mock(ShareMapper.class),
                 mock(WrongQuestionMapper.class));
         PageInfo<QuestionDTO> page = service.page(7L, 1, query);
         assertThat(page.getList()).isEmpty();
-        verify(questionMapper).selectPage(7L, query);
+        verify(questionMapper).selectPage(7L, query, true);
         PageHelper.clearPage();
     }
 

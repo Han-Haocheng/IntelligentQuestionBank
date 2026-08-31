@@ -46,8 +46,30 @@ public class BankService {
                 }
             }
         }
-        for (Bank bank : list) {
-            bank.setQuestionCount((long) questionMapper.countByBank(bank.getId()));
+        // 批量填充共享状态(已共享/被共享权限)与题目数量
+        if (!list.isEmpty()) {
+            List<Long> ids = new java.util.ArrayList<>();
+            for (Bank b : list) {
+                ids.add(b.getId());
+            }
+            java.util.Map<Long, Integer> byMe = new java.util.HashMap<>();
+            java.util.Map<Long, Integer> incoming = new java.util.HashMap<>();
+            for (java.util.Map<String, Object> row : shareMapper.selectBankShareStatus(ids, userId)) {
+                Long bid = ((Number) row.get("id")).longValue();
+                Number mine = (Number) row.get("sharedByMe");
+                if (mine != null && mine.intValue() > 0) {
+                    byMe.put(bid, 1);
+                }
+                Number perm = (Number) row.get("incomingPermission");
+                if (perm != null && perm.intValue() > 0) {
+                    incoming.put(bid, perm.intValue());
+                }
+            }
+            for (Bank bank : list) {
+                bank.setQuestionCount((long) questionMapper.countByBank(bank.getId()));
+                bank.setSharedByMe(byMe.getOrDefault(bank.getId(), 0));
+                bank.setIncomingPermission(incoming.get(bank.getId()));
+            }
         }
         return list;
     }

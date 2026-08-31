@@ -104,4 +104,36 @@
     <delete id="deleteByBank">
         DELETE FROM share WHERE bank_id = #{bankId}
     </delete>
+
+    <!-- 批量题目共享状态: 我发出(sharedByMe) + 我收到权限(incomingPermission, 公开共享固定只读) -->
+    <select id="selectQuestionShareStatus" resultType="map">
+        SELECT s.question_id AS id,
+               MAX(CASE WHEN s.from_user_id = #{userId} THEN 1 ELSE 0 END) AS sharedByMe,
+               MAX(CASE
+                   WHEN s.to_user_id = #{userId} THEN s.permission
+                   WHEN s.share_type = 2 AND s.from_user_id != #{userId} THEN 1
+                   ELSE 0 END) AS incomingPermission
+        FROM share s
+        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+        WHERE s.question_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+          AND (m.id IS NULL OR m.subscribed = 1)
+        GROUP BY s.question_id
+    </select>
+
+    <!-- 批量题库共享状态(share_type 3/4) -->
+    <select id="selectBankShareStatus" resultType="map">
+        SELECT s.bank_id AS id,
+               MAX(CASE WHEN s.from_user_id = #{userId} THEN 1 ELSE 0 END) AS sharedByMe,
+               MAX(CASE
+                   WHEN s.to_user_id = #{userId} THEN s.permission
+                   WHEN s.share_type = 4 AND s.from_user_id != #{userId} THEN 1
+                   ELSE 0 END) AS incomingPermission
+        FROM share s
+        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+        WHERE s.bank_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+          AND (m.id IS NULL OR m.subscribed = 1)
+        GROUP BY s.bank_id
+    </select>
 </mapper>

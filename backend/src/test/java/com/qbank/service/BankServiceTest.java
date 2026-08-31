@@ -41,11 +41,13 @@ class BankServiceTest {
     void listAsAdminReturnsAllUsers() {
         BankMapper bankMapper = mock(BankMapper.class);
         QuestionMapper questionMapper = mock(QuestionMapper.class);
+        ShareMapper shareMapper = mock(ShareMapper.class);
         when(bankMapper.selectByUser(null)).thenReturn(List.of(bank(1L, 1L, "a"), bank(2L, 2L, "b")));
         when(questionMapper.countByBank(1L)).thenReturn(3);
         when(questionMapper.countByBank(2L)).thenReturn(5);
+        when(shareMapper.selectBankShareStatus(any(), anyLong())).thenReturn(List.of());
 
-        BankService service = newService(bankMapper, questionMapper, mock(ShareMapper.class));
+        BankService service = newService(bankMapper, questionMapper, shareMapper);
         List<Bank> list = service.list(1L, 0);
 
         assertThat(list).hasSize(2);
@@ -58,12 +60,14 @@ class BankServiceTest {
     void listAsUserMergesSharedDeduplicated() {
         BankMapper bankMapper = mock(BankMapper.class);
         QuestionMapper questionMapper = mock(QuestionMapper.class);
+        ShareMapper shareMapper = mock(ShareMapper.class);
         when(bankMapper.selectByUser(7L)).thenReturn(List.of(bank(1L, 7L, "own")));
         // 共享列表中含与自有重复的 1 号题库
         when(bankMapper.selectShared(7L)).thenReturn(List.of(bank(1L, 7L, "own"), bank(2L, 9L, "shared")));
         when(questionMapper.countByBank(anyLong())).thenReturn(1);
+        when(shareMapper.selectBankShareStatus(any(), anyLong())).thenReturn(List.of());
 
-        BankService service = newService(bankMapper, questionMapper, mock(ShareMapper.class));
+        BankService service = newService(bankMapper, questionMapper, shareMapper);
         List<Bank> list = service.list(7L, 1);
 
         assertThat(list).extracting(Bank::getId).containsExactly(1L, 2L);

@@ -1,7 +1,5 @@
 package com.qbank.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.List;
 
 /**
@@ -20,13 +18,15 @@ public class QuestionDTO {
     private String tags;
     private String source;
 
-    /** 非数据库字段: 题目所属用户(内部使用) */
-    @JsonIgnore
+    /** 非数据库字段: 题目所属用户(前端据此判断归属/编辑/删除权限) */
     private Long userId;
     /** 非数据库字段: 分类名称/题库名称/收藏状态(查询返回) */
     private String categoryName;
     private String bankName;
     private Boolean favorited;
+    /** 非数据库字段: 共享状态 - sharedByMe: 1我共享过; incomingPermission: 收到权限 1只读 2可编辑(null=未收到) */
+    private Integer sharedByMe;
+    private Integer incomingPermission;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -58,4 +58,8 @@ public class QuestionDTO {
     public void setBankName(String bankName) { this.bankName = bankName; }
     public Boolean getFavorited() { return favorited; }
     public void setFavorited(Boolean favorited) { this.favorited = favorited; }
+    public Integer getSharedByMe() { return sharedByMe; }
+    public void setSharedByMe(Integer sharedByMe) { this.sharedByMe = sharedByMe; }
+    public Integer getIncomingPermission() { return incomingPermission; }
+    public void setIncomingPermission(Integer incomingPermission) { this.incomingPermission = incomingPermission; }
 }
