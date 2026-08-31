@@ -7,7 +7,7 @@
         </Transition>
       </div>
       <el-menu :default-active="route.path" router :collapse="collapsed"
-        background-color="#001529" text-color="#a6adb4" active-text-color="#ffffff" class="menu">
+        :background-color="css.asideBg" :text-color="css.asideText" :active-text-color="css.asideActive" class="menu">
         <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon><template #title>统计看板</template></el-menu-item>
         <el-menu-item index="/questions"><el-icon><Document /></el-icon><template #title>题目管理</template></el-menu-item>
         <el-menu-item v-if="store.isAdmin" index="/admin"><el-icon><Setting /></el-icon><template #title>管理</template></el-menu-item>
@@ -28,13 +28,14 @@
         <span class="header-title">{{ route.meta.title || '智能题库' }}</span>
         <el-dropdown @command="onCommand">
           <span class="user-info">
-            <el-avatar :size="30" style="background:#409eff">{{ initials }}</el-avatar>
+            <el-avatar :size="30" :style="{ background: css.primary }">{{ initials }}</el-avatar>
             <span class="username">{{ store.userInfo ? store.userInfo.nickname || store.userInfo.username : '' }}</span>
             <el-icon><ArrowDown /></el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+              <el-dropdown-item command="theme">切换界面主题</el-dropdown-item>
               <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -45,17 +46,28 @@
       </el-main>
     </el-container>
   </el-container>
+
+  <!-- 切换界面主题(由管理员维护多套样式) -->
+  <ThemePicker v-model="themeVisible" />
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
+import { useThemeStore } from '../stores/theme'
+import ThemePicker from '../components/ThemePicker.vue'
 
 const route = useRoute()
 const router = useRouter()
 const store = useUserStore()
+const themeStore = useThemeStore()
+
+// 主题 CSS 变量(供模板取色)
+const css = computed(() => themeStore.css)
+const themeVisible = ref(false)
+
 
 // 侧栏折叠状态持久化
 const COLLAPSE_KEY = 'qbank_sidebar_collapsed'
@@ -74,12 +86,18 @@ const initials = computed(() => {
 function onCommand (cmd) {
   if (cmd === 'profile') {
     router.push('/my?tab=profile')
+  } else if (cmd === 'theme') {
+    themeVisible.value = true
   } else if (cmd === 'logout') {
     store.logout()
     ElMessage.success('已退出登录')
     router.push('/login')
   }
 }
+// 进入主界面后拉取启用主题: 校验个人选择是否仍可用, 管理员改样式后同步
+onMounted(() => {
+  themeStore.loadEnabled()
+})
 </script>
 
 <style scoped>
@@ -88,7 +106,7 @@ function onCommand (cmd) {
 }
 
 .aside {
-  background: #001529;
+  background: var(--q-aside-bg);
   transition: width 0.25s ease;
   overflow: hidden;
   display: flex;
@@ -96,7 +114,7 @@ function onCommand (cmd) {
 }
 
 .logo {
-  color: #fff;
+  color: var(--q-aside-active);
   font-size: 17px;
   font-weight: 600;
   text-align: center;
@@ -131,7 +149,7 @@ function onCommand (cmd) {
 }
 
 .header {
-  background: #fff;
+  background: var(--q-header-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -166,7 +184,7 @@ function onCommand (cmd) {
 .header-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--q-header-text);
 }
 
 .user-info {
@@ -177,7 +195,7 @@ function onCommand (cmd) {
 }
 
 .username {
-  color: #303133;
+  color: var(--q-header-text);
   font-size: 14px;
 }
 
