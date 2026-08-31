@@ -179,6 +179,20 @@ CREATE TABLE IF NOT EXISTS wrong_question (
   UNIQUE KEY uk_user_question (user_id, question_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错题本';
 
+-- 前端样式主题表 (管理员维护多套样式, is_default=1 为全局默认; 停用/删除默认主题时自动移交)
+CREATE TABLE IF NOT EXISTS app_theme (
+  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主题ID',
+  name        VARCHAR(50)  NOT NULL COMMENT '主题名称',
+  theme_key   VARCHAR(50)  NOT NULL COMMENT '主题标识(唯一, 前端按此持久化选择)',
+  config      TEXT         DEFAULT NULL COMMENT '样式配置(JSON: 主色/侧栏/顶栏/页面背景/登录页渐变/圆角)',
+  enabled     TINYINT      NOT NULL DEFAULT 1 COMMENT '1启用 0停用',
+  is_default  TINYINT      NOT NULL DEFAULT 0 COMMENT '1全局默认 0否(至多1条)',
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_theme_key (theme_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='前端样式主题表';
+
 -- v2 起 AI 分析在前端本地完成, 后端不再存储 AI 记录
 
 -- ======================= 2. 数据 =======================
@@ -194,6 +208,7 @@ DELETE FROM question WHERE id BETWEEN 1 AND 14;
 DELETE FROM bank WHERE id BETWEEN 1 AND 5;
 DELETE FROM category WHERE id BETWEEN 1 AND 10;
 DELETE FROM user WHERE id BETWEEN 1 AND 2;
+DELETE FROM app_theme WHERE theme_key IN ('default', 'dark', 'green');
 
 -- ============ 2. 插入种子数据 ============
 
@@ -244,6 +259,18 @@ INSERT INTO question (id, user_id, bank_id, category_id, type, title, options, a
 INSERT INTO favorite (user_id, question_id) VALUES
 (2, 7),
 (2, 9);
+
+-- 前端样式主题 (3 套种子; 管理员可在「管理-界面主题」增改, 仅重置种子行)
+INSERT INTO app_theme (name, theme_key, config, enabled, is_default) VALUES
+('默认蓝', 'default',
+ '{"primary":"#409eff","pageBg":"#f5f7fa","cardBg":"#ffffff","headerBg":"#ffffff","headerText":"#303133","asideBg":"#001529","asideText":"#a6adb4","asideActive":"#ffffff","loginFrom":"#1f6feb","loginTo":"#6e40c9","radius":"4"}',
+ 1, 1),
+('暗夜深蓝', 'dark',
+ '{"primary":"#1668dc","pageBg":"#0f1420","cardBg":"#1a2233","headerBg":"#1a2233","headerText":"#e6e8eb","asideBg":"#0a0f18","asideText":"#8a94a6","asideActive":"#ffffff","loginFrom":"#0b1e3d","loginTo":"#1668dc","radius":"8"}',
+ 1, 0),
+('清新绿', 'green',
+ '{"primary":"#18a058","pageBg":"#f2f8f4","cardBg":"#ffffff","headerBg":"#ffffff","headerText":"#303133","asideBg":"#0f2e1e","asideText":"#9dc8b0","asideActive":"#ffffff","loginFrom":"#0f7a4d","loginTo":"#18a058","radius":"6"}',
+ 1, 0);
 
 -- 共享演示 (题目共享 + 题库共享)
 INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, message) VALUES

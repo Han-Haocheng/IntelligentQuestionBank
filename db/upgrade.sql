@@ -77,3 +77,31 @@ CREATE TABLE IF NOT EXISTS share_member (
 -- 拷贝来源记录 (收件人"拷贝"生成的副本)
 ALTER TABLE question ADD COLUMN origin_question_id BIGINT DEFAULT NULL COMMENT '拷贝来源题目ID' AFTER source;
 ALTER TABLE bank ADD COLUMN origin_bank_id BIGINT DEFAULT NULL COMMENT '拷贝来源题库ID' AFTER description;
+
+-- ======================= v6: 前端样式(主题) =======================
+
+-- 前端样式主题表 (管理员维护多套样式, is_default=1 为全局默认)
+CREATE TABLE IF NOT EXISTS app_theme (
+  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主题ID',
+  name        VARCHAR(50)  NOT NULL COMMENT '主题名称',
+  theme_key   VARCHAR(50)  NOT NULL COMMENT '主题标识(唯一, 前端按此持久化选择)',
+  config      TEXT         DEFAULT NULL COMMENT '样式配置(JSON: 主色/侧栏/顶栏/页面背景/登录页渐变/圆角)',
+  enabled     TINYINT      NOT NULL DEFAULT 1 COMMENT '1启用 0停用',
+  is_default  TINYINT      NOT NULL DEFAULT 0 COMMENT '1全局默认 0否(至多1条)',
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_theme_key (theme_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='前端样式主题表';
+
+-- 种子主题 3 套 (不存在才插入, 幂等; 仅升级新建库时生效, 已有记录不覆盖)
+INSERT IGNORE INTO app_theme (id, name, theme_key, config, enabled, is_default) VALUES
+(1, '默认蓝', 'default',
+ '{"primary":"#409eff","pageBg":"#f5f7fa","cardBg":"#ffffff","headerBg":"#ffffff","headerText":"#303133","asideBg":"#001529","asideText":"#a6adb4","asideActive":"#ffffff","loginFrom":"#1f6feb","loginTo":"#6e40c9","radius":"4"}',
+ 1, 1),
+(2, '暗夜深蓝', 'dark',
+ '{"primary":"#1668dc","pageBg":"#0f1420","cardBg":"#1a2233","headerBg":"#1a2233","headerText":"#e6e8eb","asideBg":"#0a0f18","asideText":"#8a94a6","asideActive":"#ffffff","loginFrom":"#0b1e3d","loginTo":"#1668dc","radius":"8"}',
+ 1, 0),
+(3, '清新绿', 'green',
+ '{"primary":"#18a058","pageBg":"#f2f8f4","cardBg":"#ffffff","headerBg":"#ffffff","headerText":"#303133","asideBg":"#0f2e1e","asideText":"#9dc8b0","asideActive":"#ffffff","loginFrom":"#0f7a4d","loginTo":"#18a058","radius":"6"}',
+ 1, 0);
