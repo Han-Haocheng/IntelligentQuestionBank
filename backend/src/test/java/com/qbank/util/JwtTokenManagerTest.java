@@ -61,6 +61,26 @@ class JwtTokenManagerTest {
     }
 
     @Test
+    void removeInvalidatesToken() {
+        String token = manager.create(1L, 1);
+        assertThat(manager.verify(token)).isNotNull();
+        manager.remove(token);
+        // 登出后 token 立即失效
+        assertThat(manager.verify(token)).isNull();
+    }
+
+    @Test
+    void restartInvalidatesAllTokens() {
+        String token = manager.create(1L, 1);
+        // 模拟后端重启: 同一密钥新建实例(内存白名单清空), 已签发 token 全部失效
+        JwtTokenManager restarted = new JwtTokenManager(SECRET);
+        assertThat(restarted.verify(token)).isNull();
+        // 重新登录签发的新 token 正常可用
+        String newToken = restarted.create(1L, 1);
+        assertThat(restarted.verify(newToken)).isNotNull();
+    }
+
+    @Test
     void rejectsExpiredToken() {
         SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
         long now = System.currentTimeMillis();
