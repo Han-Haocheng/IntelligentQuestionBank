@@ -17,17 +17,17 @@
 ```
 IntelligentQuestionBank/
 ├── db/init.sql                  # 建库建表 + 演示数据(一键导入, 幂等可重跑)
-├── db/upgrade.sql               # v1 存量库升级脚本(v2-v5 合并, 一次性执行)
+├── db/upgrade.sql               # v1 存量库升级脚本(v2-v6 合并, 一次性执行)
 ├── backend/                     # Spring Boot 后端
 │   ├── pom.xml
 │   └── src/main/java/com/qbank/
 │       ├── common/              # 统一响应/全局异常/常量
 │       ├── config/              # Web配置/CORS/Jackson
-│       ├── entity/              # 9 张表实体(bank/题目/共享等)
+│       ├── entity/              # 10 张表实体(bank/题目/共享/主题等)
 │       ├── dto/                 # 入参出参
 │       ├── mapper/              # MyBatis 接口 (XML 在 resources/mapper)
-│       ├── service/             # 业务服务(9 个)
-│       ├── controller/          # REST 接口(9 个)
+│       ├── service/             # 业务服务(10 个)
+│       ├── controller/          # REST 接口(10 个)
 │       ├── interceptor/         # 登录鉴权拦截器
 │       └── util/                # Token/密码
 └── frontend/                    # Vue3 + Electron
@@ -45,7 +45,7 @@ IntelligentQuestionBank/
 
 ### 1. 初始化数据库
 
-要求 MySQL 8.0+。一键导入会自动创建 question_bank 库、11 张表和演示数据:
+要求 MySQL 8.0+。一键导入会自动创建 question_bank 库、12 张表和演示数据:
 
 ```bash
 mysql -uroot -p < db/init.sql
@@ -103,6 +103,9 @@ npm run electron:build       # 生产模式(加载 dist)
   错误行自动标红跳过；预览时可选用 AI 补全缺失的答案与解析(单次上限 50 行)
 - **分类管理(v1.1)**: 二级树形分类，**仅管理员可增删改**；分类全局共享（所有用户共用，有子分类或题目时禁止删除）
 - **用户管理**: 注册/登录/个人资料/修改密码；管理员可新增/禁用/重置密码/删除用户
+- **界面主题(v6)**: 管理员可在「管理-界面主题」维护**多套前端样式**(名称/标识/主色/侧栏/顶栏/页面背景/登录页渐变/圆角, 内置默认蓝/暗夜深蓝/清新绿模板)，
+  支持新增/编辑/启停/删除，设为默认即全局生效；停用或删除默认主题时默认自动移交给其他启用主题；
+  **所有用户**可在右上角「切换界面主题」选择启用的样式(个人选择保存在本机浏览器, 未选择时跟随管理员默认)
 - **收藏**: 一键收藏/取消，收藏夹分页浏览
 - **共享(v1.1)**: 题目/题库共享给指定用户或公开共享；**权限两级**——只读/可编辑（指定用户可选，公开固定只读，可编辑写回共享者原记录，删除权仅共享者）；收件人可**订阅(实时跟随)/退订/重新订阅/拷贝**(拷贝为本人副本并记录来源)；管理员可查看全部共享
 - **练习(v1.1)**: 顺序/随机/错题重做三种模式，可按分类/题库/题型/难度筛选；**快捷题目数量(全部/1/2/1/4/自定义)并显示总题数**；开始练习与练习记录同页；练习中不返回答案防作弊，
@@ -118,6 +121,11 @@ npm run electron:build       # 生产模式(加载 dist)
 ```HTTP
 POST /api/user/register|login|logout|add      登录注册(登录返回token)
 GET  /api/user/info|list                      个人信息/用户列表(管理员)
+GET  /api/theme/active                         当前全局生效主题(无需登录)
+GET  /api/theme/enabled                        启用的主题列表(登录用户)
+GET  /api/theme/list                           全部主题(管理员)
+POST PUT /api/theme, PUT /api/theme/{id}/status|default, DELETE /api/theme/{id}
+                                                 主题增改/启停/设默认/删除(仅管理员)
 PUT  /api/user/update|status|reset-password   资料/状态/重置密码
 GET  /api/category/tree|list                  分类树/平铺列表(全局)
 POST PUT DELETE /api/category                 分类增删改(仅管理员)
@@ -148,7 +156,7 @@ GET  /api/stats/question-by-category|practice-trend|wrong-by-category (管理员
 - **后端启动失败**: 检查 MySQL 是否运行、application.yml 中的账号密码是否正确。
 - **AI 分析未生效**: 在前端「AI 设置」页填写 API Key 并保存（浏览器本地存储，不经过后端）；
   开发模式默认经 Vite 代理转发，Electron 生产模式直连。可在设置页点「测试连接」验证。
-- **存量库从 v1 升级**: 执行 `mysql -uroot -p < db/upgrade.sql`（v2-v5 合并: 题库分组/练习快照/索引唯一键/权限订阅,
+- **存量库从 v1 升级**: 执行 `mysql -uroot -p < db/upgrade.sql`（v2-v6 合并: 题库分组/练习快照/索引唯一键/权限订阅/前端样式主题,
   并移除已废弃的 ai_analysis 表）；新环境直接导入 init.sql 即可。
 - **批量导入模板在哪**: 题目管理页「批量导入」向导第一步可下载 Excel 模板；CSV 需 UTF-8
   编码(自动兼容 GBK)，列顺序与模板一致。
