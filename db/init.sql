@@ -8,8 +8,8 @@
 -- ============================================================
 
 -- ======================= 1. 结构 =======================
--- 说明: 仅创建库与表结构(IF NOT EXISTS, 可重复执行), 不含数据
---       演示数据请导入 db/data.sql
+-- 说明: 仅创建库与表结构(IF NOT EXISTS, 可重复执行);
+--       演示数据见下方第 2 节(结构与数据合并, 幂等可重跑)
 -- ============================================================
 CREATE DATABASE IF NOT EXISTS question_bank DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE question_bank;
