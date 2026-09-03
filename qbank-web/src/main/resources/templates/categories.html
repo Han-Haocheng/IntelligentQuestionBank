@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('分类管理')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('categories')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="mb-0">
+                    <i class="bi bi-diagram-3 me-1 text-primary"></i>分类管理
+                </h5>
+                <span class="text-muted small" th:if="${!isAdmin}">分类为系统全局共享，仅管理员可新增 / 修改 / 删除</span>
+            </div>
+
+            <!-- 新增(仅管理员) -->
+            <div class="card mb-3" th:if="${isAdmin}">
+                <div class="card-header bg-white">
+                    <i class="bi bi-plus-circle me-1"></i>新增分类
+                </div>
+                <div class="card-body">
+                    <form class="row g-2 align-items-end" method="post" th:action="@{/categories/add}">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">分类名称</label>
+                            <input type="text" class="form-control" name="name" required maxlength="20"
+                                   placeholder="如：Java">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">上级分类</label>
+                            <select class="form-select" name="parentId">
+                                <option value="0">顶级分类</option>
+                                <option th:each="r : ${roots}" th:value="${r.id}" th:text="${r.name}">分类</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label mb-1">排序</label>
+                            <input type="number" class="form-control" name="sort" value="0" min="0">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> 保存
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 分类树形表格: 顶级 + 子级(缩进) -->
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width:45%">分类名称</th>
+                            <th style="width:110px">层级</th>
+                            <th style="width:90px">排序</th>
+                            <th class="text-end" style="width:220px">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <th:block th:each="cat : ${tree}">
+                            <!-- 顶级分类行 -->
+                            <tr>
+                                <td>
+                                    <i class="bi bi-folder2-open text-primary me-1"></i>
+                                    <span th:text="${cat.name}">顶级分类</span>
+                                </td>
+                                <td><span class="badge text-bg-secondary">顶级</span></td>
+                                <td th:text="${cat.sort ?: 0}">0</td>
+                                <td class="text-end">
+                                    <th:block th:if="${isAdmin}">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                data-bs-toggle="collapse"
+                                                th:attr="data-bs-target=${'#edit-root-' + cat.id}">
+                                            <i class="bi bi-pencil"></i> 编辑
+                                        </button>
+                                        <form method="post" th:action="@{/categories/delete}" class="d-inline"
+                                              onsubmit="return confirm('确定删除该分类吗？分类下存在子分类或题目时将无法删除。');">
+                                            <input type="hidden" name="id" th:value="${cat.id}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i> 删除
+                                            </button>
+                                        </form>
+                                    </th:block>
+                                    <span class="text-muted small" th:if="${!isAdmin}">只读</span>
+                                </td>
+                            </tr>
+                            <!-- 顶级分类行内编辑 -->
+                            <tr class="collapse" th:if="${isAdmin}" th:id="'edit-root-' + ${cat.id}">
+                                <td colspan="4" class="p-3 bg-light">
+                                    <form class="row g-2 align-items-end" method="post"
+                                          th:action="@{/categories/update}">
+                                        <input type="hidden" name="id" th:value="${cat.id}">
+                                        <div class="col-md-4">
+                                            <label class="form-label mb-1">分类名称</label>
+                                            <input type="text" class="form-control" name="name" required maxlength="20"
+                                                   th:value="${cat.name}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label mb-1">上级分类</label>
+                                            <select class="form-select" name="parentId"
+                                                    th:disabled="${!#lists.isEmpty(cat.children)}">
+                                                <option value="0"
+                                                        th:selected="${cat.parentId == null or cat.parentId == 0}">
+                                                    顶级分类
+                                                </option>
+                                                <option th:each="r : ${roots}" th:value="${r.id}" th:text="${r.name}"
+                                                        th:selected="${cat.parentId != null and cat.parentId != 0 and cat.parentId == r.id}">
+                                                    分类
+                                                </option>
+                                            </select>
+                                            <div class="form-text" th:if="${!#lists.isEmpty(cat.children)}">
+                                                含子分类，不可移动
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label mb-1">排序</label>
+                                            <input type="number" class="form-control" name="sort" min="0"
+                                                   th:value="${cat.sort ?: 0}">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-check-lg"></i> 保存
+                                            </button>
+                                            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="collapse"
+                                                    th:attr="data-bs-target=${'#edit-root-' + cat.id}">取消
+                                            </button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            <!-- 子分类行 -->
+                            <th:block th:each="sub : ${cat.children}">
+                                <tr>
+                                    <td>
+                                        <span class="ms-4">
+                                            <span class="text-muted me-1">└─</span>
+                                            <i class="bi bi-folder2 text-muted me-1"></i>
+                                            <span th:text="${sub.name}">子分类</span>
+                                        </span>
+                                    </td>
+                                    <td><span class="badge text-bg-light text-secondary">子级</span></td>
+                                    <td th:text="${sub.sort ?: 0}">0</td>
+                                    <td class="text-end">
+                                        <th:block th:if="${isAdmin}">
+                                            <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                    data-bs-toggle="collapse"
+                                                    th:attr="data-bs-target=${'#edit-sub-' + sub.id}">
+                                                <i class="bi bi-pencil"></i> 编辑
+                                            </button>
+                                            <form method="post" th:action="@{/categories/delete}" class="d-inline"
+                                                  onsubmit="return confirm('确定删除该分类吗？分类下存在子分类或题目时将无法删除。');">
+                                                <input type="hidden" name="id" th:value="${sub.id}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i> 删除
+                                                </button>
+                                            </form>
+                                        </th:block>
+                                        <span class="text-muted small" th:if="${!isAdmin}">只读</span>
+                                    </td>
+                                </tr>
+                                <!-- 子分类行内编辑 -->
+                                <tr class="collapse" th:if="${isAdmin}" th:id="'edit-sub-' + ${sub.id}">
+                                    <td colspan="4" class="p-3 bg-light">
+                                        <form class="row g-2 align-items-end" method="post"
+                                              th:action="@{/categories/update}">
+                                            <input type="hidden" name="id" th:value="${sub.id}">
+                                            <div class="col-md-4">
+                                                <label class="form-label mb-1">分类名称</label>
+                                                <input type="text" class="form-control" name="name" required
+                                                       maxlength="20" th:value="${sub.name}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label mb-1">上级分类</label>
+                                                <select class="form-select" name="parentId">
+                                                    <option value="0"
+                                                            th:selected="${sub.parentId == null or sub.parentId == 0}">
+                                                        顶级分类
+                                                    </option>
+                                                    <option th:each="r : ${roots}" th:value="${r.id}"
+                                                            th:text="${r.name}"
+                                                            th:selected="${sub.parentId != null and sub.parentId != 0 and sub.parentId == r.id}">
+                                                        分类
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label mb-1">排序</label>
+                                                <input type="number" class="form-control" name="sort" min="0"
+                                                       th:value="${sub.sort ?: 0}">
+                                            </div>
+                                            <div class="col-auto">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-check-lg"></i> 保存
+                                                </button>
+                                                <button type="button" class="btn btn-light btn-sm"
+                                                        data-bs-toggle="collapse"
+                                                        th:attr="data-bs-target=${'#edit-sub-' + sub.id}">取消
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </th:block>
+                        </th:block>
+                        <tr th:if="${#lists.isEmpty(tree)}">
+                            <td colspan="4" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox me-1"></i>暂无分类，请由管理员在上方新增
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

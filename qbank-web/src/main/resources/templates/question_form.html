@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('题目表单')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('questions')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold" th:text="${form.id != null} ? '编辑题目' : '新增题目'">新增题目</span>
+                    <a th:href="@{/questions}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div th:if="${error}" class="alert alert-danger py-2" th:text="${error}">保存失败</div>
+
+                    <form method="post" th:action="@{/questions/save}">
+                        <input type="hidden" name="id" th:value="${form.id}">
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">题型 <span class="text-danger">*</span></label>
+                                <select id="typeSel" name="type" class="form-select" required>
+                                    <option th:each="o : ${typeOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${form.type == o.value}">单选题</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">难度 <span class="text-danger">*</span></label>
+                                <select name="difficulty" class="form-select" required>
+                                    <option th:each="o : ${difficultyOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${form.difficulty == o.value}">中等</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">分类</label>
+                                <select name="categoryId" class="form-select">
+                                    <option value="">未分类</option>
+                                    <option th:each="o : ${categoryOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${form.categoryId == o.value}">分类</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">题库</label>
+                                <select name="bankId" class="form-select">
+                                    <option value="">不使用题库</option>
+                                    <option th:each="o : ${bankOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${form.bankId == o.value}">题库</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label">题干 <span class="text-danger">*</span></label>
+                            <textarea name="title" rows="3" class="form-control" required maxlength="2000"
+                                      th:text="${form.title}" placeholder="请输入题目内容">题干</textarea>
+                        </div>
+
+                        <!-- 选项: 仅单选/多选(非选择题禁用, 不参与提交) -->
+                        <div id="choiceBlock" class="mt-3"
+                             th:classappend="${form.type == '1' or form.type == '2'} ? '' : 'd-none'">
+                            <label class="form-label">选项 <span class="text-danger">*</span></label>
+                            <textarea id="optionsArea" name="optionsTextarea" rows="4" class="form-control"
+                                      th:disabled="${form.type != '1' and form.type != '2'}" required
+                                      th:text="${form.optionsTextarea}"
+                                      placeholder="每行输入一个选项, 按行自动编号为 A、B、C…, 提交时自动忽略空行">选项</textarea>
+                            <div class="form-text">每行一个选项(自动去空行), 第 1 行对应 A、第 2 行对应 B…</div>
+                        </div>
+
+                        <!-- 判断题: 对/错 -->
+                        <div id="judgeBlock" class="mt-3"
+                             th:classappend="${form.type == '4'} ? '' : 'd-none'">
+                            <label class="form-label">参考答案 <span class="text-danger">*</span></label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="answer" id="ansTrue" value="对"
+                                           th:disabled="${form.type != '4'}" required th:checked="${form.answer == '对'}">
+                                    <label class="form-check-label" for="ansTrue">对</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="answer" id="ansFalse" value="错"
+                                           th:disabled="${form.type != '4'}" required th:checked="${form.answer == '错'}">
+                                    <label class="form-check-label" for="ansFalse">错</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 参考答案文本: 除判断题外(判断时禁用, 不参与提交) -->
+                        <div id="answerBlock" class="mt-3"
+                             th:classappend="${form.type == '4'} ? 'd-none' : ''">
+                            <label class="form-label">参考答案 <span class="text-danger">*</span></label>
+                            <textarea id="answerInput" name="answer" rows="2" class="form-control"
+                                      th:disabled="${form.type == '4'}" required
+                                      th:text="${form.answer}" placeholder="参考答案">答案</textarea>
+                            <div class="form-text" id="answerHint">请输入正确选项字母, 如: A</div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label">答案解析(可选)</label>
+                            <textarea name="analysis" rows="2" class="form-control"
+                                      th:text="${form.analysis}" placeholder="解析(可选, 建议填写)">解析</textarea>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label">标签</label>
+                                <input type="text" name="tags" class="form-control" maxlength="255"
+                                       th:value="${form.tags}" placeholder="多个标签用英文逗号分隔, 如: Java基础,关键字">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">来源</label>
+                                <input type="text" name="source" class="form-control" maxlength="255"
+                                       th:value="${form.source}" placeholder="题目来源(可选)">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-lg"></i> 保存
+                            </button>
+                            <a th:href="@{/questions}" class="btn btn-outline-secondary px-4">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    // 按题型切换: 选项区(单选/多选)、判断题对错 radio、参考答案文本输入区。
+    // 非当前题型所需控件一律禁用(display none 不阻止提交, 禁用才不参与提交)
+    (function () {
+        var typeSel = document.getElementById('typeSel');
+        if (!typeSel) {
+            return;
+        }
+        var choiceBlock = document.getElementById('choiceBlock');
+        var optionsArea = document.getElementById('optionsArea');
+        var judgeBlock = document.getElementById('judgeBlock');
+        var answerBlock = document.getElementById('answerBlock');
+        var answerInput = document.getElementById('answerInput');
+        var judgeRadios = document.querySelectorAll('#judgeBlock input[type="radio"][name="answer"]');
+        var answerHint = document.getElementById('answerHint');
+
+        function syncForm() {
+            var t = parseInt(typeSel.value || '1', 10);
+            var isChoice = (t === 1 || t === 2);
+            var isJudge = (t === 4);
+            choiceBlock.classList.toggle('d-none', !isChoice);
+            judgeBlock.classList.toggle('d-none', !isJudge);
+            answerBlock.classList.toggle('d-none', isJudge);
+            optionsArea.disabled = !isChoice;
+            answerInput.disabled = isJudge;
+            for (var i = 0; i < judgeRadios.length; i++) {
+                judgeRadios[i].disabled = !isJudge;
+            }
+            if (answerHint) {
+                if (t === 1) {
+                    answerHint.textContent = '请输入正确选项字母, 如: A';
+                } else if (t === 2) {
+                    answerHint.textContent = '请输入正确选项字母组合, 如: ACD(可含逗号, 提交时自动清理)';
+                } else if (t === 3) {
+                    answerHint.textContent = '填空题参考答案, 多个空之间用 ||| 分隔';
+                } else if (t === 5) {
+                    answerHint.textContent = '简答题参考答案(提交后按文本宽松比对)';
+                }
+            }
+        }
+
+        typeSel.addEventListener('change', syncForm);
+        syncForm();
+    })();
+</script>
+</body>
+</html>

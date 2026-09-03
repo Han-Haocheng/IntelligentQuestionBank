@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('题目管理')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('questions')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <!-- 筛选卡 -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="get" th:action="@{/questions}">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3 col-lg-3 col-12">
+                                <label class="form-label small text-muted mb-1">关键词</label>
+                                <input type="text" name="keyword" class="form-control form-control-sm"
+                                       th:value="${selKeyword}" placeholder="题干 / 标签">
+                            </div>
+                            <div class="col-6 col-md-2 col-lg-2">
+                                <label class="form-label small text-muted mb-1">题型</label>
+                                <select name="type" class="form-select form-select-sm">
+                                    <option value="">全部题型</option>
+                                    <option th:each="o : ${typeOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${selType == o.value}">单选题</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-2 col-lg-2">
+                                <label class="form-label small text-muted mb-1">难度</label>
+                                <select name="difficulty" class="form-select form-select-sm">
+                                    <option value="">全部难度</option>
+                                    <option th:each="o : ${difficultyOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${selDifficulty == o.value}">中等</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-lg-3">
+                                <label class="form-label small text-muted mb-1">分类</label>
+                                <select name="categoryId" class="form-select form-select-sm">
+                                    <option value="">全部分类</option>
+                                    <option th:each="o : ${categoryOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${selCategoryId == o.value}">分类</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-lg-2">
+                                <label class="form-label small text-muted mb-1">题库</label>
+                                <select name="bankId" class="form-select form-select-sm">
+                                    <option value="">全部题库</option>
+                                    <option th:each="o : ${bankOptions}" th:value="${o.value}" th:text="${o.name}"
+                                            th:selected="${selBankId == o.value}">题库</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-lg-auto d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm px-3">
+                                    <i class="bi bi-search"></i> 查询
+                                </button>
+                                <a th:href="@{/questions}" class="btn btn-outline-secondary btn-sm px-3">重置</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 题目列表 -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">题目列表</span>
+                    <a th:href="@{/questions/form}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-lg"></i> 新增题目
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width:34%">题干</th>
+                            <th style="width:9%">题型</th>
+                            <th style="width:10%">分类</th>
+                            <th style="width:12%">题库</th>
+                            <th style="width:11%">难度</th>
+                            <th style="width:13%">更新时间</th>
+                            <th style="width:14%">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(rows)}">
+                            <td colspan="7" class="text-center text-muted py-5">暂无题目, 点击右上角「新增题目」开始创建</td>
+                        </tr>
+                        <tr th:each="row : ${rows}">
+                            <td>
+                                <span class="d-inline-block text-truncate" style="max-width:100%"
+                                      th:title="${row.title}" th:text="${row.title}">题干</span>
+                            </td>
+                            <td><span class="badge text-bg-primary" th:text="${row.typeName}">单选题</span></td>
+                            <td>
+                                <span th:if="${row.categoryName != null}" th:text="${row.categoryName}">分类</span>
+                                <span th:if="${row.categoryName == null}" class="text-muted">-</span>
+                            </td>
+                            <td>
+                                <span th:if="${row.bankName != null}" th:text="${row.bankName}">题库</span>
+                                <span th:if="${row.bankName == null}" class="text-muted">-</span>
+                            </td>
+                            <td>
+                                <span class="text-warning" th:title="${row.difficultyName}" th:text="${row.stars}">★★★☆☆</span>
+                                <span class="text-muted small ms-1 d-none d-md-inline" th:text="${row.difficultyName}">中等</span>
+                            </td>
+                            <td class="text-muted small" th:text="${row.updateTime}">2026-01-01 12:00</td>
+                            <td>
+                                <a th:href="@{/questions/form(id=${row.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil-square"></i> 编辑
+                                </a>
+                                <form th:action="@{/questions/delete}" method="post" class="d-inline"
+                                      onsubmit="return confirm('确定要删除该题目吗? 删除后不可恢复。');">
+                                    <input type="hidden" name="id" th:value="${row.id}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash3"></i> 删除
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- 分页条 -->
+                <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2 border-top"
+                     th:if="${page.total > 0}">
+                    <div class="text-muted small">
+                        共 <span th:text="${page.total}">0</span> 条, 第
+                        <span th:text="${page.pageNum}">1</span>/<span th:text="${page.pages}">1</span> 页
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item" th:classappend="${it.current ? 'active' : (it.url == null ? 'disabled' : '')}"
+                                th:each="it : ${pageItems}">
+                                <a class="page-link" th:if="${it.url != null}" th:href="${it.url}"
+                                   th:text="${it.label}">1</a>
+                                <span class="page-link" th:if="${it.url == null}" th:text="${it.label}">…</span>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('练习记录')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('records')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="mb-0"><i class="bi bi-clock-history text-primary"></i> 练习记录</h5>
+                <a th:href="@{/practice}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> 开始练习
+                </a>
+            </div>
+
+            <div th:if="${pageInfo.list == null or pageInfo.list.isEmpty()}" class="card">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                    还没有练习记录, 快去开始第一次练习吧。
+                </div>
+            </div>
+
+            <div class="card" th:if="${!(pageInfo.list == null or pageInfo.list.isEmpty())}">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>练习名称</th>
+                            <th>模式</th>
+                            <th>题数</th>
+                            <th>正确</th>
+                            <th>正确率</th>
+                            <th>用时</th>
+                            <th>开始时间</th>
+                            <th>状态</th>
+                            <th class="text-end">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${pageInfo.list}">
+                            <td>
+                                <span th:text="${r.name}">练习名称</span>
+                            </td>
+                            <td>
+                                <span class="badge text-bg-info" th:text="${modeNameMap[r.mode] ?: '未知'}">模式</span>
+                            </td>
+                            <td th:text="${r.total ?: 0}">0</td>
+                            <td>
+                                <span class="text-success fw-semibold" th:text="${r.correct ?: 0}">0</span>
+                            </td>
+                            <td>
+                                <span th:if="${r.status == 1 and r.total != null and r.total > 0}">
+                                    <span th:text="${#numbers.formatDecimal((r.correct ?: 0) * 100.0 / r.total, 0, 1)}">0</span>%
+                                </span>
+                                <span th:if="${r.status == 0 or r.total == null or r.total == 0}" class="text-muted">-</span>
+                            </td>
+                            <td th:text="${r.duration != null ? (r.duration / 60) + '分' + (r.duration % 60) + '秒' : '-'}">-</td>
+                            <td>
+                                <span th:if="${r.startTime != null}"
+                                      th:text="${#temporals.format(r.startTime, 'yyyy-MM-dd HH:mm')}">开始</span>
+                                <span th:if="${r.startTime == null}">-</span>
+                            </td>
+                            <td>
+                                <span class="badge text-bg-success" th:if="${r.status == 1}">已完成</span>
+                                <span class="badge text-bg-secondary" th:if="${r.status == 0}">进行中</span>
+                            </td>
+                            <td class="text-end">
+                                <a th:if="${r.status == 1}" th:href="@{/practice/records/{id}(id=${r.id})}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> 明细
+                                </a>
+                                <a th:if="${r.status == 0}" th:href="@{/practice/do(recordId=${r.id})}"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-pencil-square"></i> 继续
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-body border-top" th:if="${pageInfo.pages > 1}">
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-center mb-0">
+                            <li class="page-item" th:classappend="${pageInfo.pageNum <= 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/practice/records(pageNum=${pageInfo.pageNum - 1}, pageSize=${pageInfo.pageSize})}">上一页</a>
+                            </li>
+                            <li class="page-item" th:each="p : ${#numbers.sequence(1, pageInfo.pages)}"
+                                th:classappend="${p == pageInfo.pageNum} ? 'active'">
+                                <a class="page-link" th:href="@{/practice/records(pageNum=${p}, pageSize=${pageInfo.pageSize})}"
+                                   th:text="${p}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${pageInfo.pageNum >= pageInfo.pages} ? 'disabled'">
+                                <a class="page-link" th:href="@{/practice/records(pageNum=${pageInfo.pageNum + 1}, pageSize=${pageInfo.pageSize})}">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="text-center text-muted small mt-1" th:if="${pageInfo.total != null}">
+                        共 <span th:text="${pageInfo.total}">0</span> 条记录
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

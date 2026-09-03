@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('开始练习')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('practice')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="card">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-pencil-square text-primary"></i> 开始练习
+                </div>
+                <div class="card-body">
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}">错误</div>
+                    <form method="post" th:action="@{/practice/start}" id="practiceFilter">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">练习名称(可选)</label>
+                                <input type="text" class="form-control" name="name" maxlength="100"
+                                       placeholder="默认按模式与日期自动命名"
+                                       th:value="${practiceForm.name}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">练习模式</label>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="mode" value="1"
+                                               id="modeSeq" th:checked="${practiceForm.mode == null or practiceForm.mode == 1}">
+                                        <label class="form-check-label" for="modeSeq">顺序练习</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="mode" value="2"
+                                               id="modeRandom" th:checked="${practiceForm.mode == 2}">
+                                        <label class="form-check-label" for="modeRandom">随机练习</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="mode" value="3"
+                                               id="modeWrong" th:checked="${practiceForm.mode == 3}">
+                                        <label class="form-check-label" for="modeWrong">错题重做</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">题型</label>
+                                <select class="form-select" name="type" id="fType">
+                                    <option value="" th:selected="${practiceForm.type == null}">全部题型</option>
+                                    <option th:each="tn, st : ${typeNames}"
+                                            th:value="${st.count}" th:text="${tn}"
+                                            th:selected="${practiceForm.type != null and practiceForm.type == st.count}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">难度</label>
+                                <select class="form-select" name="difficulty" id="fDifficulty">
+                                    <option value="" th:selected="${practiceForm.difficulty == null}">全部难度</option>
+                                    <option th:each="dn, st : ${difficultyNames}"
+                                            th:value="${st.count}" th:text="${dn}"
+                                            th:selected="${practiceForm.difficulty != null and practiceForm.difficulty == st.count}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">分类</label>
+                                <select class="form-select" name="categoryId" id="fCategory">
+                                    <option value="" th:selected="${practiceForm.categoryId == null}">全部分类</option>
+                                    <option th:each="c : ${categoryOptions}"
+                                            th:value="${c.value}" th:text="${c.name}"
+                                            th:selected="${practiceForm.categoryId != null and practiceForm.categoryId == c.value}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">题库</label>
+                                <select class="form-select" name="bankId" id="fBank">
+                                    <option value="" th:selected="${practiceForm.bankId == null}">全部题库</option>
+                                    <option th:each="b : ${bankOptions}"
+                                            th:value="${b.value}" th:text="${b.name}"
+                                            th:selected="${practiceForm.bankId != null and practiceForm.bankId == b.value}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">题目数量</label>
+                                <input type="number" class="form-control" name="count" id="fCount"
+                                       min="1" max="50" th:value="${practiceForm.count}">
+                                <div class="form-text">单次最多练习 50 题</div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="onlyWrong" value="true"
+                                           id="onlyWrong" th:checked="${practiceForm.onlyWrong}">
+                                    <label class="form-check-label" for="onlyWrong">仅练错题本中未掌握的题</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex align-items-center gap-3">
+                            <button type="submit" class="btn btn-primary" id="startBtn">
+                                <i class="bi bi-play-circle"></i> 开始练习
+                            </button>
+                            <span id="matchInfo" class="text-muted small">正在统计可练习题目...</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script th:inline="javascript">
+    (function () {
+        function onlyWrongChecked() {
+            var modeEl = document.querySelector('input[name="mode"]:checked');
+            var mode = modeEl ? parseInt(modeEl.value, 10) : 1;
+            var box = document.getElementById('onlyWrong');
+            return mode === 3 || (box != null && box.checked);
+        }
+
+        function refreshCount() {
+            var params = new URLSearchParams();
+            var set = function (id, key) {
+                var el = document.getElementById(id);
+                if (el && el.value !== '') {
+                    params.set(key, el.value);
+                }
+            };
+            set('fCategory', 'categoryId');
+            set('fBank', 'bankId');
+            set('fDifficulty', 'difficulty');
+            set('fType', 'type');
+            params.set('onlyWrong', onlyWrongChecked() ? 'true' : 'false');
+            fetch('/practice/count?' + params.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                .then(function (resp) {
+                    if (resp.status === 401) {
+                        window.location.href = '/login';
+                        return null;
+                    }
+                    return resp.json();
+                })
+                .then(function (json) {
+                    var info = document.getElementById('matchInfo');
+                    var btn = document.getElementById('startBtn');
+                    if (!info) {
+                        return;
+                    }
+                    if (!json || json.code !== 200) {
+                        info.className = 'small text-danger';
+                        info.textContent = (json && json.msg) ? json.msg : '题目统计失败';
+                        return;
+                    }
+                    var n = json.data || 0;
+                    info.className = 'small ' + (n > 0 ? 'text-success' : 'text-danger');
+                    info.textContent = '当前条件共 ' + n + ' 题可练习(单次最多 50 题)';
+                    if (btn) {
+                        btn.disabled = n === 0;
+                    }
+                    var count = document.getElementById('fCount');
+                    if (count && n > 0 && n < 50 && parseInt(count.value, 10) > n) {
+                        count.value = n;
+                    }
+                })
+                .catch(function () {
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var controls = document.querySelectorAll(
+                '#practiceFilter select, #practiceFilter input[name="mode"], #practiceFilter input[name="onlyWrong"]');
+            for (var i = 0; i < controls.length; i++) {
+                controls[i].addEventListener('change', refreshCount);
+            }
+            refreshCount();
+        });
+    })();
+</script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

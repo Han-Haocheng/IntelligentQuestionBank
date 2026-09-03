@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('错题本')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('wrongbook')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle text-primary"></i> 错题本</h5>
+                <div class="d-flex gap-1" role="group">
+                    <a th:href="@{/wrongbook(categoryId=${currentCategoryId})}"
+                       class="btn btn-sm" th:classappend="${currentMastered == null} ? 'btn-primary' : 'btn-outline-secondary'">全部</a>
+                    <a th:href="@{/wrongbook(mastered=0, categoryId=${currentCategoryId})}"
+                       class="btn btn-sm" th:classappend="${currentMastered != null and currentMastered == 0} ? 'btn-primary' : 'btn-outline-secondary'">未掌握</a>
+                    <a th:href="@{/wrongbook(mastered=1, categoryId=${currentCategoryId})}"
+                       class="btn btn-sm" th:classappend="${currentMastered != null and currentMastered == 1} ? 'btn-primary' : 'btn-outline-secondary'">已掌握</a>
+                </div>
+            </div>
+
+            <!-- 筛选 -->
+            <form method="get" th:action="@{/wrongbook}" class="card mb-3">
+                <div class="card-body py-3 d-flex flex-wrap align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 me-2">
+                        <label class="form-label mb-0 text-muted small">分类</label>
+                        <select name="categoryId" class="form-select form-select-sm" style="width: 200px;">
+                            <option value="" th:selected="${currentCategoryId == null}">全部分类</option>
+                            <option th:each="c : ${categoryOptions}" th:value="${c.value}" th:text="${c.name}"
+                                    th:selected="${currentCategoryId != null and currentCategoryId == c.value}"></option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="mastered" th:value="${currentMastered}" th:if="${currentMastered != null}">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-funnel"></i> 筛选
+                    </button>
+                    <span class="text-muted small" th:if="${pageInfo.total != null}">
+                        共 <span th:text="${pageInfo.total}">0</span> 道错题
+                    </span>
+                </div>
+            </form>
+
+            <div th:if="${pageInfo.list == null or pageInfo.list.isEmpty()}" class="card">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="bi bi-emoji-smile display-6 d-block mb-2"></i>
+                    错题本是空的, 继续保持。
+                </div>
+            </div>
+
+            <div class="card mb-2" th:each="w : ${pageInfo.list}">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                        <div class="flex-grow-1" style="min-width: 220px;">
+                            <p class="mb-1" style="white-space: pre-wrap;" th:text="${w.title ?: '(题目已删除)'}">题干</p>
+                            <div class="d-flex flex-wrap align-items-center gap-1">
+                                <span class="badge text-bg-secondary" th:text="${typeNameMap[w.type] ?: '未知题型'}">题型</span>
+                                <span class="badge text-bg-light border"
+                                      th:if="${w.difficulty != null and difficultyNameMap[w.difficulty] != null}"
+                                      th:text="${difficultyNameMap[w.difficulty]}">难度</span>
+                                <span class="badge text-bg-light border" th:if="${w.categoryName != null}"
+                                      th:text="${w.categoryName}">分类</span>
+                                <span class="badge text-bg-danger" th:if="${w.mastered == 0}">
+                                    <i class="bi bi-x-circle"></i> 未掌握
+                                </span>
+                                <span class="badge text-bg-success" th:if="${w.mastered == 1}">
+                                    <i class="bi bi-check-circle"></i> 已掌握
+                                </span>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                答错 <span class="text-danger fw-semibold" th:text="${w.wrongCount ?: 0}">0</span> 次
+                                <span th:if="${w.lastAnswer != null and w.lastAnswer != ''}">
+                                    · 最近答: <span th:text="${w.lastAnswer}">答案</span>
+                                </span>
+                                <span th:if="${w.lastWrongTime != null}">
+                                    · <span th:text="${#temporals.format(w.lastWrongTime, 'yyyy-MM-dd HH:mm')}">时间</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-1">
+                            <form method="post" th:action="@{/wrongbook/master}" class="m-0">
+                                <input type="hidden" name="id" th:value="${w.questionId}">
+                                <input type="hidden" name="mastered" th:value="${currentMastered}" th:if="${currentMastered != null}">
+                                <input type="hidden" name="categoryId" th:value="${currentCategoryId}" th:if="${currentCategoryId != null}">
+                                <button type="submit" class="btn btn-sm"
+                                        th:classappend="${w.mastered == 1} ? 'btn-outline-warning' : 'btn-outline-success'">
+                                    <i class="bi bi-check2-circle"></i>
+                                    <span th:text="${w.mastered == 1} ? '取消掌握' : '标记掌握'">标记掌握</span>
+                                </button>
+                            </form>
+                            <form method="post" th:action="@{/wrongbook/remove}" class="m-0">
+                                <input type="hidden" name="id" th:value="${w.questionId}">
+                                <input type="hidden" name="mastered" th:value="${currentMastered}" th:if="${currentMastered != null}">
+                                <input type="hidden" name="categoryId" th:value="${currentCategoryId}" th:if="${currentCategoryId != null}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('确定从错题本移除该题?');">
+                                    <i class="bi bi-trash"></i> 移除
+                                </button>
+                            </form>
+                            <button class="btn btn-outline-secondary btn-sm" type="button"
+                                    data-bs-toggle="collapse" th:attr="data-bs-target=${'#analysis-' + w.questionId}">
+                                <i class="bi bi-eye"></i> 解析
+                            </button>
+                            <a th:href="@{/practice}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil-square"></i> 练习
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse mt-2 border-top pt-2" th:id="${'analysis-' + w.questionId}">
+                        <div class="text-muted small">
+                            <div class="mb-1">
+                                <span class="me-1">正确答案:</span>
+                                <span class="fw-semibold text-success" th:text="${w.answer ?: '-'}">答案</span>
+                            </div>
+                            <div th:if="${w.analysis != null and w.analysis != ''}">
+                                <span class="me-1">解析:</span>
+                                <span style="white-space: pre-wrap;" th:text="${w.analysis}">解析</span>
+                            </div>
+                            <div th:if="${w.analysis == null or w.analysis == ''}">本题暂无解析</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav th:if="${pageInfo.pages > 1}">
+                <ul class="pagination pagination-sm justify-content-center">
+                    <li class="page-item" th:classappend="${pageInfo.pageNum <= 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/wrongbook(pageNum=${pageInfo.pageNum - 1}, pageSize=${pageInfo.pageSize}, mastered=${currentMastered}, categoryId=${currentCategoryId})}">上一页</a>
+                    </li>
+                    <li class="page-item" th:each="p : ${#numbers.sequence(1, pageInfo.pages)}"
+                        th:classappend="${p == pageInfo.pageNum} ? 'active'">
+                        <a class="page-link" th:href="@{/wrongbook(pageNum=${p}, pageSize=${pageInfo.pageSize}, mastered=${currentMastered}, categoryId=${currentCategoryId})}"
+                           th:text="${p}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${pageInfo.pageNum >= pageInfo.pages} ? 'disabled'">
+                        <a class="page-link" th:href="@{/wrongbook(pageNum=${pageInfo.pageNum + 1}, pageSize=${pageInfo.pageSize}, mastered=${currentMastered}, categoryId=${currentCategoryId})}">下一页</a>
+                    </li>
+                </ul>
+            </nav>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

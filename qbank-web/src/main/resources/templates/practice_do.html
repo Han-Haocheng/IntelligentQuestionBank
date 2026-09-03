@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('答题中')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('practice')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <!-- 答题进度 -->
+            <div class="card mb-3">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="fw-semibold">
+                            <i class="bi bi-pencil-square text-primary"></i>
+                            <span th:text="${record.name}">练习名称</span>
+                            <span class="badge text-bg-info ms-1" th:text="${modeName}">模式</span>
+                        </div>
+                        <div class="text-muted small">
+                            已作答 <span class="text-primary fw-semibold" id="answeredInfo">0</span> / <span th:text="${total}">0</span> 题
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar" id="answerProgress" role="progressbar" style="width: 0%;"
+                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning py-2 small">
+                <i class="bi bi-info-circle"></i> 练习过程中不显示答案与解析(防作弊), 交卷后可在成绩页查看对错与解析。
+                中途离开将无法恢复, 请一次完成。
+            </div>
+
+            <form method="post" th:action="@{/practice/submit}" id="answerForm"
+                  onsubmit="return confirm('确认交卷? 交卷后将立即判分并自动维护错题本。');">
+                <input type="hidden" name="recordId" th:value="${recordId}">
+                <input type="hidden" id="answerTotal" th:value="${total}">
+
+                <div class="card mb-3" th:each="q, qs : ${questions}">
+                    <div class="card-header bg-white py-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <span class="fw-semibold me-2" th:text="${'第 ' + qs.count + ' 题'}">第 1 题</span>
+                            <span class="badge text-bg-secondary"
+                                  th:text="${typeNameMap[q.type] ?: '题目'}">题型</span>
+                            <span class="badge text-bg-light border"
+                                  th:if="${difficultyNameMap[q.difficulty] != null}"
+                                  th:text="${'难度: ' + (difficultyNameMap[q.difficulty] ?: '')}">难度</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3" style="white-space: pre-wrap;" th:text="${q.title}">题干</p>
+
+                        <!-- 单选 -->
+                        <div th:if="${q.type == 1}">
+                            <div class="form-check mb-2" th:each="opt : ${q.options}">
+                                <input class="form-check-input" type="radio"
+                                       th:name="${'answer_' + q.id}"
+                                       th:id="${'q_' + q.id + '_' + opt.letter}"
+                                       th:value="${opt.letter}">
+                                <label class="form-check-label" th:for="${'q_' + q.id + '_' + opt.letter}">
+                                    <span class="fw-semibold" th:text="${opt.letter}">A</span>.
+                                    <span th:text="${opt.text}">选项</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 多选 -->
+                        <div th:if="${q.type == 2}">
+                            <div class="text-muted small mb-2">多选题: 可选择多个答案</div>
+                            <div class="form-check mb-2" th:each="opt : ${q.options}">
+                                <input class="form-check-input" type="checkbox"
+                                       th:name="${'answer_' + q.id}"
+                                       th:id="${'q_' + q.id + '_' + opt.letter}"
+                                       th:value="${opt.letter}">
+                                <label class="form-check-label" th:for="${'q_' + q.id + '_' + opt.letter}">
+                                    <span class="fw-semibold" th:text="${opt.letter}">A</span>.
+                                    <span th:text="${opt.text}">选项</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 填空 -->
+                        <div th:if="${q.type == 3}">
+                            <label class="form-label text-muted small" th:for="${'q_' + q.id + '_input'}">
+                                请在下方填写答案(多个空请用 ||| 分隔)
+                            </label>
+                            <input type="text" class="form-control" th:id="${'q_' + q.id + '_input'}"
+                                   th:name="${'answer_' + q.id}" placeholder="输入答案">
+                        </div>
+
+                        <!-- 判断 -->
+                        <div th:if="${q.type == 4}">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       th:name="${'answer_' + q.id}"
+                                       th:id="${'q_' + q.id + '_right'}" value="对">
+                                <label class="form-check-label" th:for="${'q_' + q.id + '_right'}">对</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       th:name="${'answer_' + q.id}"
+                                       th:id="${'q_' + q.id + '_wrong'}" value="错">
+                                <label class="form-check-label" th:for="${'q_' + q.id + '_wrong'}">错</label>
+                            </div>
+                        </div>
+
+                        <!-- 简答 -->
+                        <div th:if="${q.type == 5}">
+                            <textarea class="form-control" rows="3" th:id="${'q_' + q.id + '_textarea'}"
+                                      th:name="${'answer_' + q.id}" placeholder="输入答案"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center my-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-send-check"></i> 交卷
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script>
+    (function () {
+        function countAnswered() {
+            var answered = {};
+            var els = document.querySelectorAll('#answerForm input, #answerForm textarea');
+            for (var i = 0; i < els.length; i++) {
+                var el = els[i];
+                if (!el.name) {
+                    continue;
+                }
+                var m = el.name.match(/^answer_(\d+)$/);
+                if (!m) {
+                    continue;
+                }
+                var qid = m[1];
+                if (el.type === 'radio' || el.type === 'checkbox') {
+                    if (el.checked) {
+                        answered[qid] = true;
+                    }
+                } else if (el.value.trim() !== '') {
+                    answered[qid] = true;
+                }
+            }
+            var count = Object.keys(answered).length;
+            var totalEl = document.getElementById('answerTotal');
+            var total = totalEl ? parseInt(totalEl.value, 10) : 0;
+            var info = document.getElementById('answeredInfo');
+            if (info) {
+                info.textContent = count;
+            }
+            var bar = document.getElementById('answerProgress');
+            if (bar) {
+                var pct = total > 0 ? Math.round(count * 100 / total) : 0;
+                bar.style.width = pct + '%';
+                bar.setAttribute('aria-valuenow', pct);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            countAnswered();
+            document.getElementById('answerForm').addEventListener('change', countAnswered);
+            document.getElementById('answerForm').addEventListener('input', countAnswered);
+        });
+    })();
+</script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

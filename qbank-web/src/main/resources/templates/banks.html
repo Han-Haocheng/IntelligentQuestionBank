@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('我的题库')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('banks')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="mb-0">
+                    <i class="bi bi-archive me-1 text-primary"></i>我的题库
+                </h5>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBankModal">
+                    <i class="bi bi-plus-lg"></i> 新增题库
+                </button>
+            </div>
+
+            <!-- 题库列表 -->
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width:22%">题库名称</th>
+                            <th>描述</th>
+                            <th class="text-center" style="width:110px">题目数</th>
+                            <th style="width:170px">创建时间</th>
+                            <th class="text-end" style="width:210px">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <th:block th:each="bank : ${banks}">
+                            <!-- 数据行 -->
+                            <tr>
+                                <td>
+                                    <i class="bi bi-collection text-primary me-1"></i>
+                                    <span th:text="${bank.name}">题库名称</span>
+                                    <span class="badge text-bg-light text-muted ms-1"
+                                          th:if="${bank.userId != session.qbankLoginUser.id}">只读</span>
+                                </td>
+                                <td class="text-muted" th:text="${bank.description ?: '-'}">描述</td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill text-bg-info"
+                                          th:text="${(bank.questionCount == null ? 0 : bank.questionCount) + ' 题'}">
+                                        0 题
+                                    </span>
+                                </td>
+                                <td class="text-muted small"
+                                    th:text="${bank.createTime == null ? '-' : #temporals.format(bank.createTime, 'yyyy-MM-dd HH:mm')}">
+                                    创建时间
+                                </td>
+                                <td class="text-end">
+                                    <th:block th:if="${bank.userId == session.qbankLoginUser.id}">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                data-bs-toggle="collapse"
+                                                th:attr="data-bs-target=${'#edit-bank-' + bank.id}">
+                                            <i class="bi bi-pencil"></i> 编辑
+                                        </button>
+                                        <form method="post" th:action="@{/banks/delete}" class="d-inline"
+                                              onsubmit="return confirm('确定删除该题库吗？题库将被删除，库内题目会保留（仅解除归属）。');">
+                                            <input type="hidden" name="id" th:value="${bank.id}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i> 删除
+                                            </button>
+                                        </form>
+                                    </th:block>
+                                    <span class="text-muted small" th:if="${bank.userId != session.qbankLoginUser.id}">
+                                        订阅/共享，不可编辑
+                                    </span>
+                                </td>
+                            </tr>
+                            <!-- 行内编辑 -->
+                            <tr class="collapse" th:id="'edit-bank-' + ${bank.id}"
+                                th:if="${bank.userId == session.qbankLoginUser.id}">
+                                <td colspan="5" class="p-3 bg-light">
+                                    <form class="row g-2 align-items-end" method="post" th:action="@{/banks/update}">
+                                        <input type="hidden" name="id" th:value="${bank.id}">
+                                        <div class="col-md-4">
+                                            <label class="form-label mb-1">题库名称</label>
+                                            <input type="text" class="form-control" name="name" required maxlength="50"
+                                                   th:value="${bank.name}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label mb-1">描述</label>
+                                            <input type="text" class="form-control" name="description" maxlength="500"
+                                                   th:value="${bank.description}">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-check-lg"></i> 保存
+                                            </button>
+                                            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="collapse"
+                                                    th:attr="data-bs-target=${'#edit-bank-' + bank.id}">取消
+                                            </button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <tr th:if="${#lists.isEmpty(banks)}">
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox me-1"></i>暂无题库，点击右上角「新增题库」创建
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- 新增题库弹窗 -->
+<div class="modal fade" id="addBankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" th:action="@{/banks/add}">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle me-1"></i>新增题库
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">题库名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" required maxlength="50"
+                               placeholder="如：Java 基础题库">
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-control" name="description" maxlength="500" rows="3"
+                                  placeholder="题库说明（选填）"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> 保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
