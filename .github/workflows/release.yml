@@ -191,6 +191,11 @@ jobs:
             echo '::error::没有任何产物可发布'
             exit 1
           fi
+          # 预发布标签(beta/rc/alpha)标记为 prerelease
+          PRERELEASE_FLAG=""
+          case "$TAG" in
+            *-beta.*|*-rc.*|*-alpha.*) PRERELEASE_FLAG="--prerelease" ;;
+          esac
           gh release create "$TAG" "${FILES[@]}" \
             --title "$TAG" \
-            --notes-file release-notes.md
+            --notes-file release-notes.md $PRERELEASE_FLAG
