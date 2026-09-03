@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('工作台')}"></head>
+<body>
+<div class="qk-layout">
+    <aside th:replace="~{fragments/layout :: sidebar('dashboard')}"></aside>
+    <div class="qk-main">
+        <div th:replace="~{fragments/layout :: topbar}"></div>
+        <main class="qk-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="'你好, ' + (${session.qbankLoginUser.nickname ?: session.qbankLoginUser.username})">你好</h5>
+                    <p class="card-text text-muted mb-0">
+                        智能题库管理系统 · 服务端渲染版(Spring Boot + MyBatis + Thymeleaf)。
+                        数据与前后端分离版共用同一套 question_bank 数据库。
+                    </p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <a class="qk-tile" th:href="@{/questions}">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>题目管理</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a class="qk-tile" th:href="@{/banks}">
+                        <i class="bi bi-archive"></i>
+                        <span>我的题库</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a class="qk-tile" th:href="@{/categories}">
+                        <i class="bi bi-diagram-3"></i>
+                        <span>分类管理</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a class="qk-tile" th:href="@{/practice}">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>开始练习</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a class="qk-tile" th:href="@{/practice/records}">
+                        <i class="bi bi-clock-history"></i>
+                        <span>练习记录</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a class="qk-tile" th:href="@{/wrongbook}">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>错题本</span>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

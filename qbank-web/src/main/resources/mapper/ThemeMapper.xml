@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.ThemeMapper">
+
+    <select id="selectAll" resultType="com.qbank.entity.Theme">
+        SELECT * FROM app_theme ORDER BY is_default DESC, id
+    </select>
+
+    <select id="selectEnabled" resultType="com.qbank.entity.Theme">
+        SELECT * FROM app_theme WHERE enabled = 1 ORDER BY is_default DESC, id
+    </select>
+
+    <select id="findById" resultType="com.qbank.entity.Theme">
+        SELECT * FROM app_theme WHERE id = #{id}
+    </select>
+
+    <select id="findByKey" resultType="com.qbank.entity.Theme">
+        SELECT * FROM app_theme WHERE theme_key = #{themeKey}
+    </select>
+
+    <select id="findDefault" resultType="com.qbank.entity.Theme">
+        SELECT * FROM app_theme WHERE is_default = 1 LIMIT 1
+    </select>
+
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM app_theme
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app_theme (name, theme_key, config, enabled, is_default)
+        VALUES (#{name}, #{themeKey}, #{config}, #{enabled}, #{isDefault})
+    </insert>
+
+    <update id="update">
+        UPDATE app_theme
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="config != null">config = #{config},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE app_theme SET enabled = #{enabled} WHERE id = #{id}
+    </update>
+
+    <update id="clearDefault">
+        UPDATE app_theme SET is_default = 0
+    </update>
+
+    <update id="setDefault">
+        UPDATE app_theme SET is_default = 1 WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM app_theme WHERE id = #{id}
+    </delete>
+</mapper>

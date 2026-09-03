@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.BankMapper">
+
+    <select id="findById" resultType="com.qbank.entity.Bank">
+        SELECT * FROM bank WHERE id = #{id}
+    </select>
+
+    <select id="selectByUser" resultType="com.qbank.entity.Bank">
+        SELECT * FROM bank
+        <where>
+            <if test="userId != null">user_id = #{userId}</if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="selectShared" resultType="com.qbank.entity.Bank">
+        SELECT DISTINCT b.*
+        FROM bank b
+        JOIN share s ON s.bank_id = b.id
+        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+        WHERE (s.to_user_id = #{userId} OR (s.share_type = 4 AND s.from_user_id != #{userId}))
+          AND (m.id IS NULL OR m.subscribed = 1)
+        ORDER BY b.id DESC
+    </select>
+
+    <select id="findByName" resultType="com.qbank.entity.Bank">
+        SELECT * FROM bank WHERE user_id = #{userId} AND name = #{name}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO bank (name, description, origin_bank_id, user_id)
+        VALUES (#{name}, #{description}, #{originBankId}, #{userId})
+    </insert>
+
+    <update id="update">
+        UPDATE bank
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM bank WHERE id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,165 @@
+/* ============ 智能题库(服务端渲染版) 通用样式 ============ */
+:root {
+    --qk-primary: #2f54eb;
+    --qk-sidebar-bg: #1f2a44;
+    --qk-sidebar-text: #b6c0d4;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f0f2f5;
+}
+
+/* ---- 整体布局: 侧栏 + 主区 ---- */
+.qk-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.qk-sidebar {
+    width: 224px;
+    flex: 0 0 224px;
+    background: var(--qk-sidebar-bg);
+    color: var(--qk-sidebar-text);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.qk-brand {
+    padding: 18px 20px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.qk-nav {
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.qk-nav-group {
+    padding: 14px 20px 4px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #7d8aa5;
+}
+
+.qk-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    color: var(--qk-sidebar-text);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    font-size: 14px;
+}
+
+.qk-nav a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .06);
+}
+
+.qk-nav a.active {
+    color: #fff;
+    background: rgba(255, 255, 255, .1);
+    border-left-color: var(--qk-primary);
+}
+
+.qk-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- 顶栏 ---- */
+.qk-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.qk-page-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.qk-content {
+    padding: 20px 24px;
+    flex: 1;
+}
+
+.qk-flash {
+    margin-bottom: 14px;
+}
+.qk-flash .alert {
+    margin-bottom: 0;
+}
+
+/* ---- 登录/注册/错误页 ---- */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2f54eb 0%, #36cfc9 100%);
+    padding: 16px;
+}
+
+.auth-card {
+    width: 400px;
+    max-width: 100%;
+    border: none;
+    border-radius: 12px;
+}
+
+/* ---- 首页导航卡片 ---- */
+.qk-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 26px 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: all .18s;
+}
+
+.qk-tile i {
+    font-size: 30px;
+    color: var(--qk-primary);
+}
+
+.qk-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .08);
+    color: var(--qk-primary);
+    text-decoration: none;
+}
+
+/* ---- 通用表格/分页微调 ---- */
+.table thead th {
+    background: #f7f8fa;
+    white-space: nowrap;
+}
+
+.pagination {
+    margin-bottom: 0;
+}

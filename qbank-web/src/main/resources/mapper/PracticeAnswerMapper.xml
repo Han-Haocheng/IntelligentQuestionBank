@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.PracticeAnswerMapper">
+
+    <select id="selectByRecord" resultType="com.qbank.entity.PracticeAnswer">
+        SELECT pa.*, q.title, q.type, q.difficulty, q.answer AS correct_answer, q.analysis
+        FROM practice_answer pa
+        LEFT JOIN question q ON q.id = pa.question_id
+        WHERE pa.record_id = #{recordId}
+        ORDER BY pa.id
+    </select>
+
+    <insert id="insertBatch">
+        INSERT INTO practice_answer (record_id, question_id, user_id, user_answer, is_correct)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.recordId}, #{item.questionId}, #{item.userId}, #{item.userAnswer}, #{item.isCorrect})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByRecord">
+        DELETE FROM practice_answer WHERE record_id = #{recordId}
+    </delete>
+</mapper>

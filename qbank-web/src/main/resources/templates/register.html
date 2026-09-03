@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: css('注册')}"></head>
+<body>
+<div class="auth-page">
+    <div class="auth-card card shadow">
+        <div class="card-body p-4">
+            <h4 class="text-center mb-1"><i class="bi bi-collection"></i> 智能题库</h4>
+            <p class="text-center text-muted mb-4">创建新账号</p>
+
+            <div th:if="${error}" class="alert alert-danger py-2" th:text="${error}">错误</div>
+
+            <form method="post" th:action="@{/register}">
+                <div class="mb-3">
+                    <label class="form-label">用户名</label>
+                    <input type="text" name="username" class="form-control" required minlength="3" autofocus>
+                    <div class="form-text">至少 3 个字符</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">昵称(选填)</label>
+                    <input type="text" name="nickname" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">密码</label>
+                    <input type="password" name="password" class="form-control" required minlength="6">
+                    <div class="form-text">至少 6 位</div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">注 册</button>
+            </form>
+            <div class="text-center mt-3">
+                已有账号? <a th:href="@{/login}">去登录</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

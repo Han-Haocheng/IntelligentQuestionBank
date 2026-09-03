@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbank.mapper.ShareMapper">
+
+    <sql id="baseSelect">
+        SELECT s.*, q.title AS question_title, b.name AS bank_name,
+               uf.username AS from_username, ut.username AS to_username
+        FROM share s
+        LEFT JOIN question q ON q.id = s.question_id
+        LEFT JOIN bank b ON b.id = s.bank_id
+        LEFT JOIN user uf ON uf.id = s.from_user_id
+        LEFT JOIN user ut ON ut.id = s.to_user_id
+    </sql>
+
+    <select id="findById" resultType="com.qbank.entity.Share">
+        <include refid="baseSelect"/> WHERE s.id = #{id}
+    </select>
+
+    <select id="selectSent" resultType="com.qbank.entity.Share">
+        <include refid="baseSelect"/>
+        WHERE s.from_user_id = #{fromUserId}
+        ORDER BY s.id DESC
+    </select>
+
+    <select id="selectReceived" resultType="com.qbank.entity.Share">
+        SELECT s.*, q.title AS question_title, b.name AS bank_name,
+               uf.username AS from_username, ut.username AS to_username,
+               m.subscribed AS subscribed
+        FROM share s
+        LEFT JOIN share_member m ON m.share_id = s.id AND m.user_id = #{userId}
+        LEFT JOIN question q ON q.id = s.question_id
+        LEFT JOIN bank b ON b.id = s.bank_id
+        LEFT JOIN user uf ON uf.id = s.from_user_id
+        LEFT JOIN user ut ON ut.id = s.to_user_id
+        WHERE ((s.share_type IN (2, 4) AND s.from_user_id != #{userId})
+              OR s.to_user_id = #{userId})
+          AND (m.id IS NULL OR m.subscribed = 1)
+        ORDER BY s.id DESC
+    </select>
+
+    <select id="countAccessible" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE question_id = #{questionId}
+          AND ((share_type = 2 AND from_user_id != #{userId}) OR to_user_id = #{userId})
+    </select>
+
+    <select id="countPublic" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE question_id = #{questionId} AND share_type = 2 AND from_user_id = #{fromUserId}
+    </select>
+
+    <select id="countBankAccessible" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE bank_id = #{bankId}
+          AND ((share_type = 4 AND from_user_id != #{userId}) OR to_user_id = #{userId})
+    </select>
+
+    <select id="countEditable" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE question_id = #{questionId} AND to_user_id = #{userId} AND permission = 2
+    </select>
+
+    <select id="countBankEditable" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE bank_id = #{bankId} AND to_user_id = #{userId} AND permission = 2
+    </select>
+
+    <update id="updatePermission">
+        UPDATE share SET permission = #{permission} WHERE id = #{id}
+    </update>
+
+    <select id="countBankPublic" resultType="int">
+        SELECT COUNT(*) FROM share
+        WHERE bank_id = #{bankId} AND share_type = 4 AND from_user_id = #{fromUserId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, permission, message)
+        VALUES (#{questionId}, #{bankId}, #{fromUserId}, #{toUserId}, #{shareType}, #{permission}, #{message})
+    </insert>
+
+    <insert id="insertPublic">
+        INSERT INTO share (question_id, bank_id, from_user_id, to_user_id, share_type, permission, message)
+        SELECT #{questionId}, #{bankId}, #{fromUserId}, NULL, #{shareType}, #{permission}, #{message}
+        FROM DUAL
+        WHERE NOT EXISTS (
+            SELECT 1 FROM share
+            WHERE from_user_id = #{fromUserId}
+              AND share_type = #{shareType}
+              AND ((#{questionId} IS NOT NULL AND question_id = #{questionId})
+                OR (#{bankId} IS NOT NULL AND bank_id = #{bankId}))
+        )
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM share WHERE id = #{id} AND from_user_id = #{fromUserId}
+    </delete>
+
+    <delete id="deleteByQuestionIds">
+        DELETE FROM share WHERE question_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+
+    <delete id="deleteByBank">
+        DELETE FROM share WHERE bank_id = #{bankId}
+    </delete>
+</mapper>

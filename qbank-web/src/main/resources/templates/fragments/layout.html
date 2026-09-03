@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+  全局布局片段(服务端渲染版共用)
+  用法(页面模板):
+    <head th:replace="~{fragments/layout :: css('页面标题')}"></head>
+    <aside th:replace="~{fragments/layout :: sidebar('questions')}"></aside>
+    <div th:replace="~{fragments/layout :: flash}"></div>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+  sidebar(active) 的 active 取值: dashboard/questions/banks/categories/practice/records/wrongbook
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="css(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' - 智能题库'">智能题库</title>
+    <link rel="stylesheet"
+          href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<aside th:fragment="sidebar(active)" class="qk-sidebar">
+    <div class="qk-brand">
+        <i class="bi bi-collection"></i> 智能题库
+    </div>
+    <nav class="qk-nav">
+        <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'" href="/dashboard">
+            <i class="bi bi-speedometer2"></i> 工作台
+        </a>
+        <div class="qk-nav-group">题库管理</div>
+        <a th:href="@{/questions}" th:classappend="${active == 'questions'} ? 'active'" href="/questions">
+            <i class="bi bi-file-earmark-text"></i> 题目管理
+        </a>
+        <a th:href="@{/banks}" th:classappend="${active == 'banks'} ? 'active'" href="/banks">
+            <i class="bi bi-archive"></i> 我的题库
+        </a>
+        <a th:href="@{/categories}" th:classappend="${active == 'categories'} ? 'active'" href="/categories">
+            <i class="bi bi-diagram-3"></i> 分类管理
+        </a>
+        <div class="qk-nav-group">练习</div>
+        <a th:href="@{/practice}" th:classappend="${active == 'practice'} ? 'active'" href="/practice">
+            <i class="bi bi-pencil-square"></i> 开始练习
+        </a>
+        <a th:href="@{/practice/records}" th:classappend="${active == 'records'} ? 'active'" href="/practice/records">
+            <i class="bi bi-clock-history"></i> 练习记录
+        </a>
+        <a th:href="@{/wrongbook}" th:classappend="${active == 'wrongbook'} ? 'active'" href="/wrongbook">
+            <i class="bi bi-exclamation-triangle"></i> 错题本
+        </a>
+    </nav>
+</aside>
+
+<div th:fragment="flash" class="qk-flash">
+    <div th:if="${flashError}" class="alert alert-danger alert-dismissible fade show" role="alert"
+         th:text="${flashError}">错误</div>
+    <div th:if="${flashSuccess}" class="alert alert-success alert-dismissible fade show" role="alert"
+         th:text="${flashSuccess}">成功</div>
+</div>
+
+<div th:fragment="topbar" class="qk-topbar">
+    <div class="qk-page-title" th:text="${pageTitle ?: ''}">标题</div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-muted" th:if="${session.qbankLoginUser != null}"
+              th:text="'欢迎, ' + ${session.qbankLoginUser.nickname ?: session.qbankLoginUser.username}">
+            欢迎</span>
+        <span class="badge text-bg-primary" th:if="${session.qbankLoginUser != null and session.qbankLoginUser.role == 0}">管理员</span>
+        <form method="post" th:action="@{/logout}" class="m-0">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-box-arrow-right"></i> 退出
+            </button>
+        </form>
+    </div>
+</div>
+
+<div th:fragment="scripts">
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+</div>
+
+</body>
+</html>

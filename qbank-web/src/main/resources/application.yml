@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: qbank-web
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 复用智能题库 question_bank 库(与前后端分离版共用同一套数据)
+    # 连接信息可通过环境变量覆盖: DB_URL / DB_USERNAME / DB_PASSWORD
+    url: ${DB_URL:jdbc:mysql://localhost:3306/question_bank?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:qbank}
+    password: ${DB_PASSWORD:qbank123}
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.qbank.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    use-generated-keys: true
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
