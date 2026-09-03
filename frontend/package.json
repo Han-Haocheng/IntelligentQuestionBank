@@ -1,7 +1,7 @@
 {
   "name": "intelligent-question-bank",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.3.0-beta.1",
   "license": "MIT",
   "description": "智能题库管理系统前端 (Vue3 + Element Plus + Electron)",
   "author": {

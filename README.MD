@@ -214,6 +214,7 @@ GET  /api/stats/question-by-category|practice-trend|wrong-by-category (管理员
 
 | 版本 | 亮点 |
 | --- | --- |
+| v1.3.0-beta.1 | qbank-web 服务端渲染版(SpringBoot+Thymeleaf)、共享状态展示、退出登录修复 |
 | v1.2.0 | 界面主题系统、JWT 会话白名单(重启即失效)、登录安全增强 |
 | v1.1.2 | 批量导入三种模板、交互健壮性、按需引入体积优化 |
 | v1.1.1 | 「我的」页整合、登录页远程后端地址、分类管理增强 |

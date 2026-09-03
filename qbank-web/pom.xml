@@ -11,7 +11,7 @@
   </parent>
   <groupId>com.qbank</groupId>
   <artifactId>qbank-web</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0-beta.1</version>
   <name>qbank-web</name>
   <description>智能题库管理系统(非前后端分离版: SpringBoot + SpringMVC + MyBatis + Thymeleaf)</description>
 
