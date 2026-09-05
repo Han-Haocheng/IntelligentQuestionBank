@@ -1,0 +1,108 @@
+# Beta 自动跟进发布
+# 触发:
+#   - push dev: dev 自上次 beta 跟进(origin/beta)累积 >= RELEASE_THRESHOLD 个提交时自动发布
+#   - workflow_dispatch(force=true): 忽略阈值立即发布(里程碑节奏)
+# 流程: 计算版本(-beta.N 递增; 正式版后按提交语义开新周期) -> bump 提交 dev ->
+#       合并 dev->beta -> 打 vX.Y.Z-beta.N 标签 -> 派发 Release 工作流打包发布(prerelease)
+name: Beta Release
+
+on:
+  push:
+    branches: [ 'dev' ]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '跳过 10 提交阈值, 立即发布 beta'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write   # 推送 dev/beta 与标签
+  actions: write    # 派发 Release 工作流
+
+concurrency:
+  group: beta-release
+  cancel-in-progress: false
+
+env:
+  RELEASE_THRESHOLD: 10
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 dev (全量历史)
+        uses: actions/checkout@v5
+        with:
+          ref: dev
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: 拉取远端分支
+        run: git fetch origin beta dev
+
+      - name: 计算待跟进提交数
+        run: |
+          COUNT="$(git rev-list --count origin/beta..origin/dev)"
+          echo "COUNT=${COUNT}" >> "$GITHUB_ENV"
+          echo "dev 领先 beta: ${COUNT} 个提交 (阈值: ${RELEASE_THRESHOLD})"
+
+      - name: 阈值判定
+        id: gate
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "${FORCE}" = "true" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "手动强制发布"
+          elif [ "${COUNT}" -ge "${RELEASE_THRESHOLD}" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "达到阈值, 开始发布"
+          else
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "未达阈值或 beta 已同步 (还差 $((RELEASE_THRESHOLD - COUNT)) 个提交), 跳过"
+          fi
+
+      - name: 计算下一 beta 版本
+        id: ver
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          NEXT="$(bash .github/scripts/next-beta-version.sh)"
+          echo "NEXT=${NEXT}" >> "$GITHUB_ENV"
+          echo "下一版本: ${NEXT}"
+
+      - name: 配置 git 身份
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: 升级版本号并提交 dev
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          git checkout -B dev origin/dev
+          bash .github/scripts/bump-version.sh "${NEXT}"
+          git add frontend/package.json frontend/package-lock.json backend/pom.xml qbank-web/pom.xml README.MD
+          git commit -m "chore(release): 版本号升级至 v${NEXT}" -- frontend/package.json frontend/package-lock.json backend/pom.xml qbank-web/pom.xml README.MD
+          git push origin HEAD:dev
+
+      - name: 合并 dev → beta
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          git fetch origin dev beta
+          git switch -C tmp-release origin/beta
+          git merge --no-ff --no-edit origin/dev -m "release: v${NEXT} (合并 dev)"
+          git push origin tmp-release:beta
+
+      - name: 打标签并推送
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          git tag "v${NEXT}"
+          git push origin "v${NEXT}"
+
+      - name: 派发打包发布 (Release 工作流)
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          gh workflow run release.yml --ref beta -f tag="v${NEXT}"
+          echo "已派发 Release 打包: tag=v${NEXT} (ref=beta)"

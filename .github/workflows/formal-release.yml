@@ -1,0 +1,84 @@
+# 正式版发布 (手动派发)
+# 流程: 正式版号(默认去掉当前 -beta.N 后缀) -> bump 提交 dev -> 快进更新 main ->
+#       打 vX.Y.Z 标签 -> 派发 Release 工作流打包发布(正式 latest)
+name: Formal Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '正式版号 (如 1.3.0; 留空 = 自动去掉当前 -beta.N 后缀)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: formal-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 dev (全量历史)
+        uses: actions/checkout@v5
+        with:
+          ref: dev
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: 拉取远端分支
+        run: git fetch origin dev main
+
+      - name: 计算正式版本号
+        id: ver
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          git checkout -B dev origin/dev
+          CUR="$(node -p "require('./frontend/package.json').version")"
+          if [[ ! "${CUR}" =~ -beta\.[0-9]+$ ]]; then
+            echo "::error::当前版本 ${CUR} 不是 -beta.N 形态, 请先经 beta 流程发布到 -beta.N 状态" >&2
+            exit 1
+          fi
+          BASE="${CUR%%-beta.*}"
+          if [ -n "${INPUT_VERSION}" ] && [ "${INPUT_VERSION}" != "${BASE}" ]; then
+            echo "::error::输入 ${INPUT_VERSION} 与当前周期不符, 正式版应为 ${BASE}" >&2
+            exit 1
+          fi
+          echo "FORMAL=${BASE}" >> "$GITHUB_ENV"
+          echo "正式版本: ${BASE}"
+
+      - name: 配置 git 身份
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: 升级版本号并提交 dev
+        run: |
+          bash .github/scripts/bump-version.sh "${FORMAL}"
+          git add frontend/package.json frontend/package-lock.json backend/pom.xml qbank-web/pom.xml README.MD
+          git commit -m "chore(release): v${FORMAL}" -- frontend/package.json frontend/package-lock.json backend/pom.xml qbank-web/pom.xml README.MD
+          git push origin HEAD:dev
+
+      - name: 快进更新 main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            echo "::error::main 包含 dev 没有的提交, 无法快进; 请人工处理 main 分歧后再发布" >&2
+            exit 1
+          fi
+          git push origin HEAD:main
+
+      - name: 打标签并推送
+        run: |
+          git tag "v${FORMAL}"
+          git push origin "v${FORMAL}"
+
+      - name: 派发打包发布 (Release 工作流)
+        run: |
+          gh workflow run release.yml --ref main -f tag="v${FORMAL}"
+          echo "已派发 Release 打包: tag=v${FORMAL} (ref=main)"
