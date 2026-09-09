@@ -79,6 +79,8 @@ jobs:
           git push origin "v${FORMAL}"
 
       - name: 派发打包发布 (Release 工作流)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh workflow run release.yml --ref main -f tag="v${FORMAL}"
           echo "已派发 Release 打包: tag=v${FORMAL} (ref=main)"

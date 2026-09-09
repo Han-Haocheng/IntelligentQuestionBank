@@ -103,6 +103,8 @@ jobs:
 
       - name: 派发打包发布 (Release 工作流)
         if: steps.gate.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh workflow run release.yml --ref beta -f tag="v${NEXT}"
           echo "已派发 Release 打包: tag=v${NEXT} (ref=beta)"
