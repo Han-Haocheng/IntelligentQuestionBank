@@ -164,9 +164,9 @@ onMounted(() => {
   transition: padding-left 0.25s ease;
 }
 
-/* 折叠时按钮在 88px 栏内居中 */
+/* 折叠时按钮在 88px 栏内水平居中 */
 .aside-footer.footer-center {
-  padding-left: 24px;
+  padding-left: 0;
   justify-content: center;
 }
 
