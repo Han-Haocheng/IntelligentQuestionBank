@@ -1,4 +1,4 @@
-﻿﻿<template>
+﻿﻿﻿<template>
   <div>
     <el-card class="page-card">
       <div class="stat-cards">
@@ -72,6 +72,10 @@ const targetUserId = ref(null)
 let charts = []
 const router = useRouter()
 
+// 读取 MD3 静态令牌(tertiary 等不随管理员主色派生的色板)
+const cssVar = (name, fallback) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+
 function renderBar (el, title, data) {
   const chart = echarts.init(el)
   chart.setOption({
@@ -110,7 +114,7 @@ function renderTrend (el, data) {
     ],
     series: [
       { name: '练习题数', type: 'bar', data: data.map(d => d.total), itemStyle: { color: themeStore.css.primary } },
-      { name: '正确率%', type: 'line', yAxisIndex: 1, data: data.map(d => d.accuracy), smooth: true, itemStyle: { color: themeStore.css.tertiary || '#7d5260' } }
+      { name: '正确率%', type: 'line', yAxisIndex: 1, data: data.map(d => d.accuracy), smooth: true, itemStyle: { color: cssVar('--md-tertiary', '#7d5260') } }
     ]
   })
   return chart
