@@ -1,25 +1,24 @@
 <template>
   <el-container class="layout">
-    <el-aside :style="{ width: collapsed ? '64px' : '210px' }" class="aside">
+    <el-aside :style="{ width: collapsed ? '88px' : '280px' }" class="aside">
       <div class="logo">
         <Transition name="logo-fade" mode="out-in">
           <span :key="collapsed ? 'mini' : 'full'">{{ collapsed ? '题库' : '题库管理系统' }}</span>
         </Transition>
       </div>
-      <el-menu :default-active="route.path" router :collapse="collapsed"
-        :background-color="css.asideBg" :text-color="css.asideText" :active-text-color="css.asideActive" class="menu">
+      <el-menu :default-active="route.path" router :collapse="collapsed" class="menu">
         <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon><template #title>统计看板</template></el-menu-item>
         <el-menu-item index="/questions"><el-icon><Document /></el-icon><template #title>题目管理</template></el-menu-item>
         <el-menu-item v-if="store.isAdmin" index="/admin"><el-icon><Setting /></el-icon><template #title>管理</template></el-menu-item>
         <el-menu-item index="/practice"><el-icon><EditPen /></el-icon><template #title>练习</template></el-menu-item>
         <el-menu-item index="/my"><el-icon><Star /></el-icon><template #title>我的</template></el-menu-item>
       </el-menu>
-      <!-- 侧栏左下角: 折叠/展开按钮(展开时左对齐, 折叠时居中, padding 平滑过渡) -->
+      <!-- 侧栏左下角: 折叠/展开按钮(MD3 图标按钮: 40px 圆形 state-layer) -->
       <div class="aside-footer" :class="{ 'footer-center': collapsed }">
         <el-tooltip :content="collapsed ? '展开侧栏' : '折叠侧栏'" placement="right">
-          <el-icon class="collapse-btn" @click="toggleCollapse">
-            <Expand v-if="collapsed" /><Fold v-else />
-          </el-icon>
+          <span class="icon-btn" @click="toggleCollapse">
+            <el-icon><Expand v-if="collapsed" /><Fold v-else /></el-icon>
+          </span>
         </el-tooltip>
       </div>
     </el-aside>
@@ -27,7 +26,7 @@
       <el-header class="header">
         <span class="header-title">{{ route.meta.title || '智能题库' }}</span>
         <el-dropdown @command="onCommand">
-          <span class="user-info">
+          <span class="user-chip">
             <el-avatar :size="30" :style="{ background: css.primary }">{{ initials }}</el-avatar>
             <span class="username">{{ store.userInfo ? store.userInfo.nickname || store.userInfo.username : '' }}</span>
             <el-icon><ArrowDown /></el-icon>
@@ -105,8 +104,9 @@ onMounted(() => {
   height: 100%;
 }
 
+/* MD3 navigation drawer: 浅色 surface 底, 折叠 88px 适配 56px 胶囊菜单项 */
 .aside {
-  background: var(--q-aside-bg);
+  background: var(--q-aside-bg, var(--md-nav-bg));
   transition: width 0.25s ease;
   overflow: hidden;
   display: flex;
@@ -114,11 +114,11 @@ onMounted(() => {
 }
 
 .logo {
-  color: var(--q-aside-active);
-  font-size: 17px;
-  font-weight: 600;
+  color: var(--q-aside-active, var(--md-on-surface));
+  font-size: 22px;
+  font-weight: 400;
   text-align: center;
-  padding: 20px 0;
+  padding: 24px 0 12px;
   letter-spacing: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -142,18 +142,18 @@ onMounted(() => {
 }
 
 .menu {
-  border-right: none;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
 
+/* MD3 top app bar: elevation-0, 1px 分隔线 */
 .header {
-  background: var(--q-header-bg);
+  background: var(--q-header-bg, var(--md-topbar-bg));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid var(--md-outline-variant);
 }
 
 .aside-footer {
@@ -161,46 +161,66 @@ onMounted(() => {
   align-items: center;
   justify-content: flex-start;
   padding: 12px 0 12px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   transition: padding-left 0.25s ease;
 }
 
-/* 折叠时按钮在 64px 栏内居中: 64/2 - 图标宽18/2 = 23px 左内边距 */
+/* 折叠时按钮在 88px 栏内居中 */
 .aside-footer.footer-center {
-  padding-left: 23px;
+  padding-left: 24px;
+  justify-content: center;
 }
 
-.collapse-btn {
-  font-size: 18px;
-  color: #a6adb4;
+/* MD3 图标按钮: 40px 圆形 + state layer */
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: color 0.15s;
+  color: var(--q-aside-text, var(--md-nav-text));
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.collapse-btn:hover {
-  color: #fff;
+.icon-btn:hover {
+  background-color: var(--md-primary-state-8);
+  color: var(--md-on-surface);
+}
+
+.icon-btn .el-icon {
+  font-size: 20px;
 }
 
 .header-title {
   font-size: 16px;
-  font-weight: 600;
-  color: var(--q-header-text);
+  font-weight: 500;
+  color: var(--q-header-text, var(--md-on-surface));
 }
 
-.user-info {
+/* MD3 用户胶囊 */
+.user-chip {
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  border-radius: var(--md-shape-full);
+  padding: 4px 12px 4px 4px;
+  transition: background-color 0.2s ease;
+  outline: none;
+}
+
+.user-chip:hover {
+  background-color: var(--md-primary-state-8);
 }
 
 .username {
-  color: var(--q-header-text);
+  color: var(--q-header-text, var(--md-on-surface));
   font-size: 14px;
 }
 
 .main {
-  padding: 16px;
+  padding: 20px 24px;
   overflow: auto;
 }
 </style>
