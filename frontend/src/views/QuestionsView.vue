@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="questions-page">
     <!-- 左侧题库栏 -->
     <el-card class="bank-aside" shadow="never">
@@ -736,12 +736,12 @@ onMounted(async () => {
 }
 
 .bank-item:hover {
-  background: #f5f7fa;
+  background: var(--md-surface-container);
 }
 
 .bank-item.active {
   background: #ecf5ff;
-  color: #409eff;
+  color: var(--md-primary);
 }
 
 .bank-item .bank-name {
@@ -753,7 +753,7 @@ onMounted(async () => {
 }
 
 .bank-icon {
-  color: #409eff;
+  color: var(--md-primary);
 }
 
 .bank-ops {
@@ -767,12 +767,12 @@ onMounted(async () => {
 }
 
 .bank-more {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   cursor: pointer;
 }
 
 .bank-empty {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
   text-align: center;
   padding: 20px 0;
@@ -784,7 +784,7 @@ onMounted(async () => {
 }
 
 .share-perm-tip {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   line-height: 1.6;
 }

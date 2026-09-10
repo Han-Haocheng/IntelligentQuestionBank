@@ -1,4 +1,4 @@
-<template>
+﻿﻿<template>
   <div>
     <el-card class="page-card">
       <div class="stat-cards">
@@ -48,6 +48,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 echarts.use([BarChart, LineChart, PieChart, GridComponent, LegendComponent, TitleComponent, TooltipComponent, CanvasRenderer])
 import { statsApi, userApi } from '../api'
 import { useUserStore } from '../stores/user'
+import { useThemeStore } from '../stores/theme'
 import { aiChat, buildReportPrompt, pushAiHistory, hasApiKey, getAiConfig } from '../utils/ai'
 
 const overview = reactive({})
@@ -64,6 +65,7 @@ const reportModel = ref('')
 
 // 管理员按用户查看统计
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const users = ref([])
 const targetUserId = ref(null)
 
@@ -78,7 +80,7 @@ function renderBar (el, title, data) {
     grid: { top: 50, bottom: 30, left: 40, right: 20 },
     xAxis: { type: 'category', data: data.map(d => d.name) },
     yAxis: { type: 'value', minInterval: 1 },
-    series: [{ type: 'bar', data: data.map(d => d.value), barMaxWidth: 40, itemStyle: { color: '#409eff' } }]
+    series: [{ type: 'bar', data: data.map(d => d.value), barMaxWidth: 40, itemStyle: { color: themeStore.css.primary } }]
   })
   return chart
 }
@@ -107,8 +109,8 @@ function renderTrend (el, data) {
       { type: 'value', name: '正确率%', max: 100 }
     ],
     series: [
-      { name: '练习题数', type: 'bar', data: data.map(d => d.total), itemStyle: { color: '#409eff' } },
-      { name: '正确率%', type: 'line', yAxisIndex: 1, data: data.map(d => d.accuracy), smooth: true, itemStyle: { color: '#67c23a' } }
+      { name: '练习题数', type: 'bar', data: data.map(d => d.total), itemStyle: { color: themeStore.css.primary } },
+      { name: '正确率%', type: 'line', yAxisIndex: 1, data: data.map(d => d.accuracy), smooth: true, itemStyle: { color: themeStore.css.tertiary || '#7d5260' } }
     ]
   })
   return chart
@@ -194,7 +196,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .report-model {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
 }
 

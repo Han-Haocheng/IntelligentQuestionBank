@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-dialog :model-value="modelValue" title="切换界面主题" width="580px"
     append-to-body @update:model-value="$emit('update:modelValue', $event)">
     <el-alert type="info" :closable="false" style="margin-bottom: 14px"
@@ -105,7 +105,7 @@ function pick (key) {
 .theme-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--md-on-surface);
 }
 
 .theme-swatch {
@@ -134,7 +134,7 @@ function pick (key) {
 }
 
 .theme-desc {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
 }
 

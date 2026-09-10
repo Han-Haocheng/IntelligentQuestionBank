@@ -143,7 +143,7 @@ const presetKey = ref('')
 
 // 内置预设模板(与 db 种子一致), 供快速填充颜色
 const presets = [
-  { name: '默认蓝', themeKey: 'default', config: DEFAULT_THEME.config },
+  { name: 'MD3 紫', themeKey: 'default', config: DEFAULT_THEME.config },
   {
     name: '暗夜深蓝', themeKey: 'dark',
     config: { primary: '#1668dc', pageBg: '#0f1420', cardBg: '#1a2233', headerBg: '#1a2233', headerText: '#e6e8eb', asideBg: '#0a0f18', asideText: '#8a94a6', asideActive: '#ffffff', loginFrom: '#0b1e3d', loginTo: '#1668dc', radius: 8 }
@@ -264,7 +264,7 @@ onMounted(load)
 .key-code {
   font-family: monospace;
   font-size: 12px;
-  color: #409eff;
+  color: var(--md-primary);
 }
 
 .sw {
@@ -286,7 +286,7 @@ onMounted(load)
 
 .tip {
   margin-left: 10px;
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
 }
 

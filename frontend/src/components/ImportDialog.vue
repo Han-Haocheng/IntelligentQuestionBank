@@ -36,7 +36,7 @@
           <el-upload ref="uploadRef" drag accept=".xlsx,.xls,.csv,.md,.markdown" :limit="1"
             :auto-upload="false" :on-change="onFileChange" :on-exceed="onExceed">
             <div style="padding: 14px 0">
-              <el-icon style="font-size: 34px; color: #909399"><UploadFilled /></el-icon>
+              <el-icon style="font-size: 34px; color: var(--md-on-surface-variant)"><UploadFilled /></el-icon>
               <div>拖拽文件到此处, 或点击选择文件</div>
               <div class="sub">模板化: .xlsx / .xls / .csv ｜ 非模板化: .md / .markdown, 单次建议不超过 500 题</div>
             </div>
@@ -324,11 +324,11 @@ function onClosed () {
 
 <style scoped>
 .ai-box {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--md-outline-variant);
   border-radius: 6px;
   padding: 10px 14px;
   margin-bottom: 12px;
-  background: #f5f7fa;
+  background: var(--md-surface-container);
 }
 
 .ai-head {
@@ -338,7 +338,7 @@ function onClosed () {
 }
 
 .ai-sub {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-weight: 400;
   font-size: 12px;
   margin-left: 8px;
@@ -373,7 +373,7 @@ function onClosed () {
 }
 
 .sub {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   margin-top: 6px;
 }
