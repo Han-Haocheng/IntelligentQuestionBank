@@ -1,4 +1,4 @@
-﻿﻿/* ==================== 1. MD3 设计令牌(静态默认值, stores/theme.js 会覆盖动态部分) ==================== */
+﻿/* ==================== 1. MD3 设计令牌(静态默认值, stores/theme.js 会覆盖动态部分) ==================== */
 /* 令牌命名遵循 Material Design 3: 色/形/阴影三层; 动态派生(主色系)由 theme.js 写入, 静态基线在此兜底 */
 :root {
   /* --- 主色系(theme.js 动态覆盖, 此处为 #6750A4 baseline 兜底) --- */
@@ -42,9 +42,11 @@
   --md-error-container: #f9dedc;
   --md-on-error-container: #410e0b;
   --md-success: #146c2e;
+  --md-on-success: #ffffff;
   --md-success-container: #c4eed0;
   --md-on-success-container: #002105;
   --md-warning: #7a5900;
+  --md-on-warning: #ffffff;
   --md-warning-container: #ffdf99;
   --md-on-warning-container: #251a00;
   --md-inverse-surface: #313033;
@@ -261,10 +263,10 @@ body,
 :root .el-button--warning {
   background-color: var(--md-warning);
   border-color: transparent;
-  color: var(--md-on-error);
+  color: var(--md-on-warning);
   --el-button-hover-bg-color: var(--md-warning-hover);
   --el-button-hover-border-color: transparent;
-  --el-button-hover-text-color: var(--md-on-error);
+  --el-button-hover-text-color: var(--md-on-warning);
   --el-button-active-bg-color: var(--md-warning);
   --el-button-active-border-color: transparent;
   --el-button-disabled-bg-color: rgba(29, 27, 32, 0.12);
