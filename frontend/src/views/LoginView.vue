@@ -1,4 +1,4 @@
-<template>
+﻿﻿<template>
   <div class="login-page">
     <el-card class="login-card">
       <div class="login-title">
@@ -197,13 +197,16 @@ async function doRegister () {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--q-login-from, #1f6feb) 0%, var(--q-login-to, #6e40c9) 100%);
+  background: linear-gradient(135deg, var(--q-login-from, #6750a4) 0%, var(--q-login-to, #7d5260) 100%);
 }
 
 .login-card {
   width: 420px;
   background: var(--q-card-bg, #fff);
   padding: 10px 10px 4px;
+  border-radius: var(--md-shape-xl);
+  border: none;
+  box-shadow: var(--md-elev-2);
 }
 
 .login-title {
@@ -213,12 +216,12 @@ async function doRegister () {
 
 .login-title h2 {
   margin: 0;
-  color: var(--q-header-text, #303133);
+  color: var(--q-header-text, var(--md-on-surface));
 }
 
 .login-title p {
   margin: 6px 0 0;
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
 }
 
@@ -228,7 +231,7 @@ async function doRegister () {
 
 .backend-collapse {
   margin-top: 8px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--md-outline-variant);
 }
 
 .backend-row {
@@ -243,7 +246,7 @@ async function doRegister () {
 
 .backend-current {
   flex: 1;
-  color: #606266;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -251,11 +254,11 @@ async function doRegister () {
 }
 
 .backend-current code {
-  color: #409eff;
+  color: var(--md-primary);
 }
 
 .backend-hint {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   line-height: 1.6;
 }

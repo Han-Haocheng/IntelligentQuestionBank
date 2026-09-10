@@ -262,8 +262,8 @@ INSERT INTO favorite (user_id, question_id) VALUES
 
 -- 前端样式主题 (3 套种子; 管理员可在「管理-界面主题」增改, 仅重置种子行)
 INSERT INTO app_theme (name, theme_key, config, enabled, is_default) VALUES
-('默认蓝', 'default',
- '{"primary":"#409eff","pageBg":"#f5f7fa","cardBg":"#ffffff","headerBg":"#ffffff","headerText":"#303133","asideBg":"#001529","asideText":"#a6adb4","asideActive":"#ffffff","loginFrom":"#1f6feb","loginTo":"#6e40c9","radius":"4"}',
+('MD3 紫', 'default',
+ '{"primary":"#6750a4","pageBg":"#fef7ff","cardBg":"#ffffff","headerBg":"#fef7ff","headerText":"#1d1b20","asideBg":"#f7f2fa","asideText":"#49454f","asideActive":"#21005d","loginFrom":"#6750a4","loginTo":"#7d5260","radius":"4"}',
  1, 1),
 ('暗夜深蓝', 'dark',
  '{"primary":"#1668dc","pageBg":"#0f1420","cardBg":"#1a2233","headerBg":"#1a2233","headerText":"#e6e8eb","asideBg":"#0a0f18","asideText":"#8a94a6","asideActive":"#ffffff","loginFrom":"#0b1e3d","loginTo":"#1668dc","radius":"8"}',

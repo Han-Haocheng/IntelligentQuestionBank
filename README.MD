@@ -93,7 +93,7 @@ cd backend
 mvn spring-boot:run          # 方式一: 开发运行
 # 或
 mvn -DskipTests package      # 方式二: 打包后运行
-java -jar target/qbank-1.2.0.jar
+java -jar target/qbank-1.4.0-beta.1.jar
 ```
 
 数据库连接配置在 `backend/src/main/resources/application.yml`，默认账号 `qbank / qbank123`，可通过环境变量覆盖（见[部署与配置](#部署与配置)）。

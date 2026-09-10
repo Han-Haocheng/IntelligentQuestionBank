@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <!-- 练习主页: 开始练习 + 练习记录 -->
     <el-tabs v-if="stage === 'setup'" v-model="activeTab" @tab-change="onTabChange">
@@ -530,7 +530,7 @@ onMounted(async () => {
 }
 
 .q-index {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
 }
 
@@ -556,7 +556,7 @@ onMounted(async () => {
 }
 
 .review-item {
-  border-top: 1px dashed #e4e7ed;
+  border-top: 1px dashed var(--md-outline-variant);
   padding: 12px 0;
 }
 
@@ -569,7 +569,7 @@ onMounted(async () => {
 }
 
 .review-line {
-  color: #606266;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
   line-height: 1.8;
 }
@@ -582,7 +582,7 @@ onMounted(async () => {
 }
 
 .count-info {
-  color: #606266;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
 }
 

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <el-card class="page-card" style="max-width: 680px">
       <template #header><b>AI 设置</b></template>
@@ -225,7 +225,7 @@ onBeforeUnmount(() => clearTimeout(fetchTimer))
 <style scoped>
 .tip {
   margin-left: 10px;
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
 }
 
@@ -242,11 +242,11 @@ onBeforeUnmount(() => clearTimeout(fetchTimer))
 .full-url {
   margin-top: 8px;
   padding: 6px 10px;
-  background: #f5f7fa;
+  background: var(--md-surface-container);
   border-radius: 4px;
   font-family: monospace;
   font-size: 12px;
-  color: #409eff;
+  color: var(--md-primary);
   word-break: break-all;
 }
 
@@ -260,7 +260,7 @@ onBeforeUnmount(() => clearTimeout(fetchTimer))
 
 .hist-item {
   padding: 10px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--md-outline-variant);
 }
 
 .hist-head {
@@ -273,19 +273,19 @@ onBeforeUnmount(() => clearTimeout(fetchTimer))
 .hist-title {
   flex: 1;
   font-size: 13px;
-  color: #303133;
+  color: var(--md-on-surface);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .hist-time {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
 }
 
 .hist-body {
-  color: #606266;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   line-height: 1.7;
   max-height: 120px;

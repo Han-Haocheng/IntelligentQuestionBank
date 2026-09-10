@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <el-card class="page-card">
       <el-table :data="rows" v-loading="loading" stripe>
@@ -92,7 +92,7 @@ onMounted(load)
 }
 
 .review-line {
-  color: #606266;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
   line-height: 1.9;
 }

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <el-card class="page-card">
       <div class="filter-bar">
@@ -324,7 +324,7 @@ onMounted(load)
 
 <style scoped>
 .drag-tip {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   margin-left: 12px;
 }
@@ -346,13 +346,13 @@ onMounted(load)
 
 .drag-handle {
   visibility: hidden;
-  color: #909399;
+  color: var(--md-on-surface-variant);
   cursor: grab;
 }
 
 .merge-hint {
   margin-top: 8px;
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 12px;
   line-height: 1.6;
 }

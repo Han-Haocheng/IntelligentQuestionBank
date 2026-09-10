@@ -1,5 +1,5 @@
 # 自动发布工作流 (多平台)
-# 触发方式一: 推送 v* 标签 -> 三平台矩阵构建 Electron 安装包 + 后端 jar + 浏览器版 zip, 汇总创建 GitHub Release
+# 触发方式一: 推送 v* 标签 -> 三平台矩阵构建 Electron 安装包 + 后端 jar + 服务端渲染版(SSR) jar + 浏览器版 zip, 汇总创建 GitHub Release
 # 触发方式二: Actions 页面手动运行(workflow_dispatch), 填入已有标签名, 可为历史标签补发 Release
 name: Release
 
@@ -87,6 +87,38 @@ jobs:
           path: qbank-web-*.zip
           if-no-files-found: error
 
+  # ---------- 服务端渲染版 qbank-web (单次) ----------
+  ssr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: 打包服务端渲染版 (qbank-web)
+        run: mvn -B clean package --file qbank-web/pom.xml
+
+      - name: 统一产物命名 (qbank-web-ssr-<version>.jar)
+        run: |
+          JAR=$(ls qbank-web/target/qbank-web-*.jar | head -1)
+          VER=$(basename "$JAR" .jar | sed 's/^qbank-web-//')
+          mv "$JAR" "qbank-web/target/qbank-web-ssr-${VER}.jar"
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: qbank-web-ssr
+          path: qbank-web/target/qbank-web-ssr-*.jar
+          if-no-files-found: error
+
   # ---------- Electron 桌面安装包 (三平台矩阵) ----------
   desktop:
     strategy:
@@ -149,7 +181,7 @@ jobs:
 
   # ---------- 汇总发布 ----------
   release:
-    needs: [backend, web, desktop]
+    needs: [backend, web, desktop, ssr]
     runs-on: ubuntu-latest
     env:
       TAG: ${{ inputs.tag || github.ref_name }}
