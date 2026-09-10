@@ -1,18 +1,87 @@
-/* ==================== 主题变量(管理员在「管理-界面主题」维护, 由 stores/theme.js 写入) ==================== */
+﻿﻿/* ==================== 1. MD3 设计令牌(静态默认值, stores/theme.js 会覆盖动态部分) ==================== */
+/* 令牌命名遵循 Material Design 3: 色/形/阴影三层; 动态派生(主色系)由 theme.js 写入, 静态基线在此兜底 */
 :root {
-  --q-primary: #409eff;      /* 主色 */
-  --q-page-bg: #f5f7fa;      /* 页面背景 */
-  --q-card-bg: #ffffff;      /* 卡片背景 */
-  --q-header-bg: #ffffff;    /* 顶栏背景 */
-  --q-header-text: #303133;  /* 顶栏文字 */
-  --q-aside-bg: #001529;     /* 侧栏背景 */
-  --q-aside-text: #a6adb4;   /* 侧栏文字 */
-  --q-aside-active: #ffffff; /* 侧栏高亮文字 */
-  --q-login-from: #1f6feb;   /* 登录页渐变起色 */
-  --q-login-to: #6e40c9;     /* 登录页渐变止色 */
-  --q-radius: 4px;           /* 圆角 */
+  /* --- 主色系(theme.js 动态覆盖, 此处为 #6750A4 baseline 兜底) --- */
+  --md-primary: #6750a4;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #eaddff;
+  --md-on-primary-container: #21005d;
+  --md-secondary-container: #e8def8;
+  --md-on-secondary-container: #1d192b;
+  --md-tertiary: #7d5260;
+  --md-tertiary-container: #ffd8e4;
+  --md-on-tertiary-container: #31111d;
+  /* state layer(等效不透明色): hover 8% / focus 10% / 白底叠加 8% / 10% */
+  --md-primary-hover: #735eab;
+  --md-primary-focus: #7662ad;
+  --md-primary-state-8: #f3f1f8;
+  --md-primary-state-10: #f0eef6;
+  --md-error-hover: #bd4038;
+  --md-success-hover: #26803c;
+  --md-warning-hover: #8a6a0a;
+
+  /* --- surface 家族(MD3 官方 baseline, 静态) --- */
+  --md-surface: #fef7ff;
+  --md-surface-dim: #ded8e1;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #f7f2fa;
+  --md-surface-container: #f3edf7;
+  --md-surface-container-high: #ece6f0;
+  --md-surface-container-highest: #e6e0e9;
+  --md-on-surface: #1d1b20;
+  --md-on-surface-variant: #49454f;
+  --md-outline: #79747e;
+  --md-outline-variant: #cac4d0;
+  --md-topbar-bg: #fef7ff;
+  --md-nav-bg: #f7f2fa;
+  --md-nav-text: #49454f;
+
+  /* --- 功能色(MD3 error 官方 + success/warning 取 Google 调色板近似) --- */
+  --md-error: #b3261e;
+  --md-on-error: #ffffff;
+  --md-error-container: #f9dedc;
+  --md-on-error-container: #410e0b;
+  --md-success: #146c2e;
+  --md-success-container: #c4eed0;
+  --md-on-success-container: #002105;
+  --md-warning: #7a5900;
+  --md-warning-container: #ffdf99;
+  --md-on-warning-container: #251a00;
+  --md-inverse-surface: #313033;
+  --md-inverse-on-surface: #f4eff4;
+  --md-scrim: rgba(0, 0, 0, 0.4);
+
+  /* --- shape: 圆角体系 --- */
+  --md-shape-xs: 4px;
+  --md-shape-sm: 8px;
+  --md-shape-md: 12px;
+  --md-shape-lg: 16px;
+  --md-shape-xl: 28px;
+  --md-shape-full: 999px;
+
+  /* --- elevation: 官方 1/2/3 级阴影 --- */
+  --md-elev-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-elev-2: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-elev-3: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
+
+  /* --- 字体 --- */
+  --md-font: Roboto, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+
+  /* --- 旧主题变量兜底(与 MD3 默认主题一致; 管理员配置由 theme.js 覆盖) --- */
+  --q-primary: #6750a4;
+  --q-page-bg: #fef7ff;
+  --q-card-bg: #ffffff;
+  --q-header-bg: #fef7ff;
+  --q-header-text: #1d1b20;
+  --q-aside-bg: #f7f2fa;
+  --q-aside-text: #49454f;
+  --q-aside-active: #21005d;
+  --q-login-from: #6750a4;
+  --q-login-to: #7d5260;
+  --q-radius: 4px;
 }
 
+/* ==================== 2. 基础区 ==================== */
 * {
   box-sizing: border-box;
 }
@@ -23,13 +92,9 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-family: var(--md-font);
   background: var(--q-page-bg);
-}
-
-/* Element Plus 卡片背景跟随主题(深色样式下内容区随之变深) */
-.el-card {
-  background-color: var(--q-card-bg);
+  color: var(--md-on-surface);
 }
 
 .page-card {
@@ -74,11 +139,11 @@ body,
 .stat-card .num {
   font-size: 28px;
   font-weight: 600;
-  color: var(--q-primary);
+  color: var(--md-primary);
 }
 
 .stat-card .label {
-  color: #909399;
+  color: var(--md-on-surface-variant);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -111,30 +176,524 @@ body,
   align-items: center;
 }
 
-/* ==================== 表格操作列图标按钮: 统一尺寸/间距/垂直居中 ==================== */
-/* 所有操作列图标按钮均由 el-tooltip 包裹(触发类打在按钮上), 统一收口样式 */
-.el-table .el-tooltip__trigger.el-button {
+/* ==================== 3. Element Plus 覆盖区 ==================== */
+
+/* ---------- 3.1 按钮: MD3 filled/outlined 胶囊体系 ---------- */
+:root .el-button {
+  --el-button-font-weight: 500;
+  height: 40px;
+  padding: 0 24px;
+  font-size: 14px;
+  border-radius: var(--md-shape-full);
+  transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+:root .el-button--small {
+  height: 32px;
+  padding: 0 16px;
+}
+
+:root .el-button--large {
+  height: 56px;
+  padding: 0 32px;
+  font-size: 16px;
+}
+
+/* primary → filled button */
+:root .el-button--primary {
+  background-color: var(--md-primary);
+  border-color: transparent;
+  color: var(--md-on-primary);
+  --el-button-hover-bg-color: var(--md-primary-hover);
+  --el-button-hover-border-color: transparent;
+  --el-button-hover-text-color: var(--md-on-primary);
+  --el-button-active-bg-color: var(--md-primary-focus);
+  --el-button-active-border-color: transparent;
+  --el-button-disabled-bg-color: rgba(29, 27, 32, 0.12);
+  --el-button-disabled-border-color: transparent;
+  --el-button-disabled-text-color: rgba(29, 27, 32, 0.38);
+}
+
+/* default → outlined button */
+:root .el-button:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.is-link):not(.is-text) {
+  background-color: transparent;
+  border-color: var(--md-outline);
+  color: var(--md-primary);
+  --el-button-hover-bg-color: var(--md-primary-state-8);
+  --el-button-hover-border-color: var(--md-outline);
+  --el-button-hover-text-color: var(--md-primary);
+  --el-button-active-bg-color: var(--md-primary-state-10);
+  --el-button-active-border-color: var(--md-outline);
+  --el-button-disabled-bg-color: transparent;
+  --el-button-disabled-border-color: rgba(29, 27, 32, 0.12);
+  --el-button-disabled-text-color: rgba(29, 27, 32, 0.38);
+}
+
+/* danger/success/warning → 彩色 filled 胶囊 */
+:root .el-button--danger {
+  background-color: var(--md-error);
+  border-color: transparent;
+  color: var(--md-on-error);
+  --el-button-hover-bg-color: var(--md-error-hover);
+  --el-button-hover-border-color: transparent;
+  --el-button-hover-text-color: var(--md-on-error);
+  --el-button-active-bg-color: var(--md-error);
+  --el-button-active-border-color: transparent;
+  --el-button-disabled-bg-color: rgba(29, 27, 32, 0.12);
+  --el-button-disabled-border-color: transparent;
+  --el-button-disabled-text-color: rgba(29, 27, 32, 0.38);
+}
+
+:root .el-button--success {
+  background-color: var(--md-success);
+  border-color: transparent;
+  color: var(--md-on-error);
+  --el-button-hover-bg-color: var(--md-success-hover);
+  --el-button-hover-border-color: transparent;
+  --el-button-hover-text-color: var(--md-on-error);
+  --el-button-active-bg-color: var(--md-success);
+  --el-button-active-border-color: transparent;
+  --el-button-disabled-bg-color: rgba(29, 27, 32, 0.12);
+  --el-button-disabled-border-color: transparent;
+  --el-button-disabled-text-color: rgba(29, 27, 32, 0.38);
+}
+
+:root .el-button--warning {
+  background-color: var(--md-warning);
+  border-color: transparent;
+  color: var(--md-on-error);
+  --el-button-hover-bg-color: var(--md-warning-hover);
+  --el-button-hover-border-color: transparent;
+  --el-button-hover-text-color: var(--md-on-error);
+  --el-button-active-bg-color: var(--md-warning);
+  --el-button-active-border-color: transparent;
+  --el-button-disabled-bg-color: rgba(29, 27, 32, 0.12);
+  --el-button-disabled-border-color: transparent;
+  --el-button-disabled-text-color: rgba(29, 27, 32, 0.38);
+}
+
+/* text / link 按钮 */
+:root .el-button.is-link,
+:root .el-button.is-text {
+  --el-button-hover-bg-color: var(--md-primary-state-8);
+  color: var(--md-primary);
+}
+
+:root .el-button.is-link {
+  height: auto;
+  padding: 0 4px;
+}
+
+/* ---------- 3.2 输入族: MD3 outlined 文本框 ---------- */
+:root .el-input__wrapper,
+:root .el-textarea__inner,
+:root .el-select__wrapper {
+  border-radius: var(--md-shape-xs);
+  background-color: transparent;
+  box-shadow: 0 0 0 1px var(--md-outline-variant) inset;
+}
+
+:root .el-input__wrapper:hover,
+:root .el-select__wrapper.is-hovering {
+  box-shadow: 0 0 0 1px var(--md-on-surface-variant) inset;
+}
+
+/* 注意: input 是 .is-focus, select 是 .is-focused(EP 拼写不对称) */
+:root .el-input__wrapper.is-focus,
+:root .el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 2px var(--md-primary) inset;
+  background-color: transparent;
+}
+
+:root .el-textarea__inner:focus {
+  box-shadow: 0 0 0 2px var(--md-primary) inset;
+}
+
+:root .el-input__inner::placeholder,
+:root .el-textarea__inner::placeholder {
+  color: var(--md-on-surface-variant);
+}
+
+:root .el-input__prefix,
+:root .el-input__suffix,
+:root .el-select__caret,
+:root .el-select__selected-item.el-select__placeholder {
+  color: var(--md-on-surface-variant);
+}
+
+/* 表单校验错误态 */
+:root .el-form-item.is-error .el-input__wrapper,
+:root .el-form-item.is-error .el-select__wrapper {
+  box-shadow: 0 0 0 1px var(--md-error) inset;
+}
+
+:root .el-form-item.is-error .el-input__wrapper.is-focus,
+:root .el-form-item.is-error .el-select__wrapper.is-focused,
+:root .el-form-item.is-error .el-textarea__inner:focus {
+  box-shadow: 0 0 0 2px var(--md-error) inset;
+}
+
+/* ---------- 3.3 卡片 ---------- */
+:root .el-card {
+  border-radius: var(--md-shape-md);
+  border: none;
+  background-color: var(--q-card-bg);
+  box-shadow: var(--md-elev-1);
+  color: var(--md-on-surface);
+}
+
+:root .el-card__header {
+  border-bottom: 1px solid var(--md-outline-variant);
+  padding: 16px 20px;
+}
+
+/* ---------- 3.4 对话框 / 消息框 ---------- */
+:root .el-dialog {
+  border-radius: var(--md-shape-xl);
+  background-color: var(--q-card-bg);
+  box-shadow: var(--md-elev-3);
+}
+
+:root .el-dialog__title {
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--md-on-surface);
+}
+
+:root .el-dialog__headerbtn {
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+:root .el-dialog__headerbtn:hover {
+  background-color: var(--md-primary-state-8);
+}
+
+:root .el-overlay {
+  background-color: var(--md-scrim);
+}
+
+:root .el-message-box {
+  border-radius: var(--md-shape-xl);
+  border: none;
+  box-shadow: var(--md-elev-3);
+}
+
+/* ---------- 3.5 表格 ---------- */
+:root .el-table {
+  border-radius: var(--md-shape-md);
+  overflow: hidden;
+  --el-table-border-color: var(--md-outline-variant);
+  --el-table-header-bg-color: var(--md-surface-container);
+  --el-table-header-text-color: var(--md-on-surface-variant);
+  --el-table-row-hover-bg-color: var(--md-surface-container-high);
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+}
+
+:root .el-table th.el-table__cell {
+  font-weight: 500;
+  background-color: var(--md-surface-container);
+}
+
+:root .el-table td.el-table__cell {
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+
+/* 去纵向边框与表头底线双画 */
+:root .el-table .el-table__cell {
+  border-right: none;
+}
+
+:root .el-table__inner-wrapper::before {
+  background-color: transparent;
+}
+
+/* 取消斑马纹(由 el-table--striped 使用处生效) */
+:root .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: transparent;
+}
+
+/* ---------- 3.6 标签: MD3 chip 化 ---------- */
+:root .el-tag {
+  border-radius: var(--md-shape-full);
+  border: none;
+  font-weight: 500;
+}
+
+:root .el-tag.el-tag--primary {
+  --el-tag-bg-color: var(--md-primary-container);
+  --el-tag-text-color: var(--md-on-primary-container);
+}
+
+:root .el-tag.el-tag--success {
+  --el-tag-bg-color: var(--md-success-container);
+  --el-tag-text-color: var(--md-on-success-container);
+}
+
+:root .el-tag.el-tag--info {
+  --el-tag-bg-color: var(--md-surface-container-highest);
+  --el-tag-text-color: var(--md-on-surface-variant);
+}
+
+:root .el-tag.el-tag--warning {
+  --el-tag-bg-color: var(--md-warning-container);
+  --el-tag-text-color: var(--md-on-warning-container);
+}
+
+:root .el-tag.el-tag--danger {
+  --el-tag-bg-color: var(--md-error-container);
+  --el-tag-text-color: var(--md-on-error-container);
+}
+
+/* dark/plain effect 归一为 tonal */
+:root .el-tag.el-tag--dark,
+:root .el-tag.el-tag--plain {
+  border: none;
+}
+
+:root .el-tag .el-tag__close {
+  color: inherit;
+}
+
+/* ---------- 3.7 菜单: MD3 导航抽屉 ---------- */
+:root .el-menu {
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: var(--q-aside-text, var(--md-nav-text));
+  --el-menu-active-color: var(--q-aside-active, var(--md-on-secondary-container));
+  --el-menu-hover-bg-color: var(--md-primary-state-8);
+  border-right: none;
+}
+
+:root .el-menu .el-menu-item {
+  height: 56px;
+  border-radius: var(--md-shape-full);
+  margin: 4px 12px;
+  font-weight: 500;
+}
+
+:root .el-menu--collapse .el-menu-item {
+  margin: 4px 8px;
+  padding: 0 20px;
+}
+
+:root .el-menu .el-menu-item.is-active {
+  background-color: var(--md-secondary-container);
+}
+
+/* ---------- 3.8 标签页 ---------- */
+:root .el-tabs__nav-wrap::after {
+  height: 1px;
+  background-color: var(--md-outline-variant);
+}
+
+:root .el-tabs__active-bar {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background-color: var(--md-primary);
+}
+
+:root .el-tabs__item {
+  color: var(--md-on-surface-variant);
+}
+
+:root .el-tabs__item.is-active {
+  color: var(--md-primary);
+  font-weight: 500;
+}
+
+:root .el-tabs__item:hover {
+  color: var(--md-on-surface);
+}
+
+/* ---------- 3.9 单选按钮组: MD3 segmented button ---------- */
+:root .el-radio-group {
+  --el-border-color: var(--md-outline);
+  --el-radio-button-checked-bg-color: var(--md-secondary-container);
+  --el-radio-button-checked-text-color: var(--md-on-secondary-container);
+  --el-radio-button-checked-border-color: var(--md-secondary-container);
+  border-radius: var(--md-shape-full);
+  overflow: hidden;
+}
+
+:root .el-radio-button__inner {
+  border: none;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+/* ---------- 3.10 分页器 ---------- */
+:root .el-pagination {
+  --el-pagination-hover-color: var(--md-primary);
+  --el-pagination-text-color: var(--md-on-surface-variant);
+}
+
+:root .el-pagination .el-pager li {
+  border-radius: var(--md-shape-full);
+  background: transparent;
+  margin: 0 2px;
+}
+
+:root .el-pagination .el-pager li.is-active {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
+
+:root .el-pagination .btn-prev,
+:root .el-pagination .btn-next {
+  border-radius: var(--md-shape-full);
+  background: transparent;
+}
+
+/* ---------- 3.11 提示条 ---------- */
+:root .el-alert {
+  border-radius: var(--md-shape-md);
+  border: none;
+  padding: 12px 16px;
+}
+
+:root .el-alert--info.is-light {
+  --el-alert-bg-color: var(--md-surface-container);
+}
+
+:root .el-alert--success.is-light {
+  --el-alert-bg-color: var(--md-success-container);
+}
+
+:root .el-alert--warning.is-light {
+  --el-alert-bg-color: var(--md-warning-container);
+}
+
+:root .el-alert--error.is-light {
+  --el-alert-bg-color: var(--md-error-container);
+}
+
+/* ---------- 3.12 下拉菜单 / tooltip / 全局消息(teleport 到 body, 必须全局) ---------- */
+:root .el-dropdown-menu {
+  border-radius: var(--md-shape-md);
+  background: var(--md-surface-container-low);
+  box-shadow: var(--md-elev-2);
+  border: none;
+  padding: 8px;
+}
+
+:root .el-dropdown-menu__item {
+  border-radius: var(--md-shape-full);
+  margin: 2px 0;
+}
+
+:root .el-dropdown-menu__item:not(.is-disabled):hover {
+  background: var(--md-primary-state-8);
+  color: var(--md-on-surface);
+}
+
+:root .el-popper.is-dark {
+  background: var(--md-inverse-surface);
+  color: var(--md-inverse-on-surface);
+  border: 1px solid transparent;
+  border-radius: var(--md-shape-xs);
+}
+
+:root .el-popper.is-dark .el-popper__arrow::before {
+  background: var(--md-inverse-surface);
+  border: none;
+}
+
+:root .el-message {
+  background: var(--md-inverse-surface);
+  color: var(--md-inverse-on-surface);
+  border: none;
+  border-radius: var(--md-shape-xs);
+}
+
+/* ---------- 3.13 其余组件 ---------- */
+/* 开关 */
+:root .el-switch.is-checked .el-switch__core {
+  background: var(--md-primary);
+  border-color: var(--md-primary);
+}
+
+:root .el-switch .el-switch__core {
+  background: var(--md-surface-container-highest);
+  border-color: var(--md-outline);
+}
+
+/* 复选框/单选框边框 */
+:root .el-checkbox__inner {
+  border-color: var(--md-outline);
+  border-radius: 2px;
+}
+
+:root .el-radio__inner {
+  border-color: var(--md-outline);
+}
+
+/* 上传拖拽区 */
+:root .el-upload-dragger {
+  border: 1px dashed var(--md-outline-variant);
+  border-radius: var(--md-shape-md);
+  background: var(--md-surface-container-low);
+}
+
+/* 空状态/结果页图标底色 */
+:root .el-empty__icon svg,
+:root .el-result__icon svg {
+  color: var(--md-outline-variant);
+}
+
+/* 滚动条(EP 内部 el-scrollbar) */
+:root .el-scrollbar__thumb {
+  background: var(--md-outline-variant);
+  border-radius: var(--md-shape-full);
+}
+
+/* 日期面板 */
+:root .el-picker-panel {
+  border-radius: var(--md-shape-md);
+  border: none;
+  box-shadow: var(--md-elev-2);
+}
+
+/* ==================== 4. 表格操作列图标按钮(保留原规则: 24px 特异性压过全局 40px 胶囊) ==================== */
+:root .el-table .el-tooltip__trigger.el-button {
   width: 24px;
   height: 24px;
   padding: 0;
   margin: 0;
-  border-radius: 6px;
+  border-radius: var(--md-shape-full);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
 }
 
-.el-table .el-tooltip__trigger.el-button + .el-tooltip__trigger.el-button {
+:root .el-table .el-tooltip__trigger.el-button + .el-tooltip__trigger.el-button {
   margin-left: 6px;
 }
 
-.el-table .el-tooltip__trigger.el-button .el-icon {
+:root .el-table .el-tooltip__trigger.el-button .el-icon {
   font-size: 15px;
 }
 
-/* 按钮悬停给出轻微反馈, 与图标按钮常规交互一致 */
-.el-table .el-tooltip__trigger.el-button:hover {
-  background-color: rgba(0, 0, 0, 0.06);
-  border-radius: 6px;
+:root .el-table .el-tooltip__trigger.el-button:hover {
+  background-color: var(--md-primary-state-8);
+}
+
+/* ==================== 5. 滚动条杂项 ==================== */
+:root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+:root ::-webkit-scrollbar-thumb {
+  background: var(--md-outline-variant);
+  border-radius: var(--md-shape-full);
+}
+
+:root ::-webkit-scrollbar-track {
+  background: transparent;
 }
