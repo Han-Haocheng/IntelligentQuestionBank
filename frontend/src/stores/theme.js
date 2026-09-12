@@ -59,6 +59,33 @@ function mix (hex, target, ratio) {
   return '#' + hex2(mix2(r, tr)) + hex2(mix2(g, tg)) + hex2(mix2(b, tb))
 }
 
+/** #rgb/#rrggbb 相对亮度(WCAG, 0=黑 1=白): 判断侧栏底色深浅, 决定容器色的混合步进 */
+function luminance (hex) {
+  const m = String(hex || '').trim().replace('#', '')
+  if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(m)) return 1
+  const full = m.length === 3 ? m.split('').map(ch => ch + ch).join('') : m
+  const num = parseInt(full, 16)
+  const ch = [(num >> 16) & 255, (num >> 8) & 255, num & 255].map(v => {
+    const s = v / 255
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
+}
+
+/**
+ * 侧栏作用域的指示器底色(选中 active / 悬停 hover): 以侧栏底色为基, 混入侧栏选中色。
+ * 侧栏不能用主色混白的容器色(--md-secondary-container / --md-primary-state-8):
+ * 深色侧栏(如暗夜深蓝、默认蓝的 #001529 侧栏)上会渲染成接近白色的大色块,
+ * 而选中文字色 --q-aside-active 恰为白色 → 白底白字不可读。MD3 的容器层级本应随表面深浅取不同步进。
+ * 同时供「界面主题」效果预览复用, 保证预览与真实侧栏一致。
+ */
+export function asideTint (config, kind = 'active') {
+  const cfg = parseThemeConfig(config)
+  const dark = luminance(cfg.asideBg) < 0.5
+  const ratio = kind === 'hover' ? (dark ? 0.08 : 0.04) : (dark ? 0.16 : 0.08)
+  return mix(cfg.asideBg, cfg.asideActive, ratio)
+}
+
 /** 把主题配置写入 <html> 的 CSS 变量(含 Element Plus 主色体系), 并缓存到本机 */
 function applyConfig (config, themeKey) {
   const cfg = parseThemeConfig(config)
@@ -72,6 +99,8 @@ function applyConfig (config, themeKey) {
   set('--q-aside-bg', cfg.asideBg)
   set('--q-aside-text', cfg.asideText)
   set('--q-aside-active', cfg.asideActive)
+  set('--q-aside-active-bg', asideTint(cfg, 'active'))
+  set('--q-aside-hover-bg', asideTint(cfg, 'hover'))
   set('--q-login-from', cfg.loginFrom)
   set('--q-login-to', cfg.loginTo)
   set('--q-radius', cfg.radius + 'px')

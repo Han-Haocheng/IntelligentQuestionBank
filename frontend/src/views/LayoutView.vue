@@ -184,7 +184,7 @@ onMounted(() => {
 }
 
 .icon-btn:hover {
-  background-color: var(--md-primary-state-8);
+  background-color: var(--q-aside-hover-bg, var(--md-primary-state-8));
   color: var(--md-on-surface);
 }
 
