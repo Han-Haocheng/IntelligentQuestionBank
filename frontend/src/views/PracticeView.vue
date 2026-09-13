@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <!-- 练习主页: 开始练习 + 练习记录 -->
     <el-tabs v-if="stage === 'setup'" v-model="activeTab" @tab-change="onTabChange">
@@ -229,7 +229,7 @@
           <el-tag size="small" type="info">{{ typeNames[a.type - 1] }}</el-tag>
           <span>{{ i + 1 }}. {{ a.title }}</span>
         </div>
-        <div class="review-line">你的答案: <b :style="{ color: a.isCorrect ? '#67c23a' : '#f56c6c' }">{{ a.userAnswer || '(未作答)' }}</b></div>
+        <div class="review-line">你的答案: <b :style="{ color: a.isCorrect ? 'var(--el-color-success)' : 'var(--el-color-danger)' }">{{ a.userAnswer || '(未作答)' }}</b></div>
         <div class="review-line">正确答案: <b>{{ a.correctAnswer }}</b></div>
         <div v-if="a.analysis" class="review-line">解析: {{ a.analysis }}</div>
       </div>
@@ -587,6 +587,6 @@ onMounted(async () => {
 }
 
 .count-zero {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 }
 </style>

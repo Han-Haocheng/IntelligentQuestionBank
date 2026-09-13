@@ -35,6 +35,7 @@ public class BankController {
         User user = currentUser(session);
         // 管理员看到全部用户题库; 普通用户看到自己的 + 订阅中的共享题库; 均含题目计数
         model.addAttribute("banks", bankService.list(user.getId(), user.getRole()));
+        model.addAttribute("pageTitle", "题库管理");
         return "banks";
     }
 

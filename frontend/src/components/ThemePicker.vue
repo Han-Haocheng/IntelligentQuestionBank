@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-dialog :model-value="modelValue" title="切换界面主题" width="580px"
     append-to-body @update:model-value="$emit('update:modelValue', $event)">
     <el-alert type="info" :closable="false" style="margin-bottom: 14px"
@@ -14,8 +14,8 @@
         <div class="theme-swatch">
           <span class="sw sw-lg" :style="{ background: swatch(store.active || DEFAULT_THEME).primary }"></span>
           <span class="sw" :style="{ background: swatch(store.active || DEFAULT_THEME).asideBg }"></span>
-          <span class="sw" :style="{ background: swatch(store.active || DEFAULT_THEME).headerBg, border: '1px solid #dcdfe6' }"></span>
-          <span class="sw" :style="{ background: swatch(store.active || DEFAULT_THEME).pageBg, border: '1px solid #dcdfe6' }"></span>
+          <span class="sw" :style="{ background: swatch(store.active || DEFAULT_THEME).headerBg, border: '1px solid var(--el-border-color)' }"></span>
+          <span class="sw" :style="{ background: swatch(store.active || DEFAULT_THEME).pageBg, border: '1px solid var(--el-border-color)' }"></span>
           <span class="sw-gradient"
             :style="{ background: 'linear-gradient(135deg, ' + swatch(store.active || DEFAULT_THEME).loginFrom + ',' + swatch(store.active || DEFAULT_THEME).loginTo + ')' }"></span>
         </div>
@@ -33,8 +33,8 @@
         <div class="theme-swatch">
           <span class="sw sw-lg" :style="{ background: swatch(t).primary }"></span>
           <span class="sw" :style="{ background: swatch(t).asideBg }"></span>
-          <span class="sw" :style="{ background: swatch(t).headerBg, border: '1px solid #dcdfe6' }"></span>
-          <span class="sw" :style="{ background: swatch(t).pageBg, border: '1px solid #dcdfe6' }"></span>
+          <span class="sw" :style="{ background: swatch(t).headerBg, border: '1px solid var(--el-border-color)' }"></span>
+          <span class="sw" :style="{ background: swatch(t).pageBg, border: '1px solid var(--el-border-color)' }"></span>
           <span class="sw-gradient"
             :style="{ background: 'linear-gradient(135deg, ' + swatch(t).loginFrom + ',' + swatch(t).loginTo + ')' }"></span>
         </div>
@@ -79,7 +79,7 @@ function pick (key) {
 }
 
 .theme-card {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color);
   border-radius: 8px;
   padding: 12px;
   cursor: pointer;

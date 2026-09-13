@@ -14,9 +14,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title} + ' - 智能题库'">智能题库</title>
     <link rel="stylesheet"
-          href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css">
+          th:href="@{/vendor/bootstrap-5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet"
-          href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+          th:href="@{/vendor/bootstrap-icons-1.11.3/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -75,7 +75,7 @@
 </div>
 
 <div th:fragment="scripts">
-    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/vendor/bootstrap-5.3.3/js/bootstrap.bundle.min.js}"></script>
 </div>
 
 </body>

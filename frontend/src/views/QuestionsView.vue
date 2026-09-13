@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="questions-page">
     <!-- 左侧题库栏 -->
     <el-card class="bank-aside" shadow="never">
@@ -89,7 +89,7 @@
               :type="row.incomingPermission === 2 ? 'success' : 'info'" style="margin-left: 4px">
               {{ row.incomingPermission === 2 ? '被共享·可编辑' : '被共享·只读' }}
             </el-tag>
-            <span v-if="!row.sharedByMe && !row.incomingPermission" style="color:#c0c4cc">-</span>
+            <span v-if="!row.sharedByMe && !row.incomingPermission" style="color: var(--el-text-color-placeholder)">-</span>
           </template>
         </el-table-column>
         <el-table-column label="标签" width="160">
@@ -740,7 +740,7 @@ onMounted(async () => {
 }
 
 .bank-item.active {
-  background: #ecf5ff;
+  background: var(--el-color-primary-light-9);
   color: var(--md-primary);
 }
 

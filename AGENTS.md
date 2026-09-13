@@ -44,6 +44,7 @@ frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-
 - **台账写锁**：写台账前必 `git fetch` 并读远端台账 `ledger_lock`/`lock_until`；锁未过期（30 分钟）则不写（等待或只读）；写入时把锁更新为自己 +30 分钟，随台账提交；过期自动释放
 - **低频更新**：台账只在里程碑/交接/发布点更新；日常状态用本地心跳 `.agents/heartbeat/<session>.json`
 - **冲突兜底**：台账冲突一律按「保留双方全部条目」union 合并，不丢信息；无法自动合并时冻结上报用户
+- **禁默认 rebase**：共享 dev + 多协调者场景禁止默认 rebase（历史重写、重放冲突、双方提交"换身份"）；rebase 仅限"独占分支、无并行写者、提交可重放"的例外且需当次确认；并行场景统一 merge + union
 
 ## 提交风格
 
