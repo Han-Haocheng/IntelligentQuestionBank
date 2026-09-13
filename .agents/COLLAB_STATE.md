@@ -9,7 +9,7 @@
 state_version: 1
 skill_version: 通用 2.2 / 项目 2.1
 state_policy: git
-updated_at: 2026-09-13 15:00
+updated_at: 2026-09-13 15:10
 last_session: coord-20260913-1450
 environment:
   profile: dsh-default
@@ -35,7 +35,7 @@ last_known_good: 405ebb3b9305e1ff807a2e5a6c1220949634a621
 ## Archive
 
 ### Decisions
-- 2026-09-13 心跳对齐：push dev 的用户当次确认已取得且 fast-forward 校验通过；用户中途指示暂停后，于 15:00 指示"开始心跳对齐"恢复执行——**推送完成**：`405ebb3..e59461e dev -> dev`，远端 dev 与本地一致（e59461e），已建立跟踪。来源：用户指示（开始心跳对齐）。
+- 2026-09-13 外部世界核对：beta 自动发布工作流已基于 e59461e 在远端完成 v1.4.0-beta.3（bump 提交 70cfc3f，github-actions[bot]，推送期间本机代理 TLS 故障）；beta 分支已合并、标签 v1.4.0-beta.3 已打；本地台账提交经用户确认 rebase 至该 bump 之上并推送，版本声明随仓库同步为 1.4.0-beta.3。来源：用户当次确认（rebase 后推送）。
 - 2026-09-13 多人环境适配：协作脚本需 bash 环境，Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行，cmd/PowerShell 不可直接运行；已在 AGENTS.md、技能与脚本头注明。来源：用户补充意见。
 - 2026-09-13 项目技能 intelligent-question-bank-workflow 重做为 2.0，对齐通用技能 2.2（反驳授权 / 命令契约 / 波次并行与文件域 / 会话连续性 / 门禁盲区 / 事故案例）。来源：用户当次任务确认。
 - 2026-09-13 多人多 AI 修正：协作资产与台账收拢至仓库内 `.agents/` 隐藏目录（入仓共享），全部路径改为仓库相对路径，不再依赖任何本机工具链目录（如 ~/.dsh、/.trae）；原 .dsh/COLLAB_STATE.md 已迁移至此。来源：用户修正指示。
