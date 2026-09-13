@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 16:40
+updated_at: 2026-09-13 17:45
 last_session: coord-20260913-1450 / trae-cn-2026-09-13（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -25,6 +25,8 @@ baseline: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
+
+- 2026-09-13 17:45 coord-20260913-1450（协调者/DSH）：**TASK-002 完成**（430cae3）——bootstrap 5.3.3 + icons 1.11.3（含字体）入 vendor，layout.html 3 处改本地 th: 引用；bootcdn 零命中、路径一致、mvn clean package 通过（首次失败系工作树 target 陈旧产物，clean 修复；干净 HEAD worktree 对照确认与改动无关）。issue 修复核查：#3 已关闭，TASK-001/002 已交付。
 
 - 2026-09-13 16:40 coord-20260913-1450（协调者/DSH）：**TASK-001 完成**（2e210d0）——upgrade.sql 追加 v6.1 种子主题幂等刷新（仅当 id=1 未被管理员改动时刷新为 MD3 紫，重复导入不再触发）；config 与 init.sql 逐字符一致、引号平衡、幂等推演成立；真实库运行验证待有权限环境（本机 MySQL root 无密码被拒，未猜凭据）。issue #3 已由 gh 关闭（COMPLETED，关联 67730c3）。
 
@@ -55,6 +57,18 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 - next_action: （已完成）真实库运行验证待有权限环境；发布周期提示执行 upgrade.sql
 - verification: db 幂等契约（重复导入不报错）；init.sql 一致性 grep；本任务不涉及前后端构建
 - completed_commit: 2e210d0
+
+### TASK-002（issue #14：qbank-web BootCDN 资源本地化）
+- brief: .agents/tasks/TASK-002.md
+- scope: qbank-web/src/main/resources/static/vendor/**（新增）; templates/fragments/layout.html
+- interface_boundaries: layout.html 是全部 14 页面公共片段；版本保持 bootstrap 5.3.3 / icons 1.11.3 不变；icons css 需同步 fonts
+- owner_session: coord-20260913-1450
+- pending_takeover: （空）
+- heartbeat: 1789287300
+- status: confirmed
+- next_action: （已完成 430cae3）bootcdn 零命中、mvn clean package 通过（首败为 target 陈旧产物，clean 后解决）
+- verification: qbank-web mvn package；bootcdn 零命中 grep；vendor 文件存在性
+- completed_commit: 430cae3
 
 ## Waiting For User
 
