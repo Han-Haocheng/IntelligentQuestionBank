@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 18:35
+updated_at: 2026-09-13 18:45
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 18:45 coord-20260913-1450（协调者/DSH）：无人值守轮 5——issue #16 键盘可访问性与小屏（全局 :focus-visible 焦点环、侧栏折叠按钮 role=button+tabindex+Enter/Space 语义化、640px 断点收紧留白）；前端门禁 npm run build ✓。遗留：完整小屏布局重构（移动抽屉）列 backlog。
 - 2026-09-13 18:35 coord-20260913-1450（协调者/DSH）：无人值守轮 4——issue #8 限流绕过修复（loginKey 小写归一防大小写变体；XFF 默认不信任，需 qbank-web.rate-limit.trust-x-forwarded-for=true 显式开启；锁定到期惰性清零）；门禁 worktree BUILD SUCCESS ✓。
 - 2026-09-13 18:25 coord-20260913-1450（协调者/DSH）：无人值守轮 3——issue #9 会话安全加固（SessionID 登录/注册轮换防固定、SameSite=Lax+HttpOnly 配置、tracking-modes=cookie 杜绝 URL jsessionid；CSRF 以 SameSite 缓解，完整 CSRF token 留 backlog 注明）；门禁 worktree BUILD SUCCESS ✓。
 - 2026-09-13 18:15 coord-20260913-1450（协调者/DSH）：无人值守轮 2——issue #11 登录页修复完成（538e05f：口令不落明文/失败回填用户名/站内回跳 isSafeNext 防开放重定向/LoginInterceptor 带 next 编码跳转；qbank-web 门禁 worktree 验证 BUILD SUCCESS ✓）；途中集成 beta.6 bump（2419311，合并 5e2c9f2）。
