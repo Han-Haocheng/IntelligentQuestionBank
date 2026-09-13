@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 16:25
+updated_at: 2026-09-13 16:35
 last_session: coord-20260913-1450 / trae-cn-2026-09-13（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -25,6 +25,8 @@ baseline: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
+
+- 2026-09-13 16:35 coord-20260913-1450（协调者/DSH）：issue 修复核查完成（14 个：#3 已修复已关闭，5/7/9/11/12/14/16 未修复，其余部分/待验证）；TASK-001（#5 upgrade.sql MD3 紫）任务书生成并经用户确认，登记 Active Tasks 开始执行。
 
 - 2026-09-13 16:25 coord-20260913-1450（协调者/DSH）：**并行细则落地**（用户确认"按你的建议来"）——文件域分工并行 OK、台账写锁（ledger_lock/lock_until，30 分钟过期，写前 fetch 读锁）、台账低频更新、冲突兜底（保留双方全部条目）；固化于 AGENTS.md「并行协作细则」、台账模板与技能。当前锁空置。
 - 2026-09-13 16:10 coord-20260913-1450（协调者/DSH）：第四次集成完成（用户确认接管）——merge ggt 15:50 心跳作业（7988fc9）与 beta.4 bump（7b4f995，github-actions[bot]，dev 累积达标自动发布 v1.4.0-beta.4，版本声明 5 处已随合并同步）；台账以双方全部条目合并（工作树曾被本机 IDE/Trae 侧并发写，用户确认由本会话接管）。工作环境声明（.dsh 等运行目录勿删忽略项）已固化于 AGENTS.md/技能/台账/.gitignore。
@@ -42,7 +44,17 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Active Tasks
 
-（空；无进行中任务，串行令牌空闲）
+### TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）
+- brief: .agents/tasks/TASK-001.md
+- scope: db/upgrade.sql（init.sql 只读核对）
+- interface_boundaries: app_theme 种子 ↔ theme.js isBaseline（primary='#6750a4'）；与 init.sql config 完全一致；幂等且不覆盖管理员改动
+- owner_session: coord-20260913-1450
+- pending_takeover: （空）
+- heartbeat: 1789287300
+- status: confirmed
+- next_action: 修改 upgrade.sql 追加幂等刷新段 → 静态核查 → 提交 fix(db)（真实库幂等验证待用户提供环境）
+- verification: db 幂等契约（重复导入不报错）；init.sql 一致性 grep；本任务不涉及前后端构建
+- completed_commit: （未完成留空）
 
 ## Waiting For User
 
