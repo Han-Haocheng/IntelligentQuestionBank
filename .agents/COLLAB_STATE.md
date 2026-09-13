@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 19:35
+updated_at: 2026-09-13 19:40
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -90,6 +90,8 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 ## Archive
 
 ### Decisions
+### Decisions
+- 2026-09-13 19:40 发布 v1.4.0 正式版（用户指示"发布v1.4.0"）：dev 当前 1.4.0-beta.7，走 formal-release.yml（去 -beta.7 后缀 → bump dev → 快进 main → 打 v1.4.0 标签 → 派发 release.yml 打包 latest）；发布前门禁在干净 worktree 验证通过（本机工作树 target 受 IDE 干扰，门禁以 worktree 为准）。**#12 排期承诺：在 v1.4.1 完全解决**（用户指示）。来源：用户当次确认。
 - 2026-09-13 无人值守授权（用户指示"现在开始无人执手，修复后续的问题"）：任务周期内由协调者自主执行——逐 issue 修复、验证门禁、pathspec 提交；「任务周期内 fast-forward 推 dev」预授权当次确认（push 前仍 fetch 复核，分叉一律 merge+union，禁 rebase）；需要人工决策（真实库/凭据/外源下载失败/歧义/门禁红无法定位）时立即暂停并记入 Waiting For User。来源：用户当次确认。
 - 2026-09-13 禁默认 rebase 条款（用户"可以"确认）：共享 dev + 多协调者场景禁止默认 rebase；rebase 仅限独占分支无并行写者的例外且需当次确认；并行场景统一 merge + union。固化于 AGENTS.md 并行细则与技能八。来源：用户当次确认。
 - 2026-09-13 第五次分叉对齐（重复 .agents 迁移型，协调者 Trae CN·另机）：本地 4 提交（c541330/3068063/7ce8c18/71b16c4）与远端 1a0008b 以来的 .agents 迁移等价且被覆盖，无任何独有交付；经用户当次确认建备份分支 backup/local-v21-dup-20260913 后 `reset --hard origin/dev` 重建（仅本地历史重写，备份保留、零丢失，未对远端 force）。来源：用户当次确认。
