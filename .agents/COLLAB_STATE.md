@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 19:15
+updated_at: 2026-09-13 19:25
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -82,6 +82,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Waiting For User
 
+- 2026-09-13 19:25 coord-20260913-1450（协调者/DSH）：无人值守轮 9（收尾）——自主修复全部完成（#3 关闭；#5/#7/#8/#9/#10/#11/#13/#16/#4/#15/#6 共 11 个已交付，见 Session Log 轮 1-8）。#12（qbank-web 全量 MD3）决策：属 14 模板重写大工程、半吊子迁移反增混乱，列 backlog 建议独立里程碑（含小屏布局重构）。待人工验收项：TASK-001 真实库幂等验证、#4/#15/#11/#16 运行期目测、qbank-web 各修复在部署环境回归。issue 关闭由用户验收后执行（未自动关）。
 - 本机（trae-session-20260913-v21-migration 工作机）技能安装目录为通用 2.2/项目 2.1，滞后上游标准 2.3/2.2；技能文件不入 git，待用户指定来源后同步。
 - 代理 192.168.0.147:7890 恢复后在该工作机执行 `git lfs pull` 补齐 docs/02-演示PPT.pptx（18MB；本次 reset 以指针文件落盘）。
 
