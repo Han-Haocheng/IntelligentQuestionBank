@@ -11,9 +11,10 @@
             <div th:if="${error}" class="alert alert-danger py-2" th:text="${error}">错误</div>
 
             <form method="post" th:action="@{/login}">
+                <input type="hidden" name="next" th:value="${next}">
                 <div class="mb-3">
                     <label class="form-label">用户名</label>
-                    <input type="text" name="username" class="form-control" required autofocus>
+                    <input type="text" name="username" class="form-control" required autofocus th:value="${username}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">密码</label>
@@ -24,7 +25,7 @@
             <div class="text-center mt-3">
                 还没有账号? <a th:href="@{/register}">立即注册</a>
             </div>
-            <p class="text-muted small text-center mt-3 mb-0">默认演示账号: admin / demo (密码 123456)</p>
+            <p class="text-muted small text-center mt-3 mb-0">演示账号 admin / demo，初始口令请咨询管理员，登录后请及时修改</p>
         </div>
     </div>
 </div>

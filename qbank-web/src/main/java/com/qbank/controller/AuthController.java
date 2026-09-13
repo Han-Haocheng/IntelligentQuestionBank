@@ -33,6 +33,10 @@ public class AuthController {
         if (session != null && session.getAttribute(LoginInterceptor.SESSION_USER) != null) {
             return "redirect:/";
         }
+        String next = request.getParameter("next");
+        if (isSafeNext(next)) {
+            model.addAttribute("next", next);
+        }
         model.addAttribute("pageTitle", "登录");
         return "login";
     }
@@ -42,12 +46,24 @@ public class AuthController {
         try {
             User user = userService.login(dto);
             request.getSession().setAttribute(LoginInterceptor.SESSION_USER, user);
-            return "redirect:/";
+            String next = request.getParameter("next");
+            return "redirect:" + (isSafeNext(next) ? next : "/");
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("username", dto.getUsername());
+            String next = request.getParameter("next");
+            if (isSafeNext(next)) {
+                model.addAttribute("next", next);
+            }
             model.addAttribute("pageTitle", "登录");
             return "login";
         }
+    }
+
+    /** 仅允许站内相对路径回跳，防开放重定向（//evil.com 或 /\\ 均拒绝） */
+    private static boolean isSafeNext(String next) {
+        return next != null && next.startsWith("/")
+                && !next.startsWith("//") && !next.startsWith("/\\");
     }
 
     @GetMapping("/register")

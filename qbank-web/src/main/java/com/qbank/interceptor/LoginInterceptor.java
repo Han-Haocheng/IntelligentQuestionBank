@@ -6,9 +6,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  * 登录鉴权拦截器(服务端渲染版, 基于 Session)
- * 未登录访问受保护页面时重定向到登录页
+ * 未登录访问受保护页面时重定向到登录页, 并携带来源路径 (next) 供登录后回跳
  */
 public class LoginInterceptor implements HandlerInterceptor {
 
@@ -26,7 +29,12 @@ public class LoginInterceptor implements HandlerInterceptor {
         if (isAsyncRequest(request)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未登录或登录已过期");
         } else {
-            response.sendRedirect(request.getContextPath() + "/login");
+            String next = request.getRequestURI();
+            if (request.getQueryString() != null) {
+                next += "?" + request.getQueryString();
+            }
+            response.sendRedirect(request.getContextPath() + "/login?next="
+                    + URLEncoder.encode(next, StandardCharsets.UTF_8));
         }
         return false;
     }
