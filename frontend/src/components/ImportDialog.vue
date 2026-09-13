@@ -92,7 +92,7 @@
         <el-table-column label="问题" min-width="170">
           <template #default="{ row }">
             <el-tag v-for="(e, i) in row.errors" :key="i" type="danger" size="small" style="margin: 2px">{{ e }}</el-tag>
-            <span v-if="!row.errors || !row.errors.length" style="color: #67c23a">✓</span>
+            <span v-if="!row.errors || !row.errors.length" style="color: var(--el-color-success)">✓</span>
           </template>
         </el-table-column>
       </el-table>
@@ -351,13 +351,13 @@ function onClosed () {
 
 .ai-done {
   margin-left: 10px;
-  color: #67c23a;
+  color: var(--el-color-success);
   font-size: 12px;
 }
 
 .ai-fail {
   margin-top: 8px;
-  color: #e6a23c;
+  color: var(--el-color-warning);
   font-size: 12px;
 }
 
@@ -379,11 +379,11 @@ function onClosed () {
 }
 
 :deep(.row-error) {
-  background: #fef0f0 !important;
+  background: var(--el-color-danger-light-9) !important;
 }
 
 .fail-line {
-  color: #f56c6c;
+  color: var(--el-color-danger);
   font-size: 12px;
   line-height: 1.8;
 }

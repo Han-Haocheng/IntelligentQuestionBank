@@ -1,13 +1,13 @@
-﻿﻿﻿<template>
+﻿<template>
   <div>
     <el-card class="page-card">
       <div class="stat-cards">
         <el-card class="stat-card"><div class="num">{{ overview.questionCount || 0 }}</div><div class="label">题目总数</div></el-card>
         <el-card class="stat-card"><div class="num">{{ overview.categoryCount || 0 }}</div><div class="label">分类数量</div></el-card>
         <el-card class="stat-card"><div class="num">{{ overview.favoriteCount || 0 }}</div><div class="label">收藏题目</div></el-card>
-        <el-card class="stat-card"><div class="num" style="color:#f56c6c">{{ overview.wrongCount || 0 }}</div><div class="label">未掌握错题</div></el-card>
+        <el-card class="stat-card"><div class="num" style="color: var(--el-color-danger)">{{ overview.wrongCount || 0 }}</div><div class="label">未掌握错题</div></el-card>
         <el-card class="stat-card"><div class="num">{{ overview.practiceCount || 0 }}</div><div class="label">练习次数</div></el-card>
-        <el-card class="stat-card"><div class="num" style="color:#67c23a">{{ overview.accuracy || 0 }}%</div><div class="label">总正确率</div></el-card>
+        <el-card class="stat-card"><div class="num" style="color: var(--el-color-success)">{{ overview.accuracy || 0 }}%</div><div class="label">总正确率</div></el-card>
       </div>
       <div class="filter-bar">
         <el-select v-if="userStore.isAdmin" v-model="targetUserId" placeholder="全部用户"

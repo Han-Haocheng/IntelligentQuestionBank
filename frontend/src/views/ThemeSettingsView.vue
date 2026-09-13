@@ -16,8 +16,8 @@
           <template #default="{ row }">
             <span class="sw" :style="{ background: cfg(row).primary }" :title="'主色 ' + cfg(row).primary"></span>
             <span class="sw" :style="{ background: cfg(row).asideBg }" :title="'侧栏 ' + cfg(row).asideBg"></span>
-            <span class="sw" :style="{ background: cfg(row).headerBg, border: '1px solid #dcdfe6' }" :title="'顶栏 ' + cfg(row).headerBg"></span>
-            <span class="sw" :style="{ background: cfg(row).pageBg, border: '1px solid #dcdfe6' }" :title="'页面背景 ' + cfg(row).pageBg"></span>
+            <span class="sw" :style="{ background: cfg(row).headerBg, border: '1px solid var(--el-border-color)' }" :title="'顶栏 ' + cfg(row).headerBg"></span>
+            <span class="sw" :style="{ background: cfg(row).pageBg, border: '1px solid var(--el-border-color)' }" :title="'页面背景 ' + cfg(row).pageBg"></span>
             <span class="sw-gradient"
               :style="{ background: 'linear-gradient(135deg, ' + cfg(row).loginFrom + ',' + cfg(row).loginTo + ')' }"
               :title="'登录页渐变 ' + cfg(row).loginFrom + ' → ' + cfg(row).loginTo"></span>
@@ -298,7 +298,7 @@ onMounted(load)
   display: flex;
   width: 100%;
   height: 140px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -357,6 +357,6 @@ onMounted(load)
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--el-border-color);
 }
 </style>

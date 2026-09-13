@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <el-card class="page-card" style="max-width: 680px">
       <template #header><b>AI 设置</b></template>
@@ -230,7 +230,7 @@ onBeforeUnmount(() => clearTimeout(fetchTimer))
 }
 
 .model-err {
-  color: #f56c6c;
+  color: var(--el-color-danger);
 }
 
 .format-row {
