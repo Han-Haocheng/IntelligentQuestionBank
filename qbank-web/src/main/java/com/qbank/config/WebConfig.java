@@ -1,6 +1,7 @@
 package com.qbank.config;
 
 import com.qbank.interceptor.LoginInterceptor;
+import com.qbank.mapper.UserMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -13,9 +14,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private final UserMapper userMapper;
+
+    public WebConfig(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
     @Bean
     public LoginInterceptor loginInterceptor() {
-        return new LoginInterceptor();
+        return new LoginInterceptor(userMapper);
     }
 
     @Override

@@ -16,7 +16,11 @@
       <!-- 侧栏左下角: 折叠/展开按钮(MD3 图标按钮: 40px 圆形 state-layer) -->
       <div class="aside-footer" :class="{ 'footer-center': collapsed }">
         <el-tooltip :content="collapsed ? '展开侧栏' : '折叠侧栏'" placement="right">
-          <span class="icon-btn" @click="toggleCollapse">
+          <span class="icon-btn" role="button" tabindex="0"
+                aria-label="折叠或展开侧栏"
+                @click="toggleCollapse"
+                @keydown.enter.prevent="toggleCollapse"
+                @keydown.space.prevent="toggleCollapse">
             <el-icon><Expand v-if="collapsed" /><Fold v-else /></el-icon>
           </span>
         </el-tooltip>
@@ -186,6 +190,10 @@ onMounted(() => {
 .icon-btn:hover {
   background-color: var(--q-aside-hover-bg, var(--md-primary-state-8));
   color: var(--md-on-surface);
+}
+.icon-btn:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
 }
 
 .icon-btn .el-icon {

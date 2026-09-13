@@ -1,5 +1,12 @@
 server:
   port: 8081
+  servlet:
+    session:
+      # 会话安全加固(issue #9): HttpOnly 防脚本读取; SameSite=Lax 缓解 CSRF(跨站 POST 不带 cookie); 仅 cookie 追踪避免 URL 携带 jsessionid
+      cookie:
+        http-only: true
+        same-site: lax
+      tracking-modes: cookie
 
 spring:
   application:

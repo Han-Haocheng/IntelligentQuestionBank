@@ -1,3 +1,21 @@
+/* ==================== 0. 键盘可访问性(issue #16) ==================== */
+/* 键盘导航高对比焦点环(仅键盘操作时可见, 鼠标点击不显示; EP 组件自带焦点环不受影响) */
+:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 小屏断点: 收紧内容区留白, 避免窄屏下大面积浪费 */
+@media (max-width: 640px) {
+  .layout .el-main {
+    padding: 12px;
+  }
+  .layout .el-header {
+    padding: 0 16px;
+  }
+}
+
 /* ==================== 1. MD3 设计令牌(静态默认值, stores/theme.js 会覆盖动态部分) ==================== */
 /* 令牌命名遵循 Material Design 3: 色/形/阴影三层; 动态派生(主色系)由 theme.js 写入, 静态基线在此兜底 */
 :root {

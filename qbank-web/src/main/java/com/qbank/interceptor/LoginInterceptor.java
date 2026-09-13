@@ -1,32 +1,61 @@
 package com.qbank.interceptor;
 
 import com.qbank.entity.User;
+import com.qbank.mapper.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  * 登录鉴权拦截器(服务端渲染版, 基于 Session)
- * 未登录访问受保护页面时重定向到登录页
+ * 未登录访问受保护页面时重定向到登录页, 并携带来源路径 (next) 供登录后回跳
+ * 已登录时每请求查库校验账号状态(issue #10): 禁用/删除账号立即失效登录态
  */
 public class LoginInterceptor implements HandlerInterceptor {
 
     /** Session 中保存登录用户的对象名 */
     public static final String SESSION_USER = "qbankLoginUser";
 
+    private final UserMapper userMapper;
+
+    public LoginInterceptor(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute(SESSION_USER) instanceof User) {
+        if (session != null && session.getAttribute(SESSION_USER) instanceof User user) {
+            // issue #10: 每次请求查库校验, 账号被禁用/删除立即失效; 通过则同步最新资料(不携带密码 hash)
+            User fresh = userMapper.findByUsername(user.getUsername());
+            if (fresh == null || fresh.getStatus() == null || fresh.getStatus() != 1) {
+                session.invalidate();
+                if (isAsyncRequest(request)) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "账号已禁用或不存在");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/login");
+                }
+                return false;
+            }
+            fresh.setPassword(null);
+            session.setAttribute(SESSION_USER, fresh);
             return true;
         }
         // 部分接口由 fetch 异步调用时, 返回 401 便于前端识别; 页面请求整页跳转登录页
         if (isAsyncRequest(request)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未登录或登录已过期");
         } else {
-            response.sendRedirect(request.getContextPath() + "/login");
+            String next = request.getRequestURI();
+            if (request.getQueryString() != null) {
+                next += "?" + request.getQueryString();
+            }
+            response.sendRedirect(request.getContextPath() + "/login?next="
+                    + URLEncoder.encode(next, StandardCharsets.UTF_8));
         }
         return false;
     }

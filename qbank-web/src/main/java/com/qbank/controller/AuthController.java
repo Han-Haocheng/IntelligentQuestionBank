@@ -33,6 +33,10 @@ public class AuthController {
         if (session != null && session.getAttribute(LoginInterceptor.SESSION_USER) != null) {
             return "redirect:/";
         }
+        String next = request.getParameter("next");
+        if (isSafeNext(next)) {
+            model.addAttribute("next", next);
+        }
         model.addAttribute("pageTitle", "登录");
         return "login";
     }
@@ -41,13 +45,30 @@ public class AuthController {
     public String login(@ModelAttribute LoginDTO dto, Model model, HttpServletRequest request) {
         try {
             User user = userService.login(dto);
-            request.getSession().setAttribute(LoginInterceptor.SESSION_USER, user);
-            return "redirect:/";
+            // 会话固定防护: 登录成功后轮换 SessionID (issue #9)
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            request.getSession(true).setAttribute(LoginInterceptor.SESSION_USER, user);
+            String next = request.getParameter("next");
+            return "redirect:" + (isSafeNext(next) ? next : "/");
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("username", dto.getUsername());
+            String next = request.getParameter("next");
+            if (isSafeNext(next)) {
+                model.addAttribute("next", next);
+            }
             model.addAttribute("pageTitle", "登录");
             return "login";
         }
+    }
+
+    /** 仅允许站内相对路径回跳，防开放重定向（//evil.com 或 /\\ 均拒绝） */
+    private static boolean isSafeNext(String next) {
+        return next != null && next.startsWith("/")
+                && !next.startsWith("//") && !next.startsWith("/\\");
     }
 
     @GetMapping("/register")
@@ -64,7 +85,12 @@ public class AuthController {
     public String register(@ModelAttribute RegisterDTO dto, Model model, HttpServletRequest request) {
         try {
             User user = userService.register(dto);
-            request.getSession().setAttribute(LoginInterceptor.SESSION_USER, user);
+            // 会话固定防护: 注册成功后同样轮换 SessionID (issue #9)
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            request.getSession(true).setAttribute(LoginInterceptor.SESSION_USER, user);
             return "redirect:/";
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
