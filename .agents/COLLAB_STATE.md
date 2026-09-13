@@ -11,8 +11,10 @@
 state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
-updated_at: 2026-09-13 16:31
-last_session: trae-session-20260913-v21-migration（另机，16:31 第五次对齐）/ coord-20260913-1450 / trae-cn-2026-09-13（并行协调者，union 合并）
+ledger_lock: （空）
+lock_until: （空）
+updated_at: 2026-09-13 16:45
+last_session: trae-session-20260913-v21-migration（另机，16:45 union 合并 a7b79e8/9c51b26）/ coord-20260913-1450 / trae-cn-2026-09-13（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
   model: TRAE 会话内置模型（以当前会话为准；另一方 deepseek-v4-flash）
@@ -25,6 +27,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 ## Session Log
 
 - 2026-09-13 16:31 trae-session-20260913-v21-migration（协调者/Trae CN·另机，git 2.39.1）：第五次分叉对齐（重复迁移型；用户当次确认）。本会话从滞后基线 a203a6a 重复实施 .agents 迁移，本地 4 提交（c541330/3068063/7ce8c18/71b16c4）内容被远端 1a0008b 起的版本完全覆盖；处置：备份分支 backup/local-v21-dup-20260913 保留后 `reset --hard origin/dev`（a8147e1，零丢失、未 force）。附带事实：①外发 v2.1 源头草稿（聊天接收副本，仓库外）缺固定作者/仅 beta/跨模块拆提交三条硬规则，已就地补回，用户将回传分发渠道；同目录更老旧草稿按用户决定原样保留；②本机技能安装目录为通用 2.2/项目 2.1，滞后上游标准 2.3/2.2，待指定来源同步；③styles.css/LoginView.vue 文件头重复 BOM 已回退（无净变更）；④本机代理 192.168.0.147:7890 离线，直连可用但抖动；reset 时 LFS 文件 docs/02-演示PPT.pptx（18MB）直连下载挂起，已 GIT_LFS_SKIP_SMUDGE 跳过（指针落盘），待代理恢复 `git lfs pull`。
+- 2026-09-13 16:25 coord-20260913-1450（协调者/DSH）：**并行细则落地**（用户确认"按你的建议来"）——文件域分工并行 OK、台账写锁（ledger_lock/lock_until，30 分钟过期，写前 fetch 读锁）、台账低频更新、冲突兜底（保留双方全部条目）；固化于 AGENTS.md「并行协作细则」、台账模板与技能。当前锁空置。
 - 2026-09-13 16:10 coord-20260913-1450（协调者/DSH）：第四次集成完成（用户确认接管）——merge ggt 15:50 心跳作业（7988fc9）与 beta.4 bump（7b4f995，github-actions[bot]，dev 累积达标自动发布 v1.4.0-beta.4，版本声明 5 处已随合并同步）；台账以双方全部条目合并（工作树曾被本机 IDE/Trae 侧并发写，用户确认由本会话接管）。工作环境声明（.dsh 等运行目录勿删忽略项）已固化于 AGENTS.md/技能/台账/.gitignore。
 - 2026-09-13 16:00 coord-20260913-1450（协调者/DSH）：第三次集成完成（merge ggt 65d040d/9a205c5/08ff930，保留双方全部条目）；工作环境声明固化——`.dsh/` 为本机 DSH 运行环境目录（非废弃约定），.gitignore 忽略项已补回并说明；教训：push 前也须 fetch（本次分叉发生在 push 瞬间）。**发现同工作树并发写迹象**：冲突文件 15:56:25 被外部进程改写（reflog 无提交），已按纪律冻结并上报用户。
 - 2026-09-13 15:55 coord-20260913-1450（协调者/DSH）：开始第三次集成——merge ggt 15:47-15:48 提交（65d040d/9a205c5/08ff930）。
@@ -51,6 +54,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ### Decisions
 - 2026-09-13 第五次分叉对齐（重复 .agents 迁移型，协调者 Trae CN·另机）：本地 4 提交（c541330/3068063/7ce8c18/71b16c4）与远端 1a0008b 以来的 .agents 迁移等价且被覆盖，无任何独有交付；经用户当次确认建备份分支 backup/local-v21-dup-20260913 后 `reset --hard origin/dev` 重建（仅本地历史重写，备份保留、零丢失，未对远端 force）。来源：用户当次确认。
+- 2026-09-13 并行协作细则落地（用户确认"按你的建议来"）：文件域分工并行 OK；共享热点（台账）单写——写前 fetch 读远端 `ledger_lock`/`lock_until`，锁未过期（30 分钟）不写；写入时锁随台账提交更新，过期自动释放；台账低频更新（仅里程碑/交接/发布点，日常用本地心跳）；冲突一律「保留双方全部条目」union 兜底。固化于 AGENTS.md、台账模板与技能。来源：用户当次确认。
 - 2026-09-13 第四次分叉对齐 + 同工作树并发写处置（协调者 DSH，用户确认接管）：merge ggt 7988fc9 与 beta.4 bump 7b4f995；冲突解决期间发现工作树台账被本机 IDE/Trae 侧并发改写（reflog 无提交、文件 mtime 15:56:25），按"同一文件域禁止双写"纪律冻结并上报，用户确认由本会话以双方全部条目完成合并并推送。来源：用户当次确认。
 - 2026-09-13 工作环境声明（用户指示"指明当前工作环境，以防其他出现删掉了 .dsh/"）：`.dsh/`、`/.trae/`、`/.tools/` 等是本机工具链运行环境目录（含 DSH 会话快照/本地计划），各本机保留、一律不入 git；协作资产只以 `.agents/` 为仓库共享域。**删除任一忽略项前必须先确认该目录不被本机运行环境使用**。固化位置：.gitignore 注释、AGENTS.md、台账头注释、技能。来源：用户指示。
 - 2026-09-13 第三次分叉对齐（协调者 DSH）：本地 push 瞬间远端又新增 ggt 3 提交（65d040d/9a205c5/08ff930），经 merge 集成（保留双方全部条目）；补回 `.dsh/` 忽略（见上条声明）；push 前也须 fetch 的教训并入台账头注释。来源：用户此前对齐意图延续。

@@ -30,12 +30,20 @@ frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-
 ## 协作台账（多人多 AI 共享事实源）
 
 - 源：`.agents/COLLAB_STATE.md`（入仓、随提交更新；仅协调者写入；只写仓库相对路径，禁止密钥/token）
-- 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`；一键心跳 `bash .agents/scripts/heartbeat_sync.sh [--push]`（更新心跳+提交台账；`--push` 需任务书预授权或当次确认，仅 fast-forward 推 dev）
+- 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`；一键心跳 `bash .agents/scripts/heartbeat_sync.sh [--push]`（更新心跳+提交台账；`--push` 需任务书预授权或当次确认，仅 fast-forward 推 dev）；一键盘点 `bash .agents/scripts/collab_status.sh`；对齐 `bash .agents/scripts/collab_sync.sh [--merge] [--push]`（`--push` 需授权）；台账冲突 union 合并 `bash .agents/scripts/ledger_union_merge.sh`
 - 任务书预授权：任务书可登记「本任务周期内 fast-forward 推 dev」并经用户当次确认；周期内自动执行不再逐次确认；发布分支/打标签/其它 push 不在此列
 - 防分叉硬步骤：写台账前必 `git fetch` 核对远端，push 前同样须 fetch 复核（技能通用 2.3 / 项目 2.2 固化）
 - **工作环境声明**：`.dsh/`、`/.trae/`、`/.tools/` 等为本机工具链运行环境目录（DSH 等的会话快照/本地计划），各本机保留、一律不入 git；协作资产只以 `.agents/` 为仓库共享域。**删除任一忽略项前必须先确认该目录不被本机运行环境使用**
 - 脚本需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行；cmd/PowerShell 无原生 bash，无法直接运行
 - `.agents/heartbeat/` 为本地心跳，不入 git
+
+## 并行协作细则（多协调者同仓并行）
+
+- **并行 OK**：文件域互不重叠的任务可并行开发（任务书写明文件域边界，波次并行）；git 的分布合并模型天然支持多 clone 并行
+- **共享热点单写**：`.agents/COLLAB_STATE.md` 等单一事实源同一时刻只允许一个协调者写入
+- **台账写锁**：写台账前必 `git fetch` 并读远端台账 `ledger_lock`/`lock_until`；锁未过期（30 分钟）则不写（等待或只读）；写入时把锁更新为自己 +30 分钟，随台账提交；过期自动释放
+- **低频更新**：台账只在里程碑/交接/发布点更新；日常状态用本地心跳 `.agents/heartbeat/<session>.json`
+- **冲突兜底**：台账冲突一律按「保留双方全部条目」union 合并，不丢信息；无法自动合并时冻结上报用户
 
 ## 提交风格
 
