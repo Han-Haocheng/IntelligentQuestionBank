@@ -29,7 +29,14 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-# 1) 心跳文件：指定 --session 或更新最新一个；都没有则新建
+# 1) 写台账前先 fetch 核对远端（多机并行写台账分叉教训，2026-09-13 复盘固化）
+if git fetch origin 2>/dev/null; then
+  echo "[OK] 已核对远端 origin/dev（若有新提交，建议先对齐再写台账）"
+else
+  echo "[WARN] fetch 失败（网络/代理问题），继续本地心跳；写台账前请人工确认远端状态" >&2
+fi
+
+# 2) 心跳文件：指定 --session 或更新最新一个；都没有则新建
 hb_file=""
 if [ -n "$SESSION" ]; then
   hb_file="$HEARTBEAT_DIR/$SESSION.json"
@@ -82,7 +89,7 @@ EOF
 fi
 echo "[OK] 心跳已更新: ${hb_file#$ROOT/}"
 
-# 2) 台账提交（pathspec + 自检）
+# 3) 台账提交（pathspec + 自检）
 git add -- "$LEDGER"
 bash "$ROOT/.agents/scripts/check_staged_files.sh" ".agents/COLLAB_STATE.md"
 if [ -z "$MSG" ]; then
@@ -91,7 +98,7 @@ fi
 git commit -m "$MSG" -- ".agents/COLLAB_STATE.md"
 echo "[OK] 台账已提交: $(git rev-parse --short HEAD)"
 
-# 3) 可选推送（fast-forward 校验；授权由流程负责）
+# 4) 可选推送（fast-forward 校验；授权由流程负责）
 if [ "$PUSH" -eq 1 ]; then
   echo "[--push] 需任务书预授权或用户当次确认；仅 fast-forward 推送 dev"
   if ! git fetch origin 2>/dev/null; then
