@@ -45,7 +45,12 @@ public class AuthController {
     public String login(@ModelAttribute LoginDTO dto, Model model, HttpServletRequest request) {
         try {
             User user = userService.login(dto);
-            request.getSession().setAttribute(LoginInterceptor.SESSION_USER, user);
+            // 会话固定防护: 登录成功后轮换 SessionID (issue #9)
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            request.getSession(true).setAttribute(LoginInterceptor.SESSION_USER, user);
             String next = request.getParameter("next");
             return "redirect:" + (isSafeNext(next) ? next : "/");
         } catch (BusinessException e) {
@@ -80,7 +85,12 @@ public class AuthController {
     public String register(@ModelAttribute RegisterDTO dto, Model model, HttpServletRequest request) {
         try {
             User user = userService.register(dto);
-            request.getSession().setAttribute(LoginInterceptor.SESSION_USER, user);
+            // 会话固定防护: 注册成功后同样轮换 SessionID (issue #9)
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            request.getSession(true).setAttribute(LoginInterceptor.SESSION_USER, user);
             return "redirect:/";
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
