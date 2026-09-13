@@ -27,8 +27,6 @@
   --md-secondary-container: #e8def8;
   --md-on-secondary-container: #1d192b;
   --md-tertiary: #7d5260;
-  --md-tertiary-container: #ffd8e4;
-  --md-on-tertiary-container: #31111d;
   /* state layer(等效不透明色): hover 8% / focus 10% / 白底叠加 8% / 10% */
   --md-primary-hover: #735eab;
   --md-primary-focus: #7662ad;

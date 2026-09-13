@@ -91,6 +91,33 @@ function applyConfig (config, themeKey) {
   const cfg = parseThemeConfig(config)
   const el = document.documentElement
   const set = (name, value) => el.style.setProperty(name, value)
+  // 暗色主题才覆盖的 EP 表面/文字 + MD 表面阶梯变量(先清后写, 保证浅色主题切换回来恢复默认, issue #4/#15)
+  const EP_DARK_VARS = [
+    '--el-text-color-primary', '--el-text-color-regular', '--el-text-color-secondary',
+    '--el-text-color-placeholder', '--el-bg-color', '--el-bg-color-page', '--el-bg-color-overlay',
+    '--el-fill-color-blank', '--el-border-color', '--el-border-color-light', '--el-border-color-lighter',
+    '--md-surface-container', '--md-surface-container-high', '--md-surface-container-highest'
+  ]
+  EP_DARK_VARS.forEach(v => el.style.removeProperty(v))
+  const pageDark = luminance(cfg.pageBg) < 0.5
+  if (pageDark) {
+    // 以暗夜深蓝主题色板为基准的暗色 EP 令牌(文字 #e6e8eb 系 / 表面 #0f1420..#1a2233 系)
+    set('--el-text-color-primary', '#e6e8eb')
+    set('--el-text-color-regular', '#c9cdd4')
+    set('--el-text-color-secondary', '#a8b0ba')
+    set('--el-text-color-placeholder', '#8a93a0')
+    set('--el-bg-color', '#0f1420')
+    set('--el-bg-color-page', '#0f1420')
+    set('--el-bg-color-overlay', '#1a2233')
+    set('--el-fill-color-blank', '#1a2233')
+    set('--el-border-color', '#3a4356')
+    set('--el-border-color-light', '#2c3446')
+    set('--el-border-color-lighter', '#262e3e')
+    // MD 表面阶梯随暗色加深(表头/弹层等不再是一道刺眼浅色带)
+    set('--md-surface-container', '#1a2233')
+    set('--md-surface-container-high', '#202a3d')
+    set('--md-surface-container-highest', '#263247')
+  }
   set('--q-primary', cfg.primary)
   set('--q-page-bg', cfg.pageBg)
   set('--q-card-bg', cfg.cardBg)

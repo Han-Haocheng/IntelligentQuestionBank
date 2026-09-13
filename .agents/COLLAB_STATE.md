@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 18:55
+updated_at: 2026-09-13 19:50
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,10 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 19:50 coord-20260913-1450（协调者/DSH）：**v1.4.0 正式版发布完成**（API 核实：dev=main=fe10ba1、package.json=1.4.0、标签 v1.4.0 已打；release.yml 打包进行中）。#12 已关联 v1.4.1 milestone（排期承诺工程化登记）。本地 git fetch 受 TLS 阻断（gh API 通道正常），本地同步待网络恢复后 merge（禁 rebase）+ 推送 15c092c 等本地提交。
+- 2026-09-13 19:35 coord-20260913-1450（协调者/DSH）：按用户指示关闭全部待验收 issue（#4/#5/#6/#7/#8/#9/#10/#11/#13/#14/#15/#16，共 12 个，gh close 附修复提交与验收状态评论；#5 注明真实库验证待补可重开）；剩余打开仅 #12（backlog）。
+- 2026-09-13 19:15 coord-20260913-1450（协调者/DSH）：无人值守轮 8——issue #6 死令牌核查完成（真实零消费仅 tertiary-container/on-tertiary-container 2 个已删；其余均有消费；11 字段主题模型为设计选择维持现状，primary=#6750a4 走官方色板基线）；前端门禁 ✓。
+- 2026-09-13 19:05 coord-20260913-1450（协调者/DSH）：无人值守轮 7——issue #4/#15 深色主题 EP 覆盖补全（theme.js 按 pageBg 明暗写入/清理 EP text/bg/overlay/border + MD 表面阶梯，暗夜深蓝下 EP 文本表格弹层可读）；前端门禁 npm run build ✓。
 - 2026-09-13 18:55 coord-20260913-1450（协调者/DSH）：无人值守轮 6——issue #10 登录态失效（LoginInterceptor 每请求查库校验 status，禁用/删除即时失效并同步最新资料、密码 hash 不入 session；WebConfig 构造器注入 Mapper）；门禁 worktree BUILD SUCCESS ✓。
 - 2026-09-13 18:45 coord-20260913-1450（协调者/DSH）：无人值守轮 5——issue #16 键盘可访问性与小屏（全局 :focus-visible 焦点环、侧栏折叠按钮 role=button+tabindex+Enter/Space 语义化、640px 断点收紧留白）；前端门禁 npm run build ✓。遗留：完整小屏布局重构（移动抽屉）列 backlog。
 - 2026-09-13 18:35 coord-20260913-1450（协调者/DSH）：无人值守轮 4——issue #8 限流绕过修复（loginKey 小写归一防大小写变体；XFF 默认不信任，需 qbank-web.rate-limit.trust-x-forwarded-for=true 显式开启；锁定到期惰性清零）；门禁 worktree BUILD SUCCESS ✓。
@@ -80,12 +84,15 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Waiting For User
 
+- 2026-09-13 19:25 coord-20260913-1450（协调者/DSH）：无人值守轮 9（收尾）——自主修复全部完成（#3 关闭；#5/#7/#8/#9/#10/#11/#13/#16/#4/#15/#6 共 11 个已交付，见 Session Log 轮 1-8）。#12（qbank-web 全量 MD3）决策：属 14 模板重写大工程、半吊子迁移反增混乱，列 backlog 建议独立里程碑（含小屏布局重构）。待人工验收项：TASK-001 真实库幂等验证、#4/#15/#11/#16 运行期目测、qbank-web 各修复在部署环境回归。issue 关闭由用户验收后执行（未自动关）。
 - 本机（trae-session-20260913-v21-migration 工作机）技能安装目录为通用 2.2/项目 2.1，滞后上游标准 2.3/2.2；技能文件不入 git，待用户指定来源后同步。
 - 代理 192.168.0.147:7890 恢复后在该工作机执行 `git lfs pull` 补齐 docs/02-演示PPT.pptx（18MB；本次 reset 以指针文件落盘）。
 
 ## Archive
 
 ### Decisions
+### Decisions
+- 2026-09-13 19:40 发布 v1.4.0 正式版（用户指示"发布v1.4.0"）：dev 当前 1.4.0-beta.7，走 formal-release.yml（去 -beta.7 后缀 → bump dev → 快进 main → 打 v1.4.0 标签 → 派发 release.yml 打包 latest）；发布前门禁在干净 worktree 验证通过（本机工作树 target 受 IDE 干扰，门禁以 worktree 为准）。**#12 排期承诺：在 v1.4.1 完全解决**（用户指示）。来源：用户当次确认。
 - 2026-09-13 无人值守授权（用户指示"现在开始无人执手，修复后续的问题"）：任务周期内由协调者自主执行——逐 issue 修复、验证门禁、pathspec 提交；「任务周期内 fast-forward 推 dev」预授权当次确认（push 前仍 fetch 复核，分叉一律 merge+union，禁 rebase）；需要人工决策（真实库/凭据/外源下载失败/歧义/门禁红无法定位）时立即暂停并记入 Waiting For User。来源：用户当次确认。
 - 2026-09-13 禁默认 rebase 条款（用户"可以"确认）：共享 dev + 多协调者场景禁止默认 rebase；rebase 仅限独占分支无并行写者的例外且需当次确认；并行场景统一 merge + union。固化于 AGENTS.md 并行细则与技能八。来源：用户当次确认。
 - 2026-09-13 第五次分叉对齐（重复 .agents 迁移型，协调者 Trae CN·另机）：本地 4 提交（c541330/3068063/7ce8c18/71b16c4）与远端 1a0008b 以来的 .agents 迁移等价且被覆盖，无任何独有交付；经用户当次确认建备份分支 backup/local-v21-dup-20260913 后 `reset --hard origin/dev` 重建（仅本地历史重写，备份保留、零丢失，未对远端 force）。来源：用户当次确认。
