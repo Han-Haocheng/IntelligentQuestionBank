@@ -9,7 +9,7 @@
 state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
-updated_at: 2026-09-13 15:46
+updated_at: 2026-09-13 15:47
 last_session: trae-cn-2026-09-13
 environment:
   profile: trae-cn
@@ -22,6 +22,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 
 ## Session Log
 
+- 2026-09-13 15:47 trae-cn-2026-09-13（协调者/Trae CN）：经用户当次确认清理 `.gitignore` 第 22 行废弃忽略项 `.dsh/`（协作资产已收拢至 `.agents/`，该目录约定作废）；推送 dev（含 65d040d 台账提交）。
 - 2026-09-13 15:46 trae-cn-2026-09-13（协调者/Trae CN）：按用户指示「按建议来」固化防分叉硬步骤。写台账前先 `git fetch origin dev` 核对，得 `0 0`（无分叉）后动笔。更新技能：通用技能 2.2→**2.3**（SKILL.md「外部事实源」条 + references/session-continuity.md 第 1 节新增「写前必取远端（硬步骤）」+ 模板 `skill_version` 同步 2.3）；项目技能 2.1→**2.2**（对齐通用 2.3，第七节外部事实源条 + 第九节事故案例同步）。技能文件位于技能安装目录，不入 git，本次仅改本地技能。同步台账 `skill_version` 为「通用 2.3 / 项目 2.2」。
 - 2026-09-13 15:41 trae-cn-2026-09-13（协调者/Trae CN）：恢复协议核对发现本地 dev 与 `origin/dev` **再次分叉**（本地独有 3：39fed75/aac8c6b/8bab271；远端独有 2：d332735/3b6f967，均为台账提交；merge-base 70cfc3f）。经用户当次确认执行「合并对齐」：`git merge origin/dev` 并手工合并台账（保留双方全部条目，未丢弃任何提交），随后推送 dev。
 - 2026-09-13 15:30 trae-cn-2026-09-13（协调者/Trae CN）：本地分支清理。经用户当次确认删除本地 `main`（81fb016，删除前校验 `origin/main..main = 0`，无独有提交、零丢失）；本地 `beta` 分支原本不存在。本地现仅剩 `dev`，与纪律「本地无 main/beta」一致。未 push。
@@ -34,7 +35,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 
 ## Waiting For User
 
-- `.gitignore` 第 22 行 `.dsh/` 废弃项清理仍待用户指示（本地 `main` 分支已于 2026-09-13 按确认删除）。
+（空）
 
 ## Archive
 
@@ -64,4 +65,4 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 - 会话中断：-
 - 越界改动：-
 - 重复陷阱：台账**两次**因跨会话/跨机并行写而分叉（第一次 .agents 骨架，第二次台账条目），根因是写台账前未先 `git fetch`，"仅协调者写入"在多机场景未真正落实。**已闭合（2026-09-13 15:46）**：「写台账前必 `git fetch` 并确认无新远端提交」已固化进技能正文（通用 2.3 / 项目 2.2），后续写台账须先核 `git rev-list --left-right --count origin/dev...HEAD` 得 `0 0`。
-- 技能更新建议：项目中已删除 `.dsh/` 约定，但远端 `.gitignore` 第 22 行仍保留 `.dsh/` 忽略项，建议清理。
+- 技能更新建议：**已闭合（2026-09-13 15:47）**——`.gitignore` 第 22 行废弃忽略项 `.dsh/` 已经用户确认清理（协作资产收拢至 `.agents/`）；技能正文防分叉硬步骤亦已固化（见上条）。
