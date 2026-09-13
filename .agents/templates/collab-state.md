@@ -5,7 +5,7 @@
 > 仅协调者写入；子代理用独立心跳/状态文件上报（本项目：`.agents/heartbeat/<session>.json`，不入 git）。损坏时用 git 历史 / reflog / 最近任务书重建，重建前不执行。
 
 state_version: 1
-skill_version: 通用 2.2 / 项目 2.1
+skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 updated_at: <YYYY-MM-DD HH:MM>
 last_session: <session-id>
