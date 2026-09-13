@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 19:50
+updated_at: 2026-09-13 20:24
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -58,6 +58,11 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Active Tasks
 
+### TASK-003（v1.4.1 里程碑 #12：qbank-web 全量 MD3 迁移）
+- brief: docs/12-qbank-web-md3-迁移方案.md（方案已产出，待实施）
+- scope: qbank-web/src/main/resources/templates/**; static/css/app.css
+- interface_boundaries: vendor 引用不回归；data-bs-* JS hooks 类名不动；前端 Vue MD3 令牌一致
+- status: planned（P1 令牌+基础表单按钮 → P2 布局导航 → P3 数据交互组件 → P4 走查；每阶段 mvn 门禁）
 ### TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）
 - brief: .agents/tasks/TASK-001.md
 - scope: db/upgrade.sql（init.sql 只读核对）
