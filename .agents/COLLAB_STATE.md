@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 17:50
+updated_at: 2026-09-13 17:55
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 17:55 coord-20260913-1450（协调者/DSH）：**无人值守模式启动**（用户指示"现在开始无人执手，修复后续的问题"）——任务周期内 fast-forward 推 dev 预授权当次确认；按自主执行规则逐 issue 修复、checkpoint 推送、需要人工决策时暂停汇报。「禁默认 rebase」条款落地（AGENTS.md 并行细则 + 技能）；首次 rebase 为当时用户确认的例外，发现并行后一律 merge+union。
 - 2026-09-13 17:45 coord-20260913-1450（协调者/DSH）：**TASK-002 完成**（430cae3）——bootstrap 5.3.3 + icons 1.11.3（含字体）入 vendor，layout.html 3 处改本地 th: 引用；bootcdn 零命中、路径一致、mvn clean package 通过（首次失败系工作树 target 陈旧产物，clean 修复；干净 HEAD worktree 对照确认与改动无关）。issue 修复核查：#3 已关闭，TASK-001/002 已交付。
 
 - 2026-09-13 16:40 coord-20260913-1450（协调者/DSH）：**TASK-001 完成**（2e210d0）——upgrade.sql 追加 v6.1 种子主题幂等刷新（仅当 id=1 未被管理员改动时刷新为 MD3 紫，重复导入不再触发）；config 与 init.sql 逐字符一致、引号平衡、幂等推演成立；真实库运行验证待有权限环境（本机 MySQL root 无密码被拒，未猜凭据）。issue #3 已由 gh 关闭（COMPLETED，关联 67730c3）。
@@ -79,6 +80,8 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 ## Archive
 
 ### Decisions
+- 2026-09-13 无人值守授权（用户指示"现在开始无人执手，修复后续的问题"）：任务周期内由协调者自主执行——逐 issue 修复、验证门禁、pathspec 提交；「任务周期内 fast-forward 推 dev」预授权当次确认（push 前仍 fetch 复核，分叉一律 merge+union，禁 rebase）；需要人工决策（真实库/凭据/外源下载失败/歧义/门禁红无法定位）时立即暂停并记入 Waiting For User。来源：用户当次确认。
+- 2026-09-13 禁默认 rebase 条款（用户"可以"确认）：共享 dev + 多协调者场景禁止默认 rebase；rebase 仅限独占分支无并行写者的例外且需当次确认；并行场景统一 merge + union。固化于 AGENTS.md 并行细则与技能八。来源：用户当次确认。
 - 2026-09-13 第五次分叉对齐（重复 .agents 迁移型，协调者 Trae CN·另机）：本地 4 提交（c541330/3068063/7ce8c18/71b16c4）与远端 1a0008b 以来的 .agents 迁移等价且被覆盖，无任何独有交付；经用户当次确认建备份分支 backup/local-v21-dup-20260913 后 `reset --hard origin/dev` 重建（仅本地历史重写，备份保留、零丢失，未对远端 force）。来源：用户当次确认。
 - 2026-09-13 并行协作细则落地（用户确认"按你的建议来"）：文件域分工并行 OK；共享热点（台账）单写——写前 fetch 读远端 `ledger_lock`/`lock_until`，锁未过期（30 分钟）不写；写入时锁随台账提交更新，过期自动释放；台账低频更新（仅里程碑/交接/发布点，日常用本地心跳）；冲突一律「保留双方全部条目」union 兜底。固化于 AGENTS.md、台账模板与技能。来源：用户当次确认。
 - 2026-09-13 第四次分叉对齐 + 同工作树并发写处置（协调者 DSH，用户确认接管）：merge ggt 7988fc9 与 beta.4 bump 7b4f995；冲突解决期间发现工作树台账被本机 IDE/Trae 侧并发改写（reflog 无提交、文件 mtime 15:56:25），按"同一文件域禁止双写"纪律冻结并上报，用户确认由本会话以双方全部条目完成合并并推送。来源：用户当次确认。
