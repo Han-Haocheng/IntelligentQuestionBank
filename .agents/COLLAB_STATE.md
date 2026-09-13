@@ -8,7 +8,7 @@
 state_version: 1
 skill_version: 通用 2.2 / 项目 2.1
 state_policy: git
-updated_at: 2026-09-13 15:10
+updated_at: 2026-09-13 15:20
 last_session: 技能对齐重做（2026-09-13，多人修正轮）
 environment:
   profile: dsh-default
@@ -16,8 +16,8 @@ environment:
   git_version: git version 2.55.0
   workspace: 仓库根 IntelligentQuestionBank（四模块 root，相对描述）
 
-baseline: 3852e5983f69c8edf3d64b08f721374f510304f0
-last_known_good: 3852e5983f69c8edf3d64b08f721374f510304f0
+baseline: 1a0008bebd7c5f4950146b709b5c2c3b4820f19a
+last_known_good: 1a0008bebd7c5f4950146b709b5c2c3b4820f19a
 
 ## Active Tasks
 
@@ -30,6 +30,7 @@ last_known_good: 3852e5983f69c8edf3d64b08f721374f510304f0
 ## Archive
 
 ### Decisions
+- 2026-09-13 多人环境适配：协作脚本需 bash 环境，Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行，cmd/PowerShell 不可直接运行；已在 AGENTS.md、技能与脚本头注明。来源：用户补充意见。
 - 2026-09-13 项目技能 intelligent-question-bank-workflow 重做为 2.0，对齐通用技能 2.2（反驳授权 / 命令契约 / 波次并行与文件域 / 会话连续性 / 门禁盲区 / 事故案例）。来源：用户当次任务确认。
 - 2026-09-13 多人多 AI 修正：协作资产与台账收拢至仓库内 `.agents/` 隐藏目录（入仓共享），全部路径改为仓库相对路径，不再依赖任何本机工具链目录（如 ~/.dsh、/.trae）；原 .dsh/COLLAB_STATE.md 已迁移至此。来源：用户修正指示。
 - 2026-09-13 未归属改动 frontend/package.json（allowScripts 增加 electron-winstaller@5.4.0）经用户确认后提交为 3852e59（chore）。来源：用户当次确认。

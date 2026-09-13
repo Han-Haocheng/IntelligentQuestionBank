@@ -2,6 +2,7 @@
 # .agents/scripts/check_state.sh — 恢复前做协作台账健康检查
 # 用法: bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md
 # 入仓副本（多人/多 AI 环境通用，敏感扫描用 grep -E，不依赖 rg）；源模板: ai-collaborative-dev-workflow 技能 scripts/
+# 需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行
 set -euo pipefail
 
 usage() {

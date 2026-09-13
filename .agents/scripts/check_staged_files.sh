@@ -2,6 +2,7 @@
 # .agents/scripts/check_staged_files.sh — 提交前核对暂存区是否全部位于允许路径内
 # 用法: bash .agents/scripts/check_staged_files.sh <精确路径|目录/>...
 # 入仓副本（多人/多 AI 环境通用）；源模板: ai-collaborative-dev-workflow 技能 scripts/
+# 需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行
 set -euo pipefail
 
 usage() {

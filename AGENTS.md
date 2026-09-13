@@ -31,6 +31,7 @@ frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-
 
 - 源：`.agents/COLLAB_STATE.md`（入仓、随提交更新；仅协调者写入；只写仓库相对路径，禁止密钥/token）
 - 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`
+- 脚本需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行；cmd/PowerShell 无原生 bash，无法直接运行
 - `.agents/heartbeat/` 为本地心跳，不入 git
 
 ## 提交风格
