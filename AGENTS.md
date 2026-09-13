@@ -30,7 +30,8 @@ frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-
 ## 协作台账（多人多 AI 共享事实源）
 
 - 源：`.agents/COLLAB_STATE.md`（入仓、随提交更新；仅协调者写入；只写仓库相对路径，禁止密钥/token）
-- 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`
+- 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`；一键心跳 `bash .agents/scripts/heartbeat_sync.sh [--push]`（更新心跳+提交台账；`--push` 需任务书预授权或当次确认，仅 fast-forward 推 dev）
+- 任务书预授权：任务书可登记「本任务周期内 fast-forward 推 dev」并经用户当次确认；周期内自动执行不再逐次确认；发布分支/打标签/其它 push 不在此列
 - 脚本需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行；cmd/PowerShell 无原生 bash，无法直接运行
 - `.agents/heartbeat/` 为本地心跳，不入 git
 

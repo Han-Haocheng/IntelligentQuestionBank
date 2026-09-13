@@ -34,6 +34,7 @@ last_known_good: <每目标回滚基线，可多项>
 - status: <proposed / confirmed / in_progress / blocked / waiting_user>
 - next_action: <恢复后下一步>
 - approved_at: <时间> / approved_scope: <范围>（敏感操作不适用）
+- push_authorized: <登记范围，如 "dev fast-forward，本任务周期内"；任务书预授权时填，无则留空>
 - verification: <验证命令，引用契约条目>
 - completed_commit: <hash，未完成留空>
 
