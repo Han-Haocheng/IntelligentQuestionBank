@@ -9,7 +9,7 @@
 state_version: 1
 skill_version: 通用 2.2 / 项目 2.1
 state_policy: git
-updated_at: 2026-09-13 15:24
+updated_at: 2026-09-13 15:30
 last_session: trae-cn-2026-09-13
 environment:
   profile: trae-cn
@@ -22,6 +22,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 
 ## Session Log
 
+- 2026-09-13 15:30 trae-cn-2026-09-13（协调者/Trae CN）：本地分支清理。经用户当次确认删除本地 `main`（81fb016，删除前校验 `origin/main..main = 0`，无独有提交、零丢失）；本地 `beta` 分支原本不存在。本地现仅剩 `dev`，与纪律「本地无 main/beta」一致。未 push。
 - 2026-09-13 15:24 trae-cn-2026-09-13（协调者/Trae CN）：心跳对齐。本地 dev 与远端分叉（ahead 3 / behind 10）经用户当次确认后以 `origin/dev` 重建，丢弃本地 3 个重复提交（与远端 1a0008b 重复劳动）；补回远端缺失的 `.gitattributes` 行尾规则（`*.sh text eol=lf`，39fed75）；登记本会话心跳 `.agents/heartbeat/trae-cn-2026-09-13.json`（不入 git）。无活跃任务。
 - 2026-09-13 14:50 coord-20260913-1450（协调者/DSH）：完成技能 v2.1 重做与多人协作修正（.agents/ 入仓、Windows Git Bash 标注、基线滞后语义）；无活跃任务，等待新目标。心跳对齐。
 
@@ -31,11 +32,12 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 
 ## Waiting For User
 
-- 本地仍存在 `main` 分支（81fb016 `chore(release): v1.2.0`，跟踪 `origin/main`），与纪律「本地已删除 main/beta」不符；删除分支属敏感操作，需用户当次确认。
+- （空）本地 `main` 分支已按用户确认删除（2026-09-13 15:30）；`.gitignore` 第 22 行 `.dsh/` 废弃项清理仍待用户指示。
 
 ## Archive
 
 ### Decisions
+- 2026-09-13 本地分支清理：经用户当次确认（敏感操作·删除）执行 `git branch -D main`，删除前以 `git rev-list --count origin/main..main` 校验为 0（无独有提交）确保零丢失；本地 `beta` 不存在，无需处理。来源：用户当次确认。
 - 2026-09-13 本地分叉对齐：本地 dev 领先 3 提交（64c9d30/a3c4663/f8e0988）与远端 1a0008b 属重复劳动，经用户当次确认后执行 `git reset --hard origin/dev` 重建本地 dev（历史重写，用户明确授权），仅补回唯一有价值的本地独有改动 `.gitattributes` 行尾规则。来源：用户当次确认。
 - 2026-09-13 心跳对齐（首次）推送记录经 git 复核：台账记为"推送未执行、本地领先 2 提交（68bc610、f91335a）"，但 2026-09-13 15:20 fetch 后确认二者已在 `origin/dev` 上——以 git 为准，台账记录已过期。来源：双源校验差异回馈。
 - 2026-09-13 心跳对齐：push dev 的用户当次确认已取得且 fast-forward 校验通过，但用户随后指示"先暂停对齐"——推送未执行（该状态已由上述复核更新）。来源：用户指示（先暂停）。
@@ -48,6 +50,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 - 2026-09-13 「不重建历史，直接在当前本地 dev 上写台账做心跳对齐」：本地台账为第三版约定（`state_policy: tracked` vs 远端 `git`、无 Session Log 段），直接写入会生成与远端不兼容的版本，后续合并必冲突；替代方案为先以 `origin/dev` 重建本地 dev。来源：协调者反驳，用户采纳重建方案。
 
 ### Completed Tasks
+- 2026-09-13 删除本地 `main` 分支（用户当次确认；删除前校验无独有提交）
 - 2026-09-13 补回 `.gitattributes` 行尾规则（39fed75，修复远端缺失导致的 Git Bash 执行失败）
 - 2026-09-13 package.json allowScripts 提交（3852e59，用户确认归属后）
 
