@@ -27,6 +27,12 @@ frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-
 - 正式版：手动派发 `.github/workflows/formal-release.yml`（快进 main，latest）
 - 打包：`.github/workflows/release.yml`（v* 标签或手动填标签）
 
+## 协作台账（多人多 AI 共享事实源）
+
+- 源：`.agents/COLLAB_STATE.md`（入仓、随提交更新；仅协调者写入；只写仓库相对路径，禁止密钥/token）
+- 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`
+- `.agents/heartbeat/` 为本地心跳，不入 git
+
 ## 提交风格
 
 Conventional Commits（`feat/fix/docs/chore/ci/refactor/style` + 中文说明），原子化提交。
