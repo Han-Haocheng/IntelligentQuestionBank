@@ -9,16 +9,20 @@
 state_version: 1
 skill_version: 通用 2.2 / 项目 2.1
 state_policy: git
-updated_at: 2026-09-13 15:25
-last_session: 技能对齐重做（2026-09-13，多人修正轮）
+updated_at: 2026-09-13 14:50
+last_session: coord-20260913-1450
 environment:
   profile: dsh-default
   model: deepseek-v4-flash
   git_version: git version 2.55.0
   workspace: 仓库根 IntelligentQuestionBank（四模块 root，相对描述）
 
-baseline: 27bfdebe89611a6c9a472059aded9176bd8a36f4
-last_known_good: 27bfdebe89611a6c9a472059aded9176bd8a36f4
+baseline: 405ebb3b9305e1ff807a2e5a6c1220949634a621
+last_known_good: 405ebb3b9305e1ff807a2e5a6c1220949634a621
+
+## Session Log
+
+- 2026-09-13 14:50 coord-20260913-1450（协调者/DSH）：完成技能 v2.1 重做与多人协作修正（.agents/ 入仓、Windows Git Bash 标注、基线滞后语义）；无活跃任务，等待新目标。心跳对齐。
 
 ## Active Tasks
 

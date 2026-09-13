@@ -18,6 +18,10 @@ environment:
 baseline: <git rev-parse HEAD>
 last_known_good: <每目标回滚基线，可多项>
 
+## Session Log
+
+- <日期时间> <session-id>（<角色/工具链>）：<本次会话产出与状态>；<下一步>。老条目归档到 Archive。
+
 ## Active Tasks
 
 ### TASK-001
