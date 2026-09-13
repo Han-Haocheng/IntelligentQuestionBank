@@ -105,3 +105,21 @@ INSERT IGNORE INTO app_theme (id, name, theme_key, config, enabled, is_default) 
 (3, '清新绿', 'green',
  '{"primary":"#18a058","pageBg":"#f2f8f4","cardBg":"#ffffff","headerBg":"#ffffff","headerText":"#303133","asideBg":"#0f2e1e","asideText":"#9dc8b0","asideActive":"#ffffff","loginFrom":"#0f7a4d","loginTo":"#18a058","radius":"6"}',
  1, 0);
+
+-- ======================= v6.1: 种子主题幂等刷新 (MD3 紫默认) =======================
+-- 背景: 旧 upgrade 用 INSERT IGNORE 以固定 id 插入"默认蓝", 已部署库永不更新;
+--       init.sql 的新库默认已是 MD3 紫 (#6750a4)。此处对齐升级路径:
+--   - 仅当种子行 id=1 未被管理员改动过 (update_time = create_time) 时刷新;
+--   - 刷过一次后 update_time 变化, 重复导入不再触发 → 幂等、不覆盖管理员改动;
+--   - 管理员改过 id=1 (或删除重建) 时两条 UPDATE 均静默跳过
+--
+-- 先降级其它默认位(仅当刷新将执行), 再刷新默认主题为 MD3 紫。
+UPDATE app_theme SET is_default = 0
+ WHERE is_default = 1 AND id <> 1
+   AND EXISTS (SELECT 1 FROM app_theme WHERE id = 1 AND update_time = create_time);
+
+UPDATE app_theme
+   SET name = 'MD3 紫',
+       config = '{"primary":"#6750a4","pageBg":"#fef7ff","cardBg":"#ffffff","headerBg":"#fef7ff","headerText":"#1d1b20","asideBg":"#f7f2fa","asideText":"#49454f","asideActive":"#21005d","loginFrom":"#6750a4","loginTo":"#7d5260","radius":"4"}',
+       is_default = 1
+ WHERE id = 1 AND update_time = create_time;
