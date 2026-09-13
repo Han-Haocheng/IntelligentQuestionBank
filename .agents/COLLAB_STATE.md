@@ -4,11 +4,12 @@
 > 每次改动同步 `updated_at`；超过 64KB 先把 Active 内容归档到 Archive。
 > 仅协调者写入；子代理用独立心跳/状态文件上报（`.agents/heartbeat/<session>.json`，不入 git）。
 > 损坏时用 git 历史 / reflog / 最近任务书重建，重建前不执行。
+> baseline 语义 = 最近一次非台账交付的 HEAD；台账自身提交会使 baseline 滞后一个提交，check_state 的 WARN 属预期——恢复时 `git log --oneline <baseline>..HEAD` 领先提交仅为台账时忽略。
 
 state_version: 1
 skill_version: 通用 2.2 / 项目 2.1
 state_policy: git
-updated_at: 2026-09-13 15:20
+updated_at: 2026-09-13 15:25
 last_session: 技能对齐重做（2026-09-13，多人修正轮）
 environment:
   profile: dsh-default
@@ -16,8 +17,8 @@ environment:
   git_version: git version 2.55.0
   workspace: 仓库根 IntelligentQuestionBank（四模块 root，相对描述）
 
-baseline: 1a0008bebd7c5f4950146b709b5c2c3b4820f19a
-last_known_good: 1a0008bebd7c5f4950146b709b5c2c3b4820f19a
+baseline: 27bfdebe89611a6c9a472059aded9176bd8a36f4
+last_known_good: 27bfdebe89611a6c9a472059aded9176bd8a36f4
 
 ## Active Tasks
 
