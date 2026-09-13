@@ -1,6 +1,37 @@
 /* ============ 智能题库(服务端渲染版) 通用样式 ============ */
+/* P1(#12): MD3 设计令牌层 —— 色板/形状与前端 Vue(MD3 紫基线) 一致 */
 :root {
-    --qk-primary: #2f54eb;
+    /* 色彩(MD3 utilities 色板) */
+    --md-primary: #6750a4;
+    --md-on-primary: #ffffff;
+    --md-primary-container: #eaddff;
+    --md-on-primary-container: #21005d;
+    --md-secondary: #625b71;
+    --md-secondary-container: #e8def8;
+    --md-on-secondary-container: #1d192b;
+    --md-tertiary: #7d5260;
+    --md-error: #b3261e;
+    --md-error-container: #f9dedc;
+    --md-success: #146c2e;
+    --md-success-container: #b8f1c1;
+    --md-warning: #7a5900;
+    --md-warning-container: #ffdf9d;
+    --md-surface: #fef7ff;
+    --md-surface-container-lowest: #ffffff;
+    --md-surface-container-low: #f7f2fa;
+    --md-surface-container: #f3edf7;
+    --md-surface-container-high: #ece6f0;
+    --md-surface-container-highest: #e6e0e9;
+    --md-on-surface: #1d1b20;
+    --md-on-surface-variant: #49454f;
+    --md-outline: #79747e;
+    /* 形状 */
+    --md-shape-sm: 8px;
+    --md-shape-md: 12px;
+    --md-shape-lg: 16px;
+    --md-shape-xl: 24px;
+    /* 主题色引用(现有 qk 变量归一到 MD3 紫) */
+    --qk-primary: var(--md-primary);
     --qk-sidebar-bg: #1f2a44;
     --qk-sidebar-text: #b6c0d4;
 }
@@ -8,7 +39,7 @@
 body {
     margin: 0;
     font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f0f2f5;
+    background: var(--md-surface-container-lowest);
 }
 
 /* ---- 整体布局: 侧栏 + 主区 ---- */
@@ -116,7 +147,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #2f54eb 0%, #36cfc9 100%);
+    background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-tertiary) 100%);
     padding: 16px;
 }
 
@@ -162,4 +193,78 @@ body {
 
 .pagination {
     margin-bottom: 0;
+}
+
+/* ============ P1(#12): MD3 基础组件覆盖(按钮/表单/焦点) ============ */
+
+/* ---- 全局键盘焦点环(与前端一致) ---- */
+:focus-visible {
+    outline: 2px solid var(--md-primary);
+    outline-offset: 2px;
+}
+
+/* ---- 按钮(filled / outlined) ---- */
+.btn {
+    border-radius: var(--md-shape-sm);
+    font-weight: 500;
+}
+.btn-primary {
+    --bs-btn-bg: var(--md-primary);
+    --bs-btn-border-color: var(--md-primary);
+    --bs-btn-hover-bg: #5d4f8a;
+    --bs-btn-hover-border-color: #5d4f8a;
+    --bs-btn-active-bg: #584a83;
+    --bs-btn-active-border-color: #584a83;
+    --bs-btn-disabled-bg: var(--md-primary);
+    --bs-btn-disabled-border-color: var(--md-primary);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--md-primary);
+    --bs-btn-border-color: var(--md-primary);
+    --bs-btn-hover-bg: var(--md-primary-container);
+    --bs-btn-hover-color: var(--md-on-primary-container);
+    --bs-btn-hover-border-color: var(--md-primary);
+    --bs-btn-active-bg: var(--md-primary-container);
+    --bs-btn-active-color: var(--md-on-primary-container);
+}
+.btn-secondary {
+    --bs-btn-bg: var(--md-secondary-container);
+    --bs-btn-border-color: var(--md-secondary-container);
+    --bs-btn-color: var(--md-on-secondary-container);
+    --bs-btn-hover-bg: #dcd4ea;
+    --bs-btn-active-bg: #d5cce4;
+}
+.btn-outline-secondary {
+    --bs-btn-color: var(--md-on-surface-variant);
+    --bs-btn-border-color: var(--md-outline);
+    --bs-btn-hover-bg: var(--md-surface-container);
+    --bs-btn-hover-border-color: var(--md-outline);
+    --bs-btn-hover-color: var(--md-on-surface-variant);
+    --bs-btn-active-bg: var(--md-surface-container-high);
+    --bs-btn-active-border-color: var(--md-on-surface-variant);
+}
+
+/* ---- 表单控件(表面/文字/焦点) ---- */
+.form-control, .form-select {
+    border-radius: var(--md-shape-sm);
+    background-color: var(--md-surface-container-lowest);
+    color: var(--md-on-surface);
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.35);
+}
+.form-label {
+    color: var(--md-on-surface-variant);
+    font-weight: 500;
+}
+
+/* ---- 输入组/校验等共享态 ---- */
+.form-check-input:checked {
+    background-color: var(--md-primary);
+    border-color: var(--md-primary);
+}
+.form-check-input:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.35);
 }
