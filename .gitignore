@@ -19,7 +19,6 @@ qbank-web/target/
 # 本地运行时文件
 *.log
 /tmp/
-.dsh/
 .npm-cache/
 
 # 本机绿色开发工具(不入库)
