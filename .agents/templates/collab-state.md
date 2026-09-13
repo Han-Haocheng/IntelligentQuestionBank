@@ -7,6 +7,8 @@
 state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
+ledger_lock: <owner-session；写台账前先 fetch 读远端锁，锁未过期（30 分钟）不写；写入时更新为自己 +30 分钟，随台账提交>
+lock_until: <epoch+1800；过期自动释放>
 updated_at: <YYYY-MM-DD HH:MM>
 last_session: <session-id>
 environment:
@@ -34,6 +36,7 @@ last_known_good: <每目标回滚基线，可多项>
 - status: <proposed / confirmed / in_progress / blocked / waiting_user>
 - next_action: <恢复后下一步>
 - approved_at: <时间> / approved_scope: <范围>（敏感操作不适用）
+- push_authorized: <登记范围，如 "dev fast-forward，本任务周期内"；任务书预授权时填，无则留空>
 - verification: <验证命令，引用契约条目>
 - completed_commit: <hash，未完成留空>
 
