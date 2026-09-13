@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 19:40
+updated_at: 2026-09-13 19:50
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 19:50 coord-20260913-1450（协调者/DSH）：**v1.4.0 正式版发布完成**（API 核实：dev=main=fe10ba1、package.json=1.4.0、标签 v1.4.0 已打；release.yml 打包进行中）。#12 已关联 v1.4.1 milestone（排期承诺工程化登记）。本地 git fetch 受 TLS 阻断（gh API 通道正常），本地同步待网络恢复后 merge（禁 rebase）+ 推送 15c092c 等本地提交。
 - 2026-09-13 19:35 coord-20260913-1450（协调者/DSH）：按用户指示关闭全部待验收 issue（#4/#5/#6/#7/#8/#9/#10/#11/#13/#14/#15/#16，共 12 个，gh close 附修复提交与验收状态评论；#5 注明真实库验证待补可重开）；剩余打开仅 #12（backlog）。
 - 2026-09-13 19:15 coord-20260913-1450（协调者/DSH）：无人值守轮 8——issue #6 死令牌核查完成（真实零消费仅 tertiary-container/on-tertiary-container 2 个已删；其余均有消费；11 字段主题模型为设计选择维持现状，primary=#6750a4 走官方色板基线）；前端门禁 ✓。
 - 2026-09-13 19:05 coord-20260913-1450（协调者/DSH）：无人值守轮 7——issue #4/#15 深色主题 EP 覆盖补全（theme.js 按 pageBg 明暗写入/清理 EP text/bg/overlay/border + MD 表面阶梯，暗夜深蓝下 EP 文本表格弹层可读）；前端门禁 npm run build ✓。
