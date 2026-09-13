@@ -9,7 +9,7 @@
 state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
-updated_at: 2026-09-13 15:47
+updated_at: 2026-09-13 15:50
 last_session: trae-cn-2026-09-13
 environment:
   profile: trae-cn
@@ -17,11 +17,12 @@ environment:
   git_version: git version 2.55.0.windows.5
   workspace: 仓库根 IntelligentQuestionBank（四模块 root，相对描述）
 
-baseline: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
-last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
+baseline: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
+last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 15:50 trae-cn-2026-09-13（协调者/Trae CN）：**心跳作业**（用户指示）。写台账前先 `git fetch origin dev` 核对得 `0 0`（合规新硬步骤）后动笔。落地本机心跳文件 `.agents/heartbeat/trae-cn-2026-09-13.json`（不入 git）：status=idle、串行令牌 free、无占用文件域、无活跃任务、无待接管；记录 HEAD `08ff930`、与 origin/dev 分叉 `0 0`、工作树干净。同步修正 `.agents/templates/collab-state.md` 滞后的 `skill_version`（通用 2.2/项目 2.1 → **通用 2.3/项目 2.2**）；修正 `baseline`/`last_known_good` 滞后（39fed75 → **9a205c5**，即最近一次非台账交付 HEAD；此前被 `.gitignore` 清理那次交付跨过），使 check_state 的基线 WARN 仅剩台账自身提交（按语义应忽略）。
 - 2026-09-13 15:47 trae-cn-2026-09-13（协调者/Trae CN）：经用户当次确认清理 `.gitignore` 第 22 行废弃忽略项 `.dsh/`（协作资产已收拢至 `.agents/`，该目录约定作废）；推送 dev（含 65d040d 台账提交）。
 - 2026-09-13 15:46 trae-cn-2026-09-13（协调者/Trae CN）：按用户指示「按建议来」固化防分叉硬步骤。写台账前先 `git fetch origin dev` 核对，得 `0 0`（无分叉）后动笔。更新技能：通用技能 2.2→**2.3**（SKILL.md「外部事实源」条 + references/session-continuity.md 第 1 节新增「写前必取远端（硬步骤）」+ 模板 `skill_version` 同步 2.3）；项目技能 2.1→**2.2**（对齐通用 2.3，第七节外部事实源条 + 第九节事故案例同步）。技能文件位于技能安装目录，不入 git，本次仅改本地技能。同步台账 `skill_version` 为「通用 2.3 / 项目 2.2」。
 - 2026-09-13 15:41 trae-cn-2026-09-13（协调者/Trae CN）：恢复协议核对发现本地 dev 与 `origin/dev` **再次分叉**（本地独有 3：39fed75/aac8c6b/8bab271；远端独有 2：d332735/3b6f967，均为台账提交；merge-base 70cfc3f）。经用户当次确认执行「合并对齐」：`git merge origin/dev` 并手工合并台账（保留双方全部条目，未丢弃任何提交），随后推送 dev。
@@ -31,7 +32,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 
 ## Active Tasks
 
-（空；本会话为本地/远端分叉合并对齐，属协作元数据维护）
+（空；无进行中任务，串行令牌空闲）
 
 ## Waiting For User
 
