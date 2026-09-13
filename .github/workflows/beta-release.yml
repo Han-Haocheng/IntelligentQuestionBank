@@ -87,13 +87,31 @@ jobs:
           git commit -m "chore(release): 版本号升级至 v${NEXT}" -- frontend/package.json frontend/package-lock.json backend/pom.xml qbank-web/pom.xml README.MD
           git push origin HEAD:dev
 
+      - name: 配置发布部署密钥 (推送受保护的 beta)
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
+        run: |
+          if [ -z "${RELEASE_DEPLOY_KEY}" ]; then
+            echo "::warning::未配置 RELEASE_DEPLOY_KEY, 回退 GITHUB_TOKEN; beta 受规则集保护, 推送可能被拒"
+            echo "PUBLISH_REMOTE=origin" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "${RELEASE_DEPLOY_KEY}" > ~/.ssh/qbank_release_key
+          chmod 600 ~/.ssh/qbank_release_key
+          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/qbank_release_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" >> "$GITHUB_ENV"
+          git remote add publish "git@github.com:${GITHUB_REPOSITORY}.git" 2>/dev/null || git remote set-url publish "git@github.com:${GITHUB_REPOSITORY}.git"
+          echo "PUBLISH_REMOTE=publish" >> "$GITHUB_ENV"
+          echo "beta 推送将使用部署密钥 (bypass 分支规则集)"
+
       - name: 合并 dev → beta
         if: steps.gate.outputs.proceed == 'true'
         run: |
           git fetch origin dev beta
           git switch -C tmp-release origin/beta
           git merge --no-ff --no-edit origin/dev -m "release: v${NEXT} (合并 dev)"
-          git push origin tmp-release:beta
+          git push "${PUBLISH_REMOTE}" tmp-release:beta
 
       - name: 打标签并推送
         if: steps.gate.outputs.proceed == 'true'

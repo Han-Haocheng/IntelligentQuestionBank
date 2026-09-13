@@ -1,4 +1,4 @@
-﻿/* ==================== 1. MD3 设计令牌(静态默认值, stores/theme.js 会覆盖动态部分) ==================== */
+/* ==================== 1. MD3 设计令牌(静态默认值, stores/theme.js 会覆盖动态部分) ==================== */
 /* 令牌命名遵循 Material Design 3: 色/形/阴影三层; 动态派生(主色系)由 theme.js 写入, 静态基线在此兜底 */
 :root {
   /* --- 主色系(theme.js 动态覆盖, 此处为 #6750A4 baseline 兜底) --- */
@@ -78,6 +78,9 @@
   --q-aside-bg: #f7f2fa;
   --q-aside-text: #49454f;
   --q-aside-active: #21005d;
+  /* 侧栏选中/悬停指示器底色(theme.js 依侧栏底色动态覆盖, 此处为 MD3 baseline 兜底) */
+  --q-aside-active-bg: #e6dfed;
+  --q-aside-hover-bg: #eee8f4;
   --q-login-from: #6750a4;
   --q-login-to: #7d5260;
   --q-radius: 4px;
@@ -466,8 +469,8 @@ body,
 :root .el-menu {
   --el-menu-bg-color: transparent;
   --el-menu-text-color: var(--q-aside-text, var(--md-nav-text));
-  --el-menu-active-color: var(--q-aside-active, var(--md-on-secondary-container));
-  --el-menu-hover-bg-color: var(--md-primary-state-8);
+  --el-menu-active-color: var(--q-aside-active, var(--md-on-surface));
+  --el-menu-hover-bg-color: var(--q-aside-hover-bg, var(--md-primary-state-8));
   border-right: none;
 }
 
@@ -478,13 +481,29 @@ body,
   font-weight: 500;
 }
 
-:root .el-menu--collapse .el-menu-item {
-  margin: 4px 8px;
-  padding: 0 20px;
+/* 折叠态: Element Plus 把折叠菜单固定为 64px 宽(24px 图标 + 20px*2 内边距),
+   放进 88px 侧栏会整体左偏, 且选中胶囊内的图标被偏置的内边距顶到一侧;
+   拉满侧栏 + 居中排布, 让图标与选中胶囊在侧栏内水平居中(与左下角折叠按钮对齐) */
+:root .el-menu--collapse {
+  width: 100%;
 }
 
+:root .el-menu--collapse .el-menu-item {
+  margin: 4px 8px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* 折叠态下 EP 把菜单项内容放进绝对定位的 tooltip 触发层(自带 20px 内边距),
+   只改 .el-menu-item 的 padding 不能移动图标, 需一并覆盖该层才能居中 */
+:root .el-menu--collapse .el-menu-item .el-menu-tooltip__trigger {
+  padding: 0;
+  justify-content: center;
+}
+
+/* 选中态底色取侧栏自身的容器色(依侧栏底色派生), 深色侧栏下不再出现白底白字 */
 :root .el-menu .el-menu-item.is-active {
-  background-color: var(--md-secondary-container);
+  background-color: var(--q-aside-active-bg, var(--md-secondary-container));
 }
 
 /* ---------- 3.8 标签页 ---------- */

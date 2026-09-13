@@ -1,6 +1,9 @@
 # 正式版发布 (手动派发)
 # 流程: 正式版号(默认去掉当前 -beta.N 后缀) -> bump 提交 dev -> 快进更新 main ->
 #       打 vX.Y.Z 标签 -> 派发 Release 工作流打包发布(正式 latest)
+# 注意: main 推送使用仓库 secret RELEASE_DEPLOY_KEY (write deploy key, 被分支规则集 bypass 豁免)。
+#       派发时 "Use workflow from" 需选 dev: main 上若仍是旧版本本文件, 会用 GITHUB_TOKEN 推送而被规则集拒绝;
+#       待本文件随正式版同步到 main 之后, 再从 main 派发亦可。
 name: Formal Release
 
 on:
@@ -64,6 +67,22 @@ jobs:
           git commit -m "chore(release): v${FORMAL}" -- frontend/package.json frontend/package-lock.json backend/pom.xml qbank-web/pom.xml README.MD
           git push origin HEAD:dev
 
+      - name: 配置发布部署密钥 (推送受保护的 main)
+        env:
+          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
+        run: |
+          if [ -z "${RELEASE_DEPLOY_KEY}" ]; then
+            echo "::error::未配置 RELEASE_DEPLOY_KEY; main 受规则集保护, GITHUB_TOKEN 推送必被拒" >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "${RELEASE_DEPLOY_KEY}" > ~/.ssh/qbank_release_key
+          chmod 600 ~/.ssh/qbank_release_key
+          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/qbank_release_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" >> "$GITHUB_ENV"
+          git remote add publish "git@github.com:${GITHUB_REPOSITORY}.git" 2>/dev/null || git remote set-url publish "git@github.com:${GITHUB_REPOSITORY}.git"
+          echo "PUBLISH_REMOTE=publish" >> "$GITHUB_ENV"
+          echo "main 推送将使用部署密钥 (bypass 分支规则集)"
+
       - name: 快进更新 main
         run: |
           git fetch origin main
@@ -71,7 +90,7 @@ jobs:
             echo "::error::main 包含 dev 没有的提交, 无法快进; 请人工处理 main 分歧后再发布" >&2
             exit 1
           fi
-          git push origin HEAD:main
+          git push "${PUBLISH_REMOTE}" HEAD:main
 
       - name: 打标签并推送
         run: |

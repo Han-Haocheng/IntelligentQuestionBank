@@ -27,3 +27,6 @@ qbank-web/target/
 
 # 本地技能/协作元数据(不入库)
 /.trae/
+
+# 协作心跳（本地；.agents/ 其余部分——台账/脚本/模板——入仓）
+.agents/heartbeat/

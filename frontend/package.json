@@ -1,7 +1,7 @@
 {
   "name": "intelligent-question-bank",
   "private": true,
-  "version": "1.4.0-beta.2",
+  "version": "1.4.0-beta.3",
   "license": "MIT",
   "description": "智能题库管理系统前端 (Vue3 + Element Plus + Electron)",
   "author": {
@@ -97,6 +97,7 @@
   "allowScripts": {
     "esbuild@0.25.12": true,
     "electron@33.4.11": true,
-    "vue-demi@0.14.10": true
+    "vue-demi@0.14.10": true,
+    "electron-winstaller@5.4.0": true
   }
 }

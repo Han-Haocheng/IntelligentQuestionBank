@@ -100,7 +100,8 @@
 
         <el-form-item label="效果预览">
           <div class="preview">
-            <div class="preview-aside" :style="{ background: form.config.asideBg, color: form.config.asideText }">
+            <div class="preview-aside"
+              :style="{ background: form.config.asideBg, color: form.config.asideText, '--preview-active-bg': asideActiveBg }">
               <div class="preview-logo" :style="{ color: form.config.asideActive }">题库管理</div>
               <div class="preview-menu">统计看板</div>
               <div class="preview-menu active" :style="{ color: form.config.asideActive }">题目管理</div>
@@ -126,11 +127,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { themeApi } from '../api'
 import { confirmAction } from '../utils/confirm'
-import { parseThemeConfig, DEFAULT_THEME } from '../stores/theme'
+import { parseThemeConfig, asideTint, DEFAULT_THEME } from '../stores/theme'
 import { useThemeStore } from '../stores/theme'
 
 const store = useThemeStore()
@@ -165,6 +166,9 @@ const form = reactive({
 function cfg (row) {
   return parseThemeConfig(row.config)
 }
+
+// 预览的侧栏选中态底色: 与真实侧栏共用 asideTint, 避免预览与实机不一致
+const asideActiveBg = computed(() => asideTint(form.config))
 
 async function load () {
   loading.value = true
@@ -318,7 +322,8 @@ onMounted(load)
 }
 
 .preview-menu.active {
-  background: rgba(255, 255, 255, 0.12);
+  /* 与真实侧栏同一算法(theme.js asideTint): 侧栏底色混入侧栏高亮色 */
+  background: var(--preview-active-bg);
 }
 
 .preview-right {
