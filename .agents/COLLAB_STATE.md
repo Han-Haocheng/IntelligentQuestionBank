@@ -7,9 +7,9 @@
 > baseline 语义 = 最近一次非台账交付的 HEAD；台账自身提交会使 baseline 滞后一个提交，check_state 的 WARN 属预期——恢复时 `git log --oneline <baseline>..HEAD` 领先提交仅为台账时忽略。
 
 state_version: 1
-skill_version: 通用 2.2 / 项目 2.1
+skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
-updated_at: 2026-09-13 15:41
+updated_at: 2026-09-13 15:46
 last_session: trae-cn-2026-09-13
 environment:
   profile: trae-cn
@@ -22,6 +22,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 
 ## Session Log
 
+- 2026-09-13 15:46 trae-cn-2026-09-13（协调者/Trae CN）：按用户指示「按建议来」固化防分叉硬步骤。写台账前先 `git fetch origin dev` 核对，得 `0 0`（无分叉）后动笔。更新技能：通用技能 2.2→**2.3**（SKILL.md「外部事实源」条 + references/session-continuity.md 第 1 节新增「写前必取远端（硬步骤）」+ 模板 `skill_version` 同步 2.3）；项目技能 2.1→**2.2**（对齐通用 2.3，第七节外部事实源条 + 第九节事故案例同步）。技能文件位于技能安装目录，不入 git，本次仅改本地技能。同步台账 `skill_version` 为「通用 2.3 / 项目 2.2」。
 - 2026-09-13 15:41 trae-cn-2026-09-13（协调者/Trae CN）：恢复协议核对发现本地 dev 与 `origin/dev` **再次分叉**（本地独有 3：39fed75/aac8c6b/8bab271；远端独有 2：d332735/3b6f967，均为台账提交；merge-base 70cfc3f）。经用户当次确认执行「合并对齐」：`git merge origin/dev` 并手工合并台账（保留双方全部条目，未丢弃任何提交），随后推送 dev。
 - 2026-09-13 15:30 trae-cn-2026-09-13（协调者/Trae CN）：本地分支清理。经用户当次确认删除本地 `main`（81fb016，删除前校验 `origin/main..main = 0`，无独有提交、零丢失）；本地 `beta` 分支原本不存在。本地现仅剩 `dev`，与纪律「本地无 main/beta」一致。未 push。
 - 2026-09-13 15:24 trae-cn-2026-09-13（协调者/Trae CN）：心跳对齐。本地 dev 与远端分叉（ahead 3 / behind 10）经用户当次确认后以 `origin/dev` 重建，丢弃本地 3 个重复提交（与远端 1a0008b 重复劳动）；补回远端缺失的 `.gitattributes` 行尾规则（`*.sh text eol=lf`，39fed75）；登记本会话心跳 `.agents/heartbeat/trae-cn-2026-09-13.json`（不入 git）。无活跃任务。
@@ -38,6 +39,7 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 ## Archive
 
 ### Decisions
+- 2026-09-13 固化「写台账前必 `git fetch`」硬步骤（技能 2.3/2.2）：针对台账两次因多机并行写而分叉的根因，把该前置步骤写入通用技能正文（SKILL.md 第六节、references/session-continuity.md 第 1 节）、模板抬头与项目技能第七/九节，并将通用技能 2.2→2.3、项目技能 2.1→2.2。技能文件在安装目录不入 git。来源：用户指示（按建议来）。
 - 2026-09-13 分叉对齐（第二次）：本地 dev 与远端因跨会话并行写台账再次分叉（本地独有 3 / 远端独有 2，冲突仅 `.agents/COLLAB_STATE.md`），经用户当次确认以合并方式对齐——保留本地 `.gitattributes` 行尾修复与双方全部台账条目，未丢弃提交、未 force。来源：用户当次确认（合并对齐并推送）。
 - 2026-09-13 外部世界核对：beta 自动发布工作流已基于 e59461e 在远端完成 v1.4.0-beta.3（bump 提交 70cfc3f，github-actions[bot]，推送期间本机代理 TLS 故障）；beta 分支已合并、标签 v1.4.0-beta.3 已打；本地台账提交经用户确认 rebase 至该 bump 之上并推送，版本声明随仓库同步为 1.4.0-beta.3。来源：用户当次确认（rebase 后推送）。
 - 2026-09-13 本地分支清理：经用户当次确认（敏感操作·删除）执行 `git branch -D main`，删除前以 `git rev-list --count origin/main..main` 校验为 0（无独有提交）确保零丢失；本地 `beta` 不存在，无需处理。来源：用户当次确认。
@@ -61,5 +63,5 @@ last_known_good: 39fed75ff75886b8a0fcf1bf2ab75b175c6766d4
 - 无效交付：本地 64c9d30/a3c4663/f8e0988 三个提交与远端 1a0008b 重复（同一目标两处并行产出），已 reset 丢弃；教训——开工前必须先 `git fetch` 核对远端，离线期间的重复劳动无法入仓。
 - 会话中断：-
 - 越界改动：-
-- 重复陷阱：台账**第二次**因跨会话/跨机并行写而分叉（第一次 .agents 骨架，本次台账条目）；根因是写台账前未先 `git fetch`，"仅协调者写入"在多机场景未真正落实。建议把"写台账前必 `git fetch` 并确认无新远端提交"固化为硬步骤。
+- 重复陷阱：台账**两次**因跨会话/跨机并行写而分叉（第一次 .agents 骨架，第二次台账条目），根因是写台账前未先 `git fetch`，"仅协调者写入"在多机场景未真正落实。**已闭合（2026-09-13 15:46）**：「写台账前必 `git fetch` 并确认无新远端提交」已固化进技能正文（通用 2.3 / 项目 2.2），后续写台账须先核 `git rev-list --left-right --count origin/dev...HEAD` 得 `0 0`。
 - 技能更新建议：项目中已删除 `.dsh/` 约定，但远端 `.gitignore` 第 22 行仍保留 `.dsh/` 忽略项，建议清理。
