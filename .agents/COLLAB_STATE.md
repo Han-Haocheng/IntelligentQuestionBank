@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 17:55
+updated_at: 2026-09-13 18:05
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 18:05 coord-20260913-1450（协调者/DSH）：无人值守轮 1——issue #7 残留硬编码色值改读 EP 语义令牌（6c10fbc，7 文件：状态色→el-color-*/边框→el-border-color/占位→placeholder；前端门禁 npm ci+build 通过 ✓）；issue #13 顶栏标题补齐 pageTitle（9505c08，5 控制器：登录/注册/仪表盘/题库管理/分类管理/题目管理/题目表单；qbank-web 门禁在干净 worktree 验证通过 ✓——工作树 target 受同机 Trae/IDE 干扰，构建验证已用 worktree 对照确认与改动无关）。
 - 2026-09-13 17:55 coord-20260913-1450（协调者/DSH）：**无人值守模式启动**（用户指示"现在开始无人执手，修复后续的问题"）——任务周期内 fast-forward 推 dev 预授权当次确认；按自主执行规则逐 issue 修复、checkpoint 推送、需要人工决策时暂停汇报。「禁默认 rebase」条款落地（AGENTS.md 并行细则 + 技能）；首次 rebase 为当时用户确认的例外，发现并行后一律 merge+union。
 - 2026-09-13 17:45 coord-20260913-1450（协调者/DSH）：**TASK-002 完成**（430cae3）——bootstrap 5.3.3 + icons 1.11.3（含字体）入 vendor，layout.html 3 处改本地 th: 引用；bootcdn 零命中、路径一致、mvn clean package 通过（首次失败系工作树 target 陈旧产物，clean 修复；干净 HEAD worktree 对照确认与改动无关）。issue 修复核查：#3 已关闭，TASK-001/002 已交付。
 
