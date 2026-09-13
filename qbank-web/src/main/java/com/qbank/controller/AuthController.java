@@ -27,12 +27,13 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String loginPage(HttpServletRequest request) {
+    public String loginPage(HttpServletRequest request, Model model) {
         // 已登录则直接进入首页
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute(LoginInterceptor.SESSION_USER) != null) {
             return "redirect:/";
         }
+        model.addAttribute("pageTitle", "登录");
         return "login";
     }
 
@@ -44,16 +45,18 @@ public class AuthController {
             return "redirect:/";
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("pageTitle", "登录");
             return "login";
         }
     }
 
     @GetMapping("/register")
-    public String registerPage(HttpServletRequest request) {
+    public String registerPage(HttpServletRequest request, Model model) {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute(LoginInterceptor.SESSION_USER) != null) {
             return "redirect:/";
         }
+        model.addAttribute("pageTitle", "注册");
         return "register";
     }
 
@@ -65,6 +68,7 @@ public class AuthController {
             return "redirect:/";
         } catch (BusinessException e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("pageTitle", "注册");
             return "register";
         }
     }

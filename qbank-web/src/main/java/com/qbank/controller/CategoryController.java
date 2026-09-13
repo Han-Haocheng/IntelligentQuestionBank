@@ -44,6 +44,7 @@ public class CategoryController {
         model.addAttribute("tree", tree);
         model.addAttribute("roots", roots);
         model.addAttribute("isAdmin", isAdmin(user));
+        model.addAttribute("pageTitle", "分类管理");
         return "categories";
     }
 

@@ -100,6 +100,7 @@ public class QuestionController {
         model.addAttribute("selDifficulty", toStr(query.getDifficulty()));
         model.addAttribute("selCategoryId", toStr(query.getCategoryId()));
         model.addAttribute("selBankId", toStr(query.getBankId()));
+        model.addAttribute("pageTitle", "题目管理");
         return "questions";
     }
 
@@ -122,6 +123,7 @@ public class QuestionController {
             form = new QuestionForm();
         }
         addCommonModel(model, user);
+        model.addAttribute("pageTitle", id != null ? "编辑题目" : "新增题目");
         model.addAttribute("form", form);
         return "question_form";
     }
@@ -145,6 +147,7 @@ public class QuestionController {
         } catch (BusinessException e) {
             // 校验/权限失败: 回到表单页保留已填内容
             addCommonModel(model, user);
+            model.addAttribute("pageTitle", editing ? "编辑题目" : "新增题目");
             model.addAttribute("form", form);
             model.addAttribute("error", e.getMessage());
             return "question_form";
