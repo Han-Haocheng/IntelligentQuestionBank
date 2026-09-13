@@ -37,6 +37,14 @@ frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-
 - 脚本需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行；cmd/PowerShell 无原生 bash，无法直接运行
 - `.agents/heartbeat/` 为本地心跳，不入 git
 
+## 并行协作细则（多协调者同仓并行）
+
+- **并行 OK**：文件域互不重叠的任务可并行开发（任务书写明文件域边界，波次并行）；git 的分布合并模型天然支持多 clone 并行
+- **共享热点单写**：`.agents/COLLAB_STATE.md` 等单一事实源同一时刻只允许一个协调者写入
+- **台账写锁**：写台账前必 `git fetch` 并读远端台账 `ledger_lock`/`lock_until`；锁未过期（30 分钟）则不写（等待或只读）；写入时把锁更新为自己 +30 分钟，随台账提交；过期自动释放
+- **低频更新**：台账只在里程碑/交接/发布点更新；日常状态用本地心跳 `.agents/heartbeat/<session>.json`
+- **冲突兜底**：台账冲突一律按「保留双方全部条目」union 合并，不丢信息；无法自动合并时冻结上报用户
+
 ## 提交风格
 
 Conventional Commits（`feat/fix/docs/chore/ci/refactor/style` + 中文说明），原子化提交。

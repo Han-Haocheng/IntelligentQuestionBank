@@ -7,6 +7,8 @@
 state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
+ledger_lock: <owner-session；写台账前先 fetch 读远端锁，锁未过期（30 分钟）不写；写入时更新为自己 +30 分钟，随台账提交>
+lock_until: <epoch+1800；过期自动释放>
 updated_at: <YYYY-MM-DD HH:MM>
 last_session: <session-id>
 environment:
