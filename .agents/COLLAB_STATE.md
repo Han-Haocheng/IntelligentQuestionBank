@@ -11,10 +11,10 @@
 state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
-ledger_lock: trae-session-20260914-pull-sync（本机协调者；写锁随本次台账提交，10:56 自动过期）
-lock_until: 1789383394（2026-09-14 10:56；过期自动释放）
-updated_at: 2026-09-14 10:26
-last_session: trae-session-20260914-pull-sync（本机 trae-cn，拉取+技能盘点）/ coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者）
+ledger_lock: trae-session-20260914-lfs-done（本机协调者；写锁随本次台账提交，15:02 自动过期）
+lock_until: 1789398175（2026-09-14 15:02；过期自动释放）
+updated_at: 2026-09-14 14:32
+last_session: trae-session-20260914-lfs-done（本机 trae-cn，LFS 补齐）/ trae-session-20260914-pull-sync / coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
   model: TRAE 会话内置模型（以当前会话为准；另一方 deepseek-v4-flash）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-14 14:32 trae-session-20260914-lfs-done（本机协调者/Trae CN）：LFS 补齐——代理 192.168.0.147:7890 仍离线，直连 `git -c http.proxy= -c https.proxy= lfs pull` 成功；docs/02-演示PPT.pptx 从指针（133B）下载为真实文件（18,277,587B ≈ 17.4MB），`git lfs ls-files` 标记 `*` 已下载。LFS 待办结清。
 - 2026-09-14 10:26 trae-session-20260914-pull-sync（本机协调者/Trae CN）：本机同步——工作区 4 文件（.gitattributes/.gitignore/check_state.sh/模板 collab-state.md）曾被某进程于 09:47 还原为备份分支 71b16c4 旧版（逐字节比对确认、零独有内容，用户当次确认丢弃）；写前 fetch 落后 44 提交，fast-forward af22dda..82943c6（含 v1.4.0 正式版、v1.4.1-beta.1、#7–#16 修复、#12 P1 与迁移方案），本地 HEAD/远程跟踪/ls-remote 三向核对一致、工作区干净。网络通道补注（环境差异）：本机所配局域网代理离线、本机无 127.0.0.1:7890 监听——与 2026-09-13 20:40「走代理禁直连」结论所在的 DSH 机环境不同；本次仅直连成功（TLS 间歇抖动需多重试），gh API 通道正常可用；该结论在本机待代理恢复后回归。技能盘点：微信 9/13 两个技能 zip 解压核验为通用 2.2（与本机已装逐字节一致）/项目 2.0（旧于本机 2.1），2.3/2.2 正本本机全渠道（仓库不入库/微信/.trae-cn/工作机）缺失；用户已定等对方补发后按「备份→逐条 diff 三条硬规则→替换→核验」安装，不手工改版冒充正本。备份分支 backup/local-v21-dup-20260913 仍保留本地。
 - 2026-09-13 20:40 coord-20260913-1450（协调者/DSH）：网络通道结论——git 走代理 127.0.0.1:7890（local+global 已配），Clash 分流规则已加 github.com→主代理（建议补 githubusercontent.com 覆盖 Release/LFS 资产）；**禁止 `-c http.proxy=` 绕代理**（直连对 GitHub 国内不稳，此前 TLS 抖动根源）；默认代理下 ls-remote/push 秒通。
 - 2026-09-13 20:25 coord-20260913-1450（协调者/DSH）：#12 P1 完成——app.css 加 MD3 令牌层（色板/形状与前端一致）+ .btn/.form-control/.form-check/:focus-visible 覆盖 + 登录渐变与 body 背景统一主色；{} 平衡、mvn worktree BUILD SUCCESS ✓。
@@ -94,7 +95,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 - 2026-09-13 19:25 coord-20260913-1450（协调者/DSH）：无人值守轮 9（收尾）——自主修复全部完成（#3 关闭；#5/#7/#8/#9/#10/#11/#13/#16/#4/#15/#6 共 11 个已交付，见 Session Log 轮 1-8）。#12（qbank-web 全量 MD3）决策：属 14 模板重写大工程、半吊子迁移反增混乱，列 backlog 建议独立里程碑（含小屏布局重构）。待人工验收项：TASK-001 真实库幂等验证、#4/#15/#11/#16 运行期目测、qbank-web 各修复在部署环境回归。issue 关闭由用户验收后执行（未自动关）。
 - 本机（工作机 trae-session-20260914-pull-sync）技能安装目录为通用 2.2/项目 2.1；微信 9/13 技能 zip 经解压核验为通用 2.2（与本机一致）/项目 2.0（更旧），2.3/2.2 正本仅 DSH 机安装目录持有、本机全渠道缺失。用户已定（2026-09-14）：等对方补发 2.3/2.2 技能包后按「备份→逐条 diff 三条硬规则→替换→核验」安装，不手工改版。
-- 代理恢复后在该工作机执行 `git lfs pull` 补齐 docs/02-演示PPT.pptx（18MB；reset 后以指针文件落盘）；2026-09-14 核实本机所配局域网代理仍离线、127.0.0.1:7890 无监听。
+- ~~代理恢复后在该工作机执行 `git lfs pull` 补齐 docs/02-演示PPT.pptx~~ **已完成（2026-09-14 14:32）**：直连 `git lfs pull` 成功，文件 18,277,587B 已下载、`git lfs ls-files` 标记 `*`。
 
 ## Archive
 
