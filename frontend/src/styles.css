@@ -84,6 +84,13 @@
   --md-elev-2: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
   --md-elev-3: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
 
+  /* --- motion: MD3 时长档与缓动曲线(long1-long4 / medium1-2 / short1-4 归并为三档) --- */
+  --md-motion-short: 200ms;   /* 悬停/聚焦等即时反馈(short4) */
+  --md-motion-medium: 300ms;  /* 面板展开收缩(medium2) */
+  --md-motion-long: 450ms;    /* 视图切换(long2) */
+  --md-ease-standard: cubic-bezier(0.2, 0, 0, 1);          /* standard: 进出场对称 */
+  --md-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);   /* emphasized decelerate: 入场 */
+
   /* --- 字体 --- */
   --md-font: Roboto, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
 
@@ -102,6 +109,95 @@
   --q-login-from: #6750a4;
   --q-login-to: #7d5260;
   --q-radius: 4px;
+
+  /* ============ EP 令牌收口(L2 收口 P1, 见 docs/13 §3/§5) ============
+     把 Element Plus 的默认皮肤变量整体映射到 MD3 角色色, 使**未被组件级覆盖**的 EP 组件
+     (下拉面板/进度/结果页/步骤条/评分/链接/上传/加载遮罩等)自动落到 MD3, 不再泄露 EP 品牌色。
+     实现要点:
+       ① 语义色由 MD3 固定角色给出; light-3/5/7 沿用 EP"与白混合"阶梯(与 theme.js 的 mix() 逐位一致),
+          light-8/9 在 EP 中作浅底色用, 直接取 MD3 容器色;
+       ② 中性色映射到 on-surface / outline / surface-container 角色;
+       ③ 深色主题由 theme.js 以**行内变量**覆盖(行内优先级高于本处 :root, 先清后写);
+       ④ 主色系静态值与 theme.js 派生结果逐位一致, 主题加载前首绘不再泄露 EP 默认蓝。 */
+  /* 语义色: success / warning / danger=error / info(MD3 无 info 角色, 取 on-surface-variant) */
+  --el-color-success: var(--md-success);
+  --el-color-success-light-3: #5b986d;
+  --el-color-success-light-5: #8ab697;
+  --el-color-success-light-7: #b9d3c0;
+  --el-color-success-light-8: var(--md-success-container);
+  --el-color-success-light-9: var(--md-success-container);
+  --el-color-success-dark-2: #105625;
+  --el-color-warning: var(--md-warning);
+  --el-color-warning-light-3: #a28b4d;
+  --el-color-warning-light-5: #bdac80;
+  --el-color-warning-light-7: #d7cdb3;
+  --el-color-warning-light-8: var(--md-warning-container);
+  --el-color-warning-light-9: var(--md-warning-container);
+  --el-color-warning-dark-2: #624700;
+  --el-color-danger: var(--md-error);
+  --el-color-danger-light-3: #ca6762;
+  --el-color-danger-light-5: #d9938f;
+  --el-color-danger-light-7: #e8bebc;
+  --el-color-danger-light-8: var(--md-error-container);
+  --el-color-danger-light-9: var(--md-error-container);
+  --el-color-danger-dark-2: #8f1e18;
+  --el-color-error: var(--md-error);
+  --el-color-error-light-3: #ca6762;
+  --el-color-error-light-5: #d9938f;
+  --el-color-error-light-7: #e8bebc;
+  --el-color-error-light-8: var(--md-error-container);
+  --el-color-error-light-9: var(--md-error-container);
+  --el-color-error-dark-2: #8f1e18;
+  --el-color-info: var(--md-on-surface-variant);
+  --el-color-info-light-3: #807d84;
+  --el-color-info-light-5: #a4a2a7;
+  --el-color-info-light-7: #c8c7ca;
+  --el-color-info-light-8: var(--md-surface-container-high);
+  --el-color-info-light-9: var(--md-surface-container);
+  --el-color-info-dark-2: #3a373f;
+  /* 主色系静态基线(theme.js 覆盖动态部分; 静态值 = mix(primary,'#fff',0.3/0.5/0.7/0.8/0.9) 与 mix(primary,'#000',0.2)) */
+  --el-color-primary: var(--md-primary);
+  --el-color-primary-light-3: #9585bf;
+  --el-color-primary-light-5: #b3a8d2;
+  --el-color-primary-light-7: #d1cbe4;
+  --el-color-primary-light-8: #e1dced;
+  --el-color-primary-light-9: #f0eef6;
+  --el-color-primary-dark-2: #524083;
+  /* 文字角色 */
+  --el-text-color-primary: var(--md-on-surface);
+  --el-text-color-regular: var(--md-on-surface);
+  --el-text-color-secondary: var(--md-on-surface-variant);
+  --el-text-color-placeholder: var(--md-on-surface-variant);
+  --el-text-color-disabled: #a9a3aa;   /* on-surface 38% 实色近似(MD3 disabled) */
+  --el-disabled-text-color: #a9a3aa;
+  /* 表面角色(--q-card-bg/--q-page-bg 由管理员主题配置驱动) */
+  --el-bg-color: var(--q-card-bg);
+  --el-bg-color-page: var(--q-page-bg);
+  --el-bg-color-overlay: var(--q-card-bg);   /* 弹层表面: 下拉面板/日期面板/气泡 */
+  --el-fill-color-blank: var(--q-card-bg);   /* 输入类控件底色 */
+  /* 填充角色(悬停/选中/禁用底) */
+  --el-fill-color: var(--md-surface-container);
+  --el-fill-color-light: var(--md-surface-container-high);
+  --el-fill-color-lighter: var(--md-surface-container-low);
+  --el-fill-color-dark: var(--md-surface-container-high);
+  --el-fill-color-darker: var(--md-surface-container-highest);
+  --el-disabled-bg-color: var(--md-surface-container-highest);
+  /* 描边角色(MD3 outline-variant 即规范中的分隔线/描边色) */
+  --el-border-color: var(--md-outline-variant);
+  --el-border-color-light: var(--md-outline-variant);
+  --el-border-color-lighter: var(--md-outline-variant);
+  --el-border-color-extra-light: var(--md-surface-container-high);
+  --el-border-color-dark: var(--md-outline);
+  --el-border-color-darker: var(--md-outline);
+  --el-disabled-border-color: var(--md-outline-variant);
+  /* 遮罩: MD3 scrim(替代 EP 近白 #ffffffe6, 影响 v-loading 与按钮 loading 态) */
+  --el-mask-color: var(--md-scrim);
+  --el-mask-color-extra-light: rgba(0, 0, 0, 0.12);
+  /* 动效: EP 时长/缓动 → MD3 standard / emphasized decelerate */
+  --el-transition-duration: var(--md-motion-medium);
+  --el-transition-duration-fast: var(--md-motion-short);
+  --el-transition-function-ease-in-out-bezier: var(--md-ease-standard);
+  --el-transition-function-fast-bezier: var(--md-ease-emphasized);
 }
 
 /* ==================== 2. 基础区 ==================== */
@@ -354,6 +450,12 @@ body,
 :root .el-form-item.is-error .el-select__wrapper.is-focused,
 :root .el-form-item.is-error .el-textarea__inner:focus {
   box-shadow: 0 0 0 2px var(--md-error) inset;
+}
+
+/* 表单标签: MD3 on-surface-variant。
+   EP 的 --el-text-color-regular 同时服务正文与标签(P1 已映射为 on-surface), 标签需单独收口 */
+:root .el-form-item__label {
+  color: var(--md-on-surface-variant);
 }
 
 /* ---------- 3.3 卡片 ---------- */
@@ -695,6 +797,12 @@ body,
   border-radius: var(--md-shape-md);
   border: none;
   box-shadow: var(--md-elev-2);
+}
+
+/* 进度条轨道: EP 轨道取 --el-border-color-lighter(P1 已映射为 outline-variant, 作背景偏深),
+   单独收口到 MD3 surface-container-highest */
+:root .el-progress-bar__outer {
+  background-color: var(--md-surface-container-highest);
 }
 
 /* ==================== 4. 表格操作列图标按钮(保留原规则: 24px 特异性压过全局 40px 胶囊) ==================== */

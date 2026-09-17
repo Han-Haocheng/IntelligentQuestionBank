@@ -96,7 +96,10 @@ function applyConfig (config, themeKey) {
     '--el-text-color-primary', '--el-text-color-regular', '--el-text-color-secondary',
     '--el-text-color-placeholder', '--el-bg-color', '--el-bg-color-page', '--el-bg-color-overlay',
     '--el-fill-color-blank', '--el-border-color', '--el-border-color-light', '--el-border-color-lighter',
-    '--md-surface-container', '--md-surface-container-high', '--md-surface-container-highest'
+    '--md-surface-container', '--md-surface-container-high', '--md-surface-container-highest',
+    // P1: 表面阶梯补齐(container-low 被下拉菜单/上传拖拽区消费, 缺它会在暗色下留浅底)
+    // + 表面上的状态层(state-8/10 语义为"主色叠加于页面底色", 暗色下不能取近白)
+    '--md-surface-container-low', '--md-primary-state-8', '--md-primary-state-10'
   ]
   EP_DARK_VARS.forEach(v => el.style.removeProperty(v))
   const pageDark = luminance(cfg.pageBg) < 0.5
@@ -117,6 +120,11 @@ function applyConfig (config, themeKey) {
     set('--md-surface-container', '#1a2233')
     set('--md-surface-container-high', '#202a3d')
     set('--md-surface-container-highest', '#263247')
+    // 暗色下 container-low 必须一并加深: 下拉菜单/上传拖拽区/表格填补色取它, 否则暗色主题里留一道浅底
+    set('--md-surface-container-low', '#151c2b')
+    // 表面上的状态层: 主色 8%/10% 叠加于页面底色(MD3 状态层语义), 暗色下不再取近白
+    set('--md-primary-state-8', mix(cfg.pageBg, cfg.primary, 0.08))
+    set('--md-primary-state-10', mix(cfg.pageBg, cfg.primary, 0.1))
   }
   set('--q-primary', cfg.primary)
   set('--q-page-bg', cfg.pageBg)
