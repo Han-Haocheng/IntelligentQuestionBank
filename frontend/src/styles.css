@@ -27,14 +27,16 @@
   --md-secondary-container: #e8def8;
   --md-on-secondary-container: #1d192b;
   --md-tertiary: #7d5260;
-  /* state layer(等效不透明色): hover 8% / focus 10% / 白底叠加 8% / 10% */
+  /* state layer(等效不透明色): hover 8% / focus 10% / 白底叠加 8% / 10%
+     注意: 以下静态值必须与 stores/theme.js 的 mix() 运行时派生结果逐位一致(否则主题加载首绘会跳色);
+     复算方式: node 执行 mix(基色, '#ffffff', 0.08) / mix(基色, '#ffffff', 0.10) */
   --md-primary-hover: #735eab;
   --md-primary-focus: #7662ad;
   --md-primary-state-8: #f3f1f8;
   --md-primary-state-10: #f0eef6;
-  --md-error-hover: #bd4038;
-  --md-success-hover: #26803c;
-  --md-warning-hover: #8a6a0a;
+  --md-error-hover: #b93730;
+  --md-success-hover: #27783f;
+  --md-warning-hover: #856614;
 
   /* --- surface 家族(MD3 官方 baseline, 静态) --- */
   --md-surface: #fef7ff;
