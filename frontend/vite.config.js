@@ -13,8 +13,26 @@ export default defineConfig({
     Components({ resolvers: [ElementPlusResolver()] })
   ],
   base: './',
+  // 开发期依赖预打包: 本项目的 EP 组件由 unplugin-vue-components 在 **transform 阶段**注入按需 import,
+  // 而依赖扫描器(esbuild)看不到插件注入的 import ⇒ 运行期才发现新依赖 ⇒
+  // Vite 重新预打包并整页重载("[vite] optimized dependencies changed. reloading")。
+  // 处置: holdUntilCrawlEnd 让首轮优化等扫描收敛; server.warmup 在启动阶段就转换全部视图/组件,
+  // 把依赖发现集中在启动那一轮, 避免浏览过程中反复重载。
+  optimizeDeps: {
+    holdUntilCrawlEnd: true,
+    include: ['@element-plus/icons-vue', 'echarts']
+  },
   server: {
     port: 5173,
+    warmup: {
+      clientFiles: [
+        './src/main.js',
+        './src/App.vue',
+        './src/router/index.js',
+        './src/views/*.vue',
+        './src/components/*.vue'
+      ]
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
