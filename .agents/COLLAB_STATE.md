@@ -12,8 +12,8 @@ state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: coord-20260917-1103（本机协调者 DSH；union 合并写入，30 分钟自动过期）
-lock_until: 1789616467（2026-09-17 11:41；过期自动释放）
-updated_at: 2026-09-17 11:11
+lock_until: 1789616686（2026-09-17 11:44；过期自动释放）
+updated_at: 2026-09-17 11:14
 last_session: coord-20260917-1103 / trae-session-20260914-lfs-done / trae-session-20260914-pull-sync / coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-17 11:14 coord-20260917-1103（协调者/DSH）：#12 **P4 完成，迁移四阶段全部交付**（97d3433）——新增 Bootstrap↔MD3 令牌桥接：把 Bootstrap 的 --bs-*-rgb（primary/secondary/success/danger/warning/light + body/border/link）整体映射到 MD3，使 text-muted(52 处)/text-danger(13)/text-primary(12)/bg-light(10)/bg-white(4)/text-success(7) 等工具类与 error.html 自动落到 MD3 色，不再泄露 Bootstrap 默认蓝/灰；字阶收口 body/表格/卡片/表单/按钮 14px（对齐前端 body-medium），内容区 padding 24px。门禁：括号平衡 61/61、无自引用/无裸色值（157 令牌）、mvn worktree BUILD SUCCESS ✓。**遗留：人工视觉验收（14 页目测）为验收前置，本环境无浏览器故未做**；验收通过即可关闭 issue #12。
 - 2026-09-17 11:11 coord-20260917-1103（协调者/DSH）：#12 P3 完成——卡片/表格（表头 #f7f8fa→surface-container）/分页（选中=secondary-container）/徽章（text-bg-* 六变体映射 MD3 容器色）/提醒（四变体）/弹窗（shape-lg+outline）/语义按钮补全（success/danger/warning/light），并把按钮 hover/active 深色变体收敛为 :root 令牌（--md-primary-hover 等）；门禁：括号平衡 57/57、无自引用/无裸色值（137 令牌）、mvn worktree BUILD SUCCESS ✓。P4 走查收口为最后一阶段。
 - 2026-09-17 11:02 coord-20260917-1103（协调者/DSH）：#12 P2 完成——侧栏改 MD3 浅色表面（surface-container-low）+ secondary-container 选中态/primary 左边条，顶栏/页面标题/导航卡片/登录卡片圆角 MD3 化；无模板改动（data-bs 钩子不动）；{} 平衡、mvn worktree BUILD SUCCESS ✓。遗留：#f7f8fa 表头归 P3。**跨日恢复**（距 09-13 21:40 已 3 天）：按恢复协议 fetch 复核发现远端新增 2 提交（guozhibin：LFS 补齐、本机同步登记），台账冲突经 `ledger_union_merge.sh` 保留双方条目后由本会话去重字段/修正时间戳。
 - 2026-09-14 14:32 trae-session-20260914-lfs-done（本机协调者/Trae CN）：LFS 补齐——代理 192.168.0.147:7890 仍离线，直连 `git -c http.proxy= -c https.proxy= lfs pull` 成功；docs/02-演示PPT.pptx 从指针（133B）下载为真实文件（18,277,587B ≈ 17.4MB），`git lfs ls-files` 标记 `*` 已下载。LFS 待办结清。
@@ -68,7 +69,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 - brief: docs/12-qbank-web-md3-迁移方案.md（方案已产出，待实施）
 - scope: qbank-web/src/main/resources/templates/**; static/css/app.css
 - interface_boundaries: vendor 引用不回归；data-bs-* JS hooks 类名不动；前端 Vue MD3 令牌一致
-- status: in_progress（P1 ✓ 令牌层+btn/表单/焦点环；P2 ✓ 布局导航；P3 ✓ 卡片/表格/分页/徽章/提醒/弹窗/语义按钮；P4 走查收口待做）
+- status: stages_done（P1 ✓ 令牌层+btn/表单/焦点环；P2 ✓ 布局导航；P3 ✓ 卡片/表格/分页/徽章/提醒/弹窗/语义按钮；P4 ✓ Bootstrap↔MD3 令牌桥接+字阶收口）——**待人工视觉验收**（14 页目测）；验收通过后关闭 #12 并推进 v1.4.1 正式发布
 ### TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）
 - brief: .agents/tasks/TASK-001.md
 - scope: db/upgrade.sql（init.sql 只读核对）
