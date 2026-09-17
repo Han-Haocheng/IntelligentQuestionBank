@@ -12,8 +12,8 @@ state_version: 1
 skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: coord-20260917-1103（本机协调者 DSH；union 合并写入，30 分钟自动过期）
-lock_until: 1789616027（2026-09-17 11:33；过期自动释放）
-updated_at: 2026-09-17 11:05
+lock_until: 1789616467（2026-09-17 11:41；过期自动释放）
+updated_at: 2026-09-17 11:11
 last_session: coord-20260917-1103 / trae-session-20260914-lfs-done / trae-session-20260914-pull-sync / coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-17 11:11 coord-20260917-1103（协调者/DSH）：#12 P3 完成——卡片/表格（表头 #f7f8fa→surface-container）/分页（选中=secondary-container）/徽章（text-bg-* 六变体映射 MD3 容器色）/提醒（四变体）/弹窗（shape-lg+outline）/语义按钮补全（success/danger/warning/light），并把按钮 hover/active 深色变体收敛为 :root 令牌（--md-primary-hover 等）；门禁：括号平衡 57/57、无自引用/无裸色值（137 令牌）、mvn worktree BUILD SUCCESS ✓。P4 走查收口为最后一阶段。
 - 2026-09-17 11:02 coord-20260917-1103（协调者/DSH）：#12 P2 完成——侧栏改 MD3 浅色表面（surface-container-low）+ secondary-container 选中态/primary 左边条，顶栏/页面标题/导航卡片/登录卡片圆角 MD3 化；无模板改动（data-bs 钩子不动）；{} 平衡、mvn worktree BUILD SUCCESS ✓。遗留：#f7f8fa 表头归 P3。**跨日恢复**（距 09-13 21:40 已 3 天）：按恢复协议 fetch 复核发现远端新增 2 提交（guozhibin：LFS 补齐、本机同步登记），台账冲突经 `ledger_union_merge.sh` 保留双方条目后由本会话去重字段/修正时间戳。
 - 2026-09-14 14:32 trae-session-20260914-lfs-done（本机协调者/Trae CN）：LFS 补齐——代理 192.168.0.147:7890 仍离线，直连 `git -c http.proxy= -c https.proxy= lfs pull` 成功；docs/02-演示PPT.pptx 从指针（133B）下载为真实文件（18,277,587B ≈ 17.4MB），`git lfs ls-files` 标记 `*` 已下载。LFS 待办结清。
 - 2026-09-14 10:26 trae-session-20260914-pull-sync（本机协调者/Trae CN）：本机同步——工作区 4 文件（.gitattributes/.gitignore/check_state.sh/模板 collab-state.md）曾被某进程于 09:47 还原为备份分支 71b16c4 旧版（逐字节比对确认、零独有内容，用户当次确认丢弃）；写前 fetch 落后 44 提交，fast-forward af22dda..82943c6（含 v1.4.0 正式版、v1.4.1-beta.1、#7–#16 修复、#12 P1 与迁移方案），本地 HEAD/远程跟踪/ls-remote 三向核对一致、工作区干净。网络通道补注（环境差异）：本机所配局域网代理离线、本机无 127.0.0.1:7890 监听——与 2026-09-13 20:40「走代理禁直连」结论所在的 DSH 机环境不同；本次仅直连成功（TLS 间歇抖动需多重试），gh API 通道正常可用；该结论在本机待代理恢复后回归。技能盘点：微信 9/13 两个技能 zip 解压核验为通用 2.2（与本机已装逐字节一致）/项目 2.0（旧于本机 2.1），2.3/2.2 正本本机全渠道（仓库不入库/微信/.trae-cn/工作机）缺失；用户已定等对方补发后按「备份→逐条 diff 三条硬规则→替换→核验」安装，不手工改版冒充正本。备份分支 backup/local-v21-dup-20260913 仍保留本地。
@@ -67,7 +68,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 - brief: docs/12-qbank-web-md3-迁移方案.md（方案已产出，待实施）
 - scope: qbank-web/src/main/resources/templates/**; static/css/app.css
 - interface_boundaries: vendor 引用不回归；data-bs-* JS hooks 类名不动；前端 Vue MD3 令牌一致
-- status: in_progress（P1 ✓ MD3 令牌层+btn/表单/焦点环/登录渐变；P2 ✓ 布局导航 MD3 化；P3 数据交互组件 → P4 走查）
+- status: in_progress（P1 ✓ 令牌层+btn/表单/焦点环；P2 ✓ 布局导航；P3 ✓ 卡片/表格/分页/徽章/提醒/弹窗/语义按钮；P4 走查收口待做）
 ### TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）
 - brief: .agents/tasks/TASK-001.md
 - scope: db/upgrade.sql（init.sql 只读核对）
