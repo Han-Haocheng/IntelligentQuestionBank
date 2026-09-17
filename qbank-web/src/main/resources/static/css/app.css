@@ -440,3 +440,42 @@ body {
     --bs-btn-active-border-color: var(--md-surface-container-highest);
     --bs-btn-active-color: var(--md-on-surface);
 }
+
+/* ============ P4(#12): Bootstrap ↔ MD3 令牌桥接与字阶收口 ============ */
+/* 桥接 Bootstrap 默认调色板(RGB 变量)到 MD3：text-primary/text-muted/bg-light/link 等
+   全部工具类自动落到 MD3 色，避免残留 Bootstrap 默认蓝/灰 */
+:root {
+    --bs-primary: #6750a4;
+    --bs-primary-rgb: 103, 80, 164;
+    --bs-secondary-rgb: 73, 69, 79;
+    --bs-success-rgb: 20, 108, 46;
+    --bs-danger-rgb: 179, 38, 30;
+    --bs-warning-rgb: 122, 89, 0;
+    --bs-info-rgb: 73, 69, 79;
+    --bs-light-rgb: 243, 237, 247;
+    --bs-dark-rgb: 29, 27, 32;
+    --bs-body-bg: #fef7ff;
+    --bs-body-color: #1d1b20;
+    --bs-body-color-rgb: 29, 27, 32;
+    --bs-secondary-color: rgba(73, 69, 79, 0.85);
+    --bs-secondary-bg: #f7f2fa;
+    --bs-tertiary-bg: #f3edf7;
+    --bs-border-color: #79747e;
+    --bs-border-color-translucent: rgba(121, 116, 126, 0.25);
+    --bs-link-color-rgb: 103, 80, 164;
+    --bs-link-hover-color-rgb: 93, 79, 138;
+    --bs-emphasis-color-rgb: 29, 27, 32;
+}
+
+/* 字阶/行高收口：文本与前端 Vue(MD3 body-medium 14px)对齐（不改 root 字号，避免整体布局位移） */
+body {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--md-on-surface);
+}
+.qk-content {
+    padding: 24px;
+}
+.table, .card, .alert, .form-control, .form-select, .btn {
+    font-size: 14px;
+}
