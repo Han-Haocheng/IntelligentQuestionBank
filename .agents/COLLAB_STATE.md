@@ -13,7 +13,7 @@ skill_version: 通用 2.3 / 项目 2.2
 state_policy: git
 ledger_lock: （空）
 lock_until: （空）
-updated_at: 2026-09-13 20:40
+updated_at: 2026-09-13 21:00
 last_session: coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
   profile: trae-cn（最近更新；另一方 dsh-default）
@@ -26,6 +26,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 
 ## Session Log
 
+- 2026-09-13 21:00 coord-20260913-1450（协调者/DSH）：#12 P2 完成——侧栏改 MD3 浅色表面（surface-container-low）+ secondary-container 选中态/primary 左边条，顶栏/页面标题/导航卡片/登录卡片圆角 MD3 化；无模板改动（data-bs 钩子不动）；{} 平衡、mvn worktree BUILD SUCCESS ✓。遗留：#f7f8fa 表头归 P3。
 - 2026-09-13 20:40 coord-20260913-1450（协调者/DSH）：网络通道结论——git 走代理 127.0.0.1:7890（local+global 已配），Clash 分流规则已加 github.com→主代理（建议补 githubusercontent.com 覆盖 Release/LFS 资产）；**禁止 `-c http.proxy=` 绕代理**（直连对 GitHub 国内不稳，此前 TLS 抖动根源）；默认代理下 ls-remote/push 秒通。
 - 2026-09-13 20:25 coord-20260913-1450（协调者/DSH）：#12 P1 完成——app.css 加 MD3 令牌层（色板/形状与前端一致）+ .btn/.form-control/.form-check/:focus-visible 覆盖 + 登录渐变与 body 背景统一主色；{} 平衡、mvn worktree BUILD SUCCESS ✓。
 - 2026-09-13 19:50 coord-20260913-1450（协调者/DSH）：**v1.4.0 正式版发布完成**（API 核实：dev=main=fe10ba1、package.json=1.4.0、标签 v1.4.0 已打；release.yml 打包进行中）。#12 已关联 v1.4.1 milestone（排期承诺工程化登记）。本地 git fetch 受 TLS 阻断（gh API 通道正常），本地同步待网络恢复后 merge（禁 rebase）+ 推送 15c092c 等本地提交。
@@ -64,7 +65,7 @@ last_known_good: 9a205c5aec4ee12d57cc4d23ebdb201d045cae1a
 - brief: docs/12-qbank-web-md3-迁移方案.md（方案已产出，待实施）
 - scope: qbank-web/src/main/resources/templates/**; static/css/app.css
 - interface_boundaries: vendor 引用不回归；data-bs-* JS hooks 类名不动；前端 Vue MD3 令牌一致
-- status: in_progress（P1 完成：MD3 令牌层+btn/表单/焦点环/登录渐变 ✓；P2 布局导航 → P3 数据交互组件 → P4 走查）
+- status: in_progress（P1 ✓ MD3 令牌层+btn/表单/焦点环/登录渐变；P2 ✓ 布局导航 MD3 化；P3 数据交互组件 → P4 走查）
 ### TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）
 - brief: .agents/tasks/TASK-001.md
 - scope: db/upgrade.sql（init.sql 只读核对）
