@@ -30,6 +30,13 @@
     --md-shape-md: 12px;
     --md-shape-lg: 16px;
     --md-shape-xl: 24px;
+    /* 交互态(hover/active)色阶：MD3 主色/语义色的加深变体，供按钮等组件引用 */
+    --md-primary-hover: #5d4f8a;
+    --md-primary-active: #584a83;
+    --md-secondary-container-hover: #dcd4ea;
+    --md-secondary-container-active: #d5cce4;
+    --md-success-hover: #115c27;
+    --md-success-active: #0f5223;
     /* 主题色引用(现有 qk 变量归一到 MD3 紫) */
     --qk-primary: var(--md-primary);
     --qk-sidebar-bg: var(--md-surface-container-low);
@@ -188,15 +195,7 @@ body {
     text-decoration: none;
 }
 
-/* ---- 通用表格/分页微调 ---- */
-.table thead th {
-    background: #f7f8fa;
-    white-space: nowrap;
-}
-
-.pagination {
-    margin-bottom: 0;
-}
+/* ---- 表格/分页(见 P3 节 MD3 化) ---- */
 
 /* ============ P1(#12): MD3 基础组件覆盖(按钮/表单/焦点) ============ */
 
@@ -214,10 +213,10 @@ body {
 .btn-primary {
     --bs-btn-bg: var(--md-primary);
     --bs-btn-border-color: var(--md-primary);
-    --bs-btn-hover-bg: #5d4f8a;
-    --bs-btn-hover-border-color: #5d4f8a;
-    --bs-btn-active-bg: #584a83;
-    --bs-btn-active-border-color: #584a83;
+    --bs-btn-hover-bg: var(--md-primary-hover);
+    --bs-btn-hover-border-color: var(--md-primary-hover);
+    --bs-btn-active-bg: var(--md-primary-active);
+    --bs-btn-active-border-color: var(--md-primary-active);
     --bs-btn-disabled-bg: var(--md-primary);
     --bs-btn-disabled-border-color: var(--md-primary);
 }
@@ -234,8 +233,8 @@ body {
     --bs-btn-bg: var(--md-secondary-container);
     --bs-btn-border-color: var(--md-secondary-container);
     --bs-btn-color: var(--md-on-secondary-container);
-    --bs-btn-hover-bg: #dcd4ea;
-    --bs-btn-active-bg: #d5cce4;
+    --bs-btn-hover-bg: var(--md-secondary-container-hover);
+    --bs-btn-active-bg: var(--md-secondary-container-active);
 }
 .btn-outline-secondary {
     --bs-btn-color: var(--md-on-surface-variant);
@@ -270,4 +269,174 @@ body {
 .form-check-input:focus {
     border-color: var(--md-primary);
     box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.35);
+}
+
+/* ============ P3(#12): MD3 数据与交互组件覆盖 ============ */
+
+/* ---- 卡片 ---- */
+.card {
+    --bs-card-bg: var(--md-surface-container-lowest);
+    --bs-card-color: var(--md-on-surface);
+    --bs-card-border-color: var(--md-outline);
+    --bs-card-border-radius: var(--md-shape-md);
+    --bs-card-cap-bg: var(--md-surface-container-low);
+    --bs-card-cap-color: var(--md-on-surface);
+}
+.card-header {
+    border-bottom-color: var(--md-outline);
+    font-weight: 500;
+}
+
+/* ---- 表格 ---- */
+.table {
+    --bs-table-color: var(--md-on-surface);
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--md-outline);
+    --bs-table-hover-bg: var(--md-surface-container-low);
+    --bs-table-hover-color: var(--md-on-surface);
+    --bs-table-striped-bg: var(--md-surface-container-low);
+    --bs-table-striped-color: var(--md-on-surface);
+}
+.table thead th {
+    background: var(--md-surface-container);
+    color: var(--md-on-surface-variant);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ---- 分页 ---- */
+.pagination {
+    --bs-pagination-color: var(--md-on-surface-variant);
+    --bs-pagination-bg: var(--md-surface-container-lowest);
+    --bs-pagination-border-color: var(--md-outline);
+    --bs-pagination-hover-bg: var(--md-surface-container-high);
+    --bs-pagination-hover-color: var(--md-on-surface);
+    --bs-pagination-hover-border-color: var(--md-outline);
+    --bs-pagination-focus-bg: var(--md-surface-container-high);
+    --bs-pagination-focus-color: var(--md-on-surface);
+    --bs-pagination-focus-box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.35);
+    --bs-pagination-active-bg: var(--md-secondary-container);
+    --bs-pagination-active-border-color: var(--md-secondary-container);
+    --bs-pagination-active-color: var(--md-on-secondary-container);
+    --bs-pagination-disabled-bg: var(--md-surface-container-low);
+    margin-bottom: 0;
+}
+.pagination .page-link {
+    border-radius: var(--md-shape-sm);
+    margin: 0 2px;
+}
+
+/* ---- 徽章(MD3 容器色语义) ---- */
+.badge {
+    border-radius: 999px;
+    font-weight: 500;
+}
+.text-bg-primary {
+    background-color: var(--md-primary-container) !important;
+    color: var(--md-on-primary-container) !important;
+}
+.text-bg-secondary {
+    background-color: var(--md-secondary-container) !important;
+    color: var(--md-on-secondary-container) !important;
+}
+.text-bg-light {
+    background-color: var(--md-surface-container-high) !important;
+    color: var(--md-on-surface) !important;
+}
+.text-bg-success {
+    background-color: var(--md-success-container) !important;
+    color: var(--md-success) !important;
+}
+.text-bg-info {
+    background-color: var(--md-surface-container-highest) !important;
+    color: var(--md-on-surface-variant) !important;
+}
+.text-bg-danger {
+    background-color: var(--md-error-container) !important;
+    color: var(--md-error) !important;
+}
+
+/* ---- 提醒 ---- */
+.alert {
+    border-radius: var(--md-shape-sm);
+    border-width: 1px;
+}
+.alert-success {
+    --bs-alert-color: var(--md-success);
+    --bs-alert-bg: var(--md-success-container);
+    --bs-alert-border-color: var(--md-success);
+}
+.alert-danger {
+    --bs-alert-color: var(--md-error);
+    --bs-alert-bg: var(--md-error-container);
+    --bs-alert-border-color: var(--md-error);
+}
+.alert-warning {
+    --bs-alert-color: var(--md-warning);
+    --bs-alert-bg: var(--md-warning-container);
+    --bs-alert-border-color: var(--md-warning);
+}
+.alert-info {
+    --bs-alert-color: var(--md-on-surface-variant);
+    --bs-alert-bg: var(--md-surface-container-high);
+    --bs-alert-border-color: var(--md-outline);
+}
+
+/* ---- 弹窗 ---- */
+.modal-content {
+    border: none;
+    border-radius: var(--md-shape-lg);
+    background: var(--md-surface-container-lowest);
+    color: var(--md-on-surface);
+}
+.modal-header, .modal-footer {
+    border-color: var(--md-outline);
+}
+
+/* ---- 语义按钮补全(success/danger/warning/light) ---- */
+.btn-success {
+    --bs-btn-bg: var(--md-success);
+    --bs-btn-border-color: var(--md-success);
+    --bs-btn-hover-bg: var(--md-success-hover);
+    --bs-btn-hover-border-color: var(--md-success-hover);
+    --bs-btn-active-bg: var(--md-success-active);
+    --bs-btn-active-border-color: var(--md-success-active);
+}
+.btn-outline-success {
+    --bs-btn-color: var(--md-success);
+    --bs-btn-border-color: var(--md-success);
+    --bs-btn-hover-bg: var(--md-success-container);
+    --bs-btn-hover-color: var(--md-success);
+    --bs-btn-hover-border-color: var(--md-success);
+    --bs-btn-active-bg: var(--md-success-container);
+    --bs-btn-active-color: var(--md-success);
+}
+.btn-outline-danger {
+    --bs-btn-color: var(--md-error);
+    --bs-btn-border-color: var(--md-error);
+    --bs-btn-hover-bg: var(--md-error-container);
+    --bs-btn-hover-color: var(--md-error);
+    --bs-btn-hover-border-color: var(--md-error);
+    --bs-btn-active-bg: var(--md-error-container);
+    --bs-btn-active-color: var(--md-error);
+}
+.btn-outline-warning {
+    --bs-btn-color: var(--md-warning);
+    --bs-btn-border-color: var(--md-warning);
+    --bs-btn-hover-bg: var(--md-warning-container);
+    --bs-btn-hover-color: var(--md-warning);
+    --bs-btn-hover-border-color: var(--md-warning);
+    --bs-btn-active-bg: var(--md-warning-container);
+    --bs-btn-active-color: var(--md-warning);
+}
+.btn-light {
+    --bs-btn-bg: var(--md-surface-container-high);
+    --bs-btn-border-color: var(--md-surface-container-high);
+    --bs-btn-color: var(--md-on-surface);
+    --bs-btn-hover-bg: var(--md-surface-container-highest);
+    --bs-btn-hover-border-color: var(--md-surface-container-highest);
+    --bs-btn-hover-color: var(--md-on-surface);
+    --bs-btn-active-bg: var(--md-surface-container-highest);
+    --bs-btn-active-border-color: var(--md-surface-container-highest);
+    --bs-btn-active-color: var(--md-on-surface);
 }
