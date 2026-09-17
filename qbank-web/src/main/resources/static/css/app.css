@@ -13,9 +13,9 @@
     --md-error: #b3261e;
     --md-error-container: #f9dedc;
     --md-success: #146c2e;
-    --md-success-container: #b8f1c1;
+    --md-success-container: #c4eed0;
     --md-warning: #7a5900;
-    --md-warning-container: #ffdf9d;
+    --md-warning-container: #ffdf99;
     --md-surface: #fef7ff;
     --md-surface-container-lowest: #ffffff;
     --md-surface-container-low: #f7f2fa;
@@ -29,14 +29,17 @@
     --md-shape-sm: 8px;
     --md-shape-md: 12px;
     --md-shape-lg: 16px;
-    --md-shape-xl: 24px;
-    /* 交互态(hover/active)色阶：MD3 主色/语义色的加深变体，供按钮等组件引用 */
-    --md-primary-hover: #5d4f8a;
-    --md-primary-active: #584a83;
+    /* MD3 shape extra-large = 28px（对齐前端 styles.css；本文件暂无消费，弹窗圆角候选） */
+    --md-shape-xl: 28px;
+    /* 交互态(hover/pressed)色阶：按 MD3 状态层推导 —— filled 按钮的状态层色为内容色(on-primary=白)，
+       hover 8% / pressed 10%，故在深色填充上体现为**变亮**（与前端 theme.js 派生一致）；
+       secondary-container 上的状态层色为深色 on-secondary-container，故体现为变暗 */
+    --md-primary-hover: #735eab;
+    --md-primary-active: #7662ad;
     --md-secondary-container-hover: #dcd4ea;
     --md-secondary-container-active: #d5cce4;
-    --md-success-hover: #115c27;
-    --md-success-active: #0f5223;
+    --md-success-hover: #27783f;
+    --md-success-active: #2c7b43;
     /* 主题色引用(现有 qk 变量归一到 MD3 紫) */
     --qk-primary: var(--md-primary);
     --qk-sidebar-bg: var(--md-surface-container-low);
