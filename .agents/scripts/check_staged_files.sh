@@ -18,7 +18,8 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 1
 fi
 
-mapfile -t staged < <(git diff --cached --name-only)
+# core.quotepath=false: 中文等非 ASCII 文件名原样输出, 不被转义成引号+\xxx
+mapfile -t staged < <(git -c core.quotepath=false diff --cached --name-only)
 if [ "${#staged[@]}" -eq 0 ]; then
   echo "[FAIL] 暂存区为空（先逐文件 git add）" >&2
   exit 1

@@ -1,14 +1,45 @@
 /* ============ 智能题库(服务端渲染版) 通用样式 ============ */
+/* P1(#12): MD3 设计令牌层 —— 色板/形状与前端 Vue(MD3 紫基线) 一致 */
 :root {
-    --qk-primary: #2f54eb;
-    --qk-sidebar-bg: #1f2a44;
-    --qk-sidebar-text: #b6c0d4;
+    /* 色彩(MD3 utilities 色板) */
+    --md-primary: #6750a4;
+    --md-on-primary: #ffffff;
+    --md-primary-container: #eaddff;
+    --md-on-primary-container: #21005d;
+    --md-secondary: #625b71;
+    --md-secondary-container: #e8def8;
+    --md-on-secondary-container: #1d192b;
+    --md-tertiary: #7d5260;
+    --md-error: #b3261e;
+    --md-error-container: #f9dedc;
+    --md-success: #146c2e;
+    --md-success-container: #b8f1c1;
+    --md-warning: #7a5900;
+    --md-warning-container: #ffdf9d;
+    --md-surface: #fef7ff;
+    --md-surface-container-lowest: #ffffff;
+    --md-surface-container-low: #f7f2fa;
+    --md-surface-container: #f3edf7;
+    --md-surface-container-high: #ece6f0;
+    --md-surface-container-highest: #e6e0e9;
+    --md-on-surface: #1d1b20;
+    --md-on-surface-variant: #49454f;
+    --md-outline: #79747e;
+    /* 形状 */
+    --md-shape-sm: 8px;
+    --md-shape-md: 12px;
+    --md-shape-lg: 16px;
+    --md-shape-xl: 24px;
+    /* 主题色引用(现有 qk 变量归一到 MD3 紫) */
+    --qk-primary: var(--md-primary);
+    --qk-sidebar-bg: var(--md-surface-container-low);
+    --qk-sidebar-text: var(--md-on-surface-variant);
 }
 
 body {
     margin: 0;
     font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f0f2f5;
+    background: var(--md-surface-container-lowest);
 }
 
 /* ---- 整体布局: 侧栏 + 主区 ---- */
@@ -34,8 +65,8 @@ body {
     padding: 18px 20px;
     font-size: 18px;
     font-weight: 700;
-    color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    color: var(--md-on-surface);
+    border-bottom: 1px solid var(--md-surface-container-highest);
 }
 
 .qk-nav {
@@ -48,29 +79,31 @@ body {
     padding: 14px 20px 4px;
     font-size: 12px;
     letter-spacing: 1px;
-    color: #7d8aa5;
+    color: var(--md-on-surface-variant);
 }
 
 .qk-nav a {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 20px;
-    color: var(--qk-sidebar-text);
+    margin: 0 8px;
+    padding: 9px 12px;
+    color: var(--md-on-surface-variant);
     text-decoration: none;
-    border-left: 3px solid transparent;
+    border-left: 3px solid var(--md-on-secondary-container);
+    border-radius: 0 var(--md-shape-sm) var(--md-shape-sm) 0;
     font-size: 14px;
 }
 
 .qk-nav a:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, .06);
+    color: var(--md-on-surface);
+    background: var(--md-surface-container-high);
 }
 
 .qk-nav a.active {
-    color: #fff;
-    background: rgba(255, 255, 255, .1);
-    border-left-color: var(--qk-primary);
+    color: var(--md-on-secondary-container);
+    background: var(--md-secondary-container);
+    border-left-color: var(--md-primary);
 }
 
 .qk-main {
@@ -86,8 +119,8 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 12px 24px;
-    background: #fff;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--md-surface-container-lowest);
+    border-bottom: 1px solid var(--md-outline);
     position: sticky;
     top: 0;
     z-index: 20;
@@ -96,6 +129,7 @@ body {
 .qk-page-title {
     font-size: 16px;
     font-weight: 600;
+    color: var(--md-on-surface);
 }
 
 .qk-content {
@@ -116,7 +150,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #2f54eb 0%, #36cfc9 100%);
+    background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-tertiary) 100%);
     padding: 16px;
 }
 
@@ -124,7 +158,7 @@ body {
     width: 400px;
     max-width: 100%;
     border: none;
-    border-radius: 12px;
+    border-radius: var(--md-shape-lg);
 }
 
 /* ---- 首页导航卡片 ---- */
@@ -134,11 +168,11 @@ body {
     align-items: center;
     gap: 8px;
     padding: 26px 12px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--md-surface-container-lowest);
+    border: 1px solid var(--md-outline);
+    border-radius: var(--md-shape-md);
     text-decoration: none;
-    color: #333;
+    color: var(--md-on-surface);
     transition: all .18s;
 }
 
@@ -149,7 +183,7 @@ body {
 
 .qk-tile:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, .08);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .12);
     color: var(--qk-primary);
     text-decoration: none;
 }
@@ -162,4 +196,78 @@ body {
 
 .pagination {
     margin-bottom: 0;
+}
+
+/* ============ P1(#12): MD3 基础组件覆盖(按钮/表单/焦点) ============ */
+
+/* ---- 全局键盘焦点环(与前端一致) ---- */
+:focus-visible {
+    outline: 2px solid var(--md-primary);
+    outline-offset: 2px;
+}
+
+/* ---- 按钮(filled / outlined) ---- */
+.btn {
+    border-radius: var(--md-shape-sm);
+    font-weight: 500;
+}
+.btn-primary {
+    --bs-btn-bg: var(--md-primary);
+    --bs-btn-border-color: var(--md-primary);
+    --bs-btn-hover-bg: #5d4f8a;
+    --bs-btn-hover-border-color: #5d4f8a;
+    --bs-btn-active-bg: #584a83;
+    --bs-btn-active-border-color: #584a83;
+    --bs-btn-disabled-bg: var(--md-primary);
+    --bs-btn-disabled-border-color: var(--md-primary);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--md-primary);
+    --bs-btn-border-color: var(--md-primary);
+    --bs-btn-hover-bg: var(--md-primary-container);
+    --bs-btn-hover-color: var(--md-on-primary-container);
+    --bs-btn-hover-border-color: var(--md-primary);
+    --bs-btn-active-bg: var(--md-primary-container);
+    --bs-btn-active-color: var(--md-on-primary-container);
+}
+.btn-secondary {
+    --bs-btn-bg: var(--md-secondary-container);
+    --bs-btn-border-color: var(--md-secondary-container);
+    --bs-btn-color: var(--md-on-secondary-container);
+    --bs-btn-hover-bg: #dcd4ea;
+    --bs-btn-active-bg: #d5cce4;
+}
+.btn-outline-secondary {
+    --bs-btn-color: var(--md-on-surface-variant);
+    --bs-btn-border-color: var(--md-outline);
+    --bs-btn-hover-bg: var(--md-surface-container);
+    --bs-btn-hover-border-color: var(--md-outline);
+    --bs-btn-hover-color: var(--md-on-surface-variant);
+    --bs-btn-active-bg: var(--md-surface-container-high);
+    --bs-btn-active-border-color: var(--md-on-surface-variant);
+}
+
+/* ---- 表单控件(表面/文字/焦点) ---- */
+.form-control, .form-select {
+    border-radius: var(--md-shape-sm);
+    background-color: var(--md-surface-container-lowest);
+    color: var(--md-on-surface);
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.35);
+}
+.form-label {
+    color: var(--md-on-surface-variant);
+    font-weight: 500;
+}
+
+/* ---- 输入组/校验等共享态 ---- */
+.form-check-input:checked {
+    background-color: var(--md-primary);
+    border-color: var(--md-primary);
+}
+.form-check-input:focus {
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.35);
 }
