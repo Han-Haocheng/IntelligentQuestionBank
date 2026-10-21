@@ -1,0 +1,122 @@
+{
+  "task_dir": ".agents/tasks",
+  "doc_standard": ".agents/doc-standard.json",
+  "scopes": [
+    "frontend/theme",
+    "frontend/exam",
+    "backend/auth",
+    "backend/question",
+    "backend/practice",
+    "qbank-web/ui",
+    "db/schema",
+    "ci/release",
+    "docs"
+  ],
+  "allowed_domains": [
+    "frontend/src",
+    "backend/src",
+    "qbank-web/src",
+    "db",
+    ".agents",
+    "README.MD",
+    "docs"
+  ],
+  "version_checks": [
+    {
+      "name": "frontend/package.json",
+      "file": "frontend/package.json",
+      "pattern": "\"version\":\\s*\"([^\"]+)\""
+    },
+    {
+      "name": "frontend/package-lock.json",
+      "file": "frontend/package-lock.json",
+      "pattern": "\"version\":\\s*\"([^\"]+)\""
+    },
+    {
+      "name": "backend/pom.xml",
+      "file": "backend/pom.xml",
+      "pattern": "<artifactId>qbank</artifactId>\\s*<version>([^<]+)</version>"
+    },
+    {
+      "name": "qbank-web/pom.xml",
+      "file": "qbank-web/pom.xml",
+      "pattern": "<artifactId>qbank-web</artifactId>\\s*<version>([^<]+)</version>"
+    },
+    {
+      "name": "README.MD",
+      "file": "README.MD",
+      "pattern": "qbank-([0-9][^\\s\"]*)\\.jar"
+    }
+  ],
+  "sync": {
+    "version": {
+      "match": [
+        "frontend/package.json",
+        "frontend/package-lock.json",
+        "backend/pom.xml",
+        "qbank-web/pom.xml",
+        "README.MD"
+      ],
+      "check": "version"
+    },
+    "readme": {
+      "match": [
+        "README.MD"
+      ],
+      "check": "readme"
+    },
+    "tokens": {
+      "match": [
+        "frontend/src/styles.css",
+        "qbank-web/src/main/resources/static/css/app.css"
+      ],
+      "command": [
+        "bash",
+        ".agents/scripts/check_md_tokens.sh"
+      ]
+    },
+    "schema": {
+      "match": [
+        "db/"
+      ]
+    },
+    "api": {
+      "match": [
+        "frontend/src/api/",
+        "backend/src/main/java/com/qbank/controller/"
+      ]
+    }
+  },
+  "build": {
+    "frontend": {
+      "cmd": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "frontend"
+    },
+    "backend": {
+      "cmd": [
+        "mvn",
+        "-B",
+        "-DskipTests",
+        "package",
+        "--file",
+        "backend/pom.xml"
+      ],
+      "cwd": "."
+    },
+    "qbank-web": {
+      "cmd": [
+        "mvn",
+        "-B",
+        "-DskipTests",
+        "package",
+        "--file",
+        "qbank-web/pom.xml"
+      ],
+      "cwd": "."
+    }
+  }
+}

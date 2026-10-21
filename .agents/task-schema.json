@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "status": [
+    "draft",
+    "active",
+    "blocked",
+    "done",
+    "archived"
+  ],
+  "sync": [
+    "version",
+    "readme",
+    "tokens",
+    "schema",
+    "api"
+  ]
+}

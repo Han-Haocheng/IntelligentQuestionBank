@@ -1,0 +1,266 @@
+#!/usr/bin/env python3
+"""task: structured task brief CLI (optional precision layer)."""
+import argparse
+import json
+import os
+import re
+import sys
+sys.dont_write_bytecode = True
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import precision_common as pc
+
+LOCK_TTL = 300
+
+def acquire_lock(root, cfg):
+    lock = pc.task_dir(root, cfg) / ".lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    if lock.exists():
+        age = time.time() - lock.stat().st_mtime
+        if age < LOCK_TTL:
+            print(f"[FAIL] LOCKED: {lock}（{int(age)}s < {LOCK_TTL}s）", file=sys.stderr)
+            return None
+        lock.unlink()
+        print(f"[WARN] 清理过期锁 {lock}", file=sys.stderr)
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        print(f"[FAIL] LOCKED: {lock}", file=sys.stderr)
+        return None
+    return lock
+
+def release_lock(lock):
+    try:
+        if lock and lock.exists():
+            lock.rmdir()
+    except OSError:
+        pass
+
+def next_id(root, cfg):
+    base = pc.now().strftime("%Y%m%d")
+    pat = re.compile(r"^T-" + base + r"-(\d{2})\.json$")
+    nums = []
+    d = pc.task_dir(root, cfg)
+    if d.is_dir():
+        for p in d.iterdir():
+            m = pat.match(p.name)
+            if m:
+                nums.append(int(m.group(1)))
+    return f"T-{base}-{max(nums, default=0) + 1:02d}"
+
+def parse_acceptance(values):
+    out = []
+    for s in values or []:
+        cmd, sep, exp = s.partition("=>")
+        if not sep or not cmd.strip() or not exp.strip():
+            raise SystemExit(f"[FAIL] --acceptance 需要 cmd=>expect: {s}")
+        out.append({"cmd": cmd.strip(), "expect": exp.strip()})
+    return out
+
+def cmd_new(args):
+    root = pc.repo_root(args.root)
+    cfg = pc.load_config(root)
+    lock = acquire_lock(root, cfg)
+    if not lock:
+        return 2
+    try:
+        tid = args.id or next_id(root, cfg)
+        if pc.task_path(root, cfg, tid).exists():
+            print(f"[FAIL] ID_EXISTS: {tid}", file=sys.stderr)
+            return 1
+        ts = pc.iso(pc.now())
+        task = {
+            "schema": 1,
+            "id": tid,
+            "legacy_id": args.legacy_id or None,
+            "title": args.title,
+            "status": "draft",
+            "owner": args.owner or "coord",
+            "created_at": ts,
+            "updated_at": ts,
+            "baseline": args.baseline or "",
+            "workdir": args.workdir or ".",
+            "goal": args.goal,
+            "scope": {"allow": args.allow, "deny": args.deny or []},
+            "interfaces": {
+                "api": args.api or "none",
+                "schema": args.schema or "none",
+                "tokens": args.tokens or "none"
+            },
+            "sync": args.sync or [],
+            "invariants": args.invariant or [],
+            "acceptance": parse_acceptance(args.acceptance),
+            "forbidden": args.forbidden or ["push", "git add -A", "安装依赖", "改版本号", "写 CHANGELOG"],
+            "stop_conditions": args.stop or ["门禁红"],
+            "preflight": {
+                "understanding": args.understanding or "",
+                "objections": args.objection or [],
+                "resolution": "none",
+                "decided_by": args.owner or "coord"
+            },
+            "checkpoints": [],
+            "commits": [],
+            "notes": args.notes or ""
+        }
+        errs = pc.task_errors(task, cfg, pc.all_tasks(root, cfg))
+        if errs:
+            if args.json:
+                print(json.dumps(pc.envelope("new", False, tid, errs), ensure_ascii=False, indent=2))
+            else:
+                pc.print_errors(errs)
+            return 1
+        pc.write_json(pc.task_path(root, cfg, tid), task)
+        if args.json:
+            print(json.dumps(pc.envelope("new", True, tid, data=task), ensure_ascii=False, indent=2))
+        else:
+            print(tid)
+            print(pc.task_path(root, cfg, tid))
+        return 0
+    finally:
+        release_lock(lock)
+
+def project_fields(task, fields):
+    if not fields:
+        return task
+    out = {}
+    for f in fields.split(","):
+        f = f.strip()
+        if not f:
+            continue
+        cur = task
+        ok = True
+        for part in f.split("."):
+            if isinstance(cur, dict) and part in cur:
+                cur = cur[part]
+            else:
+                ok = False
+                break
+        if ok:
+            out[f] = cur
+    return out
+
+def cmd_show(args):
+    root = pc.repo_root(args.root)
+    cfg = pc.load_config(root)
+    task = pc.load_task(root, cfg, args.id)
+    if not task:
+        print(f"[FAIL] NOT_FOUND: {args.id}", file=sys.stderr)
+        return 1
+    data = project_fields(task, args.fields)
+    if args.json or args.fields:
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return 0
+    print(f"{data.get('id')} | {data.get('status')} | {data.get('title')}")
+    for k in ("goal", "owner", "baseline"):
+        if k in data:
+            print(f"{k}: {data[k]}")
+    if "scope" in data:
+        print("scope.allow: " + ", ".join(data["scope"].get("allow") or []))
+    if "acceptance" in data:
+        print(f"acceptance: {len(data['acceptance'] or [])} 条")
+    pf = data.get("preflight") or {}
+    if pf:
+        print(f"preflight: {pf.get('resolution')}")
+    return 0
+
+def cmd_check(args):
+    root = pc.repo_root(args.root)
+    cfg = pc.load_config(root)
+    tasks = pc.all_tasks(root, cfg)
+    if args.all_active:
+        targets = [t for t in tasks if t.get("status") == "active"]
+        if not targets:
+            print("[WARN] 没有 active 任务")
+            return 0
+    else:
+        if not args.id:
+            print("[FAIL] 需要 <id> 或 --all-active", file=sys.stderr)
+            return 2
+        t = pc.load_task(root, cfg, args.id)
+        if not t:
+            print(f"[FAIL] NOT_FOUND: {args.id}", file=sys.stderr)
+            return 1
+        targets = [t]
+    all_errors = []
+    for t in targets:
+        errs = pc.task_errors(t, cfg, tasks)
+        all_errors.extend([dict(x, task=t.get("id")) for x in errs])
+    if args.json:
+        print(json.dumps(pc.envelope("check", not all_errors, None, all_errors), ensure_ascii=False, indent=2))
+    else:
+        for x in all_errors:
+            print(f"{x.get('task')} {x['path']}: {x['code']}: {x['message']}", file=sys.stderr)
+        if not all_errors:
+            print("OK")
+    return 1 if all_errors else 0
+
+def cmd_list(args):
+    root = pc.repo_root(args.root)
+    cfg = pc.load_config(root)
+    tasks = pc.all_tasks(root, cfg)
+    if args.status:
+        tasks = [t for t in tasks if t.get("status") == args.status]
+    if args.json:
+        print(json.dumps(tasks, ensure_ascii=False, indent=2))
+    else:
+        for t in tasks:
+            print(f"{t.get('id')} | {t.get('status')} | {t.get('title')}")
+    return 0
+
+def main():
+    p = argparse.ArgumentParser(prog="task")
+    p.add_argument("--root", help="仓库根（默认 git toplevel 或 TASK_ROOT）")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    n = sub.add_parser("new")
+    n.add_argument("--title", required=True)
+    n.add_argument("--goal", required=True)
+    n.add_argument("--allow", action="append", required=True)
+    n.add_argument("--deny", action="append")
+    n.add_argument("--invariant", action="append")
+    n.add_argument("--acceptance", action="append")
+    n.add_argument("--owner")
+    n.add_argument("--baseline", default="")
+    n.add_argument("--workdir", default=".")
+    n.add_argument("--legacy-id")
+    n.add_argument("--id")
+    n.add_argument("--understanding", default="")
+    n.add_argument("--objection", action="append")
+    n.add_argument("--sync", action="append")
+    n.add_argument("--api", default="none")
+    n.add_argument("--schema", default="none")
+    n.add_argument("--tokens", default="none")
+    n.add_argument("--forbidden", action="append")
+    n.add_argument("--stop", action="append")
+    n.add_argument("--notes", default="")
+    n.add_argument("--json", action="store_true")
+
+    s = sub.add_parser("show")
+    s.add_argument("id")
+    s.add_argument("--json", action="store_true")
+    s.add_argument("--fields")
+
+    c = sub.add_parser("check")
+    c.add_argument("id", nargs="?")
+    c.add_argument("--all-active", action="store_true")
+    c.add_argument("--json", action="store_true")
+
+    l = sub.add_parser("list")
+    l.add_argument("--status")
+    l.add_argument("--json", action="store_true")
+
+    args = p.parse_args()
+    if args.cmd == "new":
+        return cmd_new(args)
+    if args.cmd == "show":
+        return cmd_show(args)
+    if args.cmd == "check":
+        return cmd_check(args)
+    if args.cmd == "list":
+        return cmd_list(args)
+    return 2
+
+if __name__ == "__main__":
+    sys.exit(main())
