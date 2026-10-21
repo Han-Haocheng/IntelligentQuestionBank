@@ -1,0 +1,25 @@
+name: Discipline
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 编译精度层脚本
+        run: python3 -m py_compile .agents/scripts/task .agents/scripts/*.py
+      - name: 任务校验
+        run: python3 .agents/scripts/task check --all-active
+      - name: 环境体检
+        run: python3 .agents/scripts/gate.py doctor

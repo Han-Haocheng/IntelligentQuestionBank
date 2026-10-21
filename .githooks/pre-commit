@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -u
+root=$(git rev-parse --show-toplevel) || exit 0
+cd "$root" || exit 0
+if [ -n "${GATE_TASK_ID:-}" ] || [ -s .agents/tasks/.current ]; then
+  exec python3 .agents/scripts/gate.py check
+fi
+echo "[gate] 未设置 GATE_TASK_ID/.current；结构化门禁跳过（observe）" >&2
+exit 0
