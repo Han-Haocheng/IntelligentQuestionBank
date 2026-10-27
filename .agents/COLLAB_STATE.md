@@ -1,7 +1,7 @@
 # COLLAB_STATE（智能题库项目协作台账）
 
 > 多人多 AI 共享的协作事实源，入仓（state_policy: git）。禁止写入密钥/token/密码；不写本地绝对路径。
-> 每次改动同步 `updated_at`；超过 64KB 先把 Active 内容归档到 Archive。
+> 每次改动同步 `updated_at`；超过 64KB 先把 Active 内容归档到 Archive。Active ≤30 行、Session Log 留 5 条，超出条目逐字移入 `.agents/COLLAB_STATE.archive.md`（不删条目、不改写）。
 > 仅协调者写入；子代理用独立心跳/状态文件上报（`.agents/heartbeat/<session>.json`，不入 git）。
 > 损坏时用 git 历史 / reflog / 最近任务书重建，重建前不执行。
 > baseline 语义 = 最近一次非台账交付的 HEAD；台账自身提交会使 baseline 滞后一个提交，check_state 的 WARN 属预期——恢复时 `git log --oneline <baseline>..HEAD` 领先提交仅为台账时忽略。
@@ -9,15 +9,15 @@
 > **工作环境声明**：`.dsh/`、`/.trae/`、`/.tools/` 等为本机工具链运行环境目录（DSH 等的会话快照/本地计划），**各本机保留、一律不入 git**；勿因协作资产已迁至 `.agents/` 而删除对应的 `.gitignore` 忽略项（2026-09-13 曾发生，已补回）。
 
 state_version: 1
-skill_version: 通用 2.3 / 项目 2.2
+skill_version: 通用 2.9 / 项目 2.6
 state_policy: git
-ledger_lock: coord-20260917-1126（本机协调者 DSH；接续 coord-20260917-1103 的锁[11:44:46 到期后接管]；union 合并写入，30 分钟自动过期）
-lock_until: 1789618505（2026-09-17 12:15；过期自动释放）
-updated_at: 2026-09-17 11:45
-last_session: coord-20260917-1126 / coord-20260917-1103 / trae-session-20260914-lfs-done / trae-session-20260914-pull-sync / coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
+ledger_lock: 无（上一持有者 coord-20260917-1126 的锁已过期）
+lock_until: 0
+updated_at: 2026-10-27 20:40（Asia/Shanghai）
+last_session: coord-20261027-2050 / coord-20260917-1126 / coord-20260917-1103 / trae-session-20260914-lfs-done / trae-session-20260914-pull-sync / coord-20260913-1450 / trae-cn-2026-09-13 / trae-session-20260913-v21-migration（并行协调者，union 合并）
 environment:
-  profile: trae-cn（最近更新；另一方 dsh-default）
-  model: TRAE 会话内置模型（以当前会话为准；另一方 deepseek-v4-flash）
+  profile: dsh-default
+  model: deepseek-v4-flash
   git_version: git version 2.55.0.windows.5（另一方 2.55.0）
   workspace: 仓库根 IntelligentQuestionBank（四模块 root，相对描述）
 
@@ -26,87 +26,32 @@ last_known_good: ff0f64fdb88dbd2929e75e49747bab10227ef7f3
 
 ## Session Log
 
+- 2026-10-27 20:40 coord-20261027-2050（协调者/DSH）：**多平台协作约定重构 + 台账瘦身归档**。① 单一事实源：`AGENTS.md` 收敛为 `RULES` 块（BEGIN/END 标记）唯一可编辑处，各平台入口文件由 `.agents/scripts/platform_entries.py` 从 `RULES` 块渲染，禁止手写正文。② 平台入口按需生成：`.agents/platforms.json` 登记 → `generate` → `check`；未登记的已知入口文件由 CI 判红；本机专用入口走 `install --local`（不入库）。③ L1 钩子扩展：`.githooks/pre-commit` 在无任务上下文（无 `GATE_TASK_ID` 且无 `.agents/tasks/.current`）时也检查提交格式、受保护路径、平台入口同源。④ L2 权威：`.github/workflows/discipline.yml` 新增「平台入口同源 + 提交范围校验（`range_check.py`）」两步，叠加原有 py_compile / `task check --all-active` / `gate.py doctor`；版本声明与 `CHANGELOG.md` 放行白名单 = 作者 `github-actions[bot]` 或标题前缀 `chore(release)`，其余阻断。⑤ `bootstrap.sh` 一条命令接入（装 `core.hooksPath=.githooks` + 环境自检）。⑥ 台账瘦身：Session Log 仅留最新 5 条、Active 压到四要素（≤30 行），更早条目与已完成任务细节逐字移入 `.agents/COLLAB_STATE.archive.md`。后续待办：其他成员按各自平台在 `platforms.json` 登记入口后 `generate`（本机 targets 为空，不预置他人入口）。
+
+> 更早条目见 `.agents/COLLAB_STATE.archive.md`（逐字搬迁，未改写）
+
 - 2026-09-17 11:45 coord-20260917-1126（协调者/DSH）：**前端 MD3 差距审计 + 令牌对齐交付**（33a6bca docs/13 / e9d9455 qbank-web 令牌 / 4ac5f3a 前端静态令牌 / ff0f64f 校验脚本）。① 审计：用户判断"前后端分离版（frontend）未完整使用 MD3"**成立**——可证差距 G1–G12：EP 语义色整套未映射（`--el-color-success/warning/danger/error/info` → alert 文案与图标、`el-form-item` 校验文案与必填星号仍取 EP 品牌色）、表单标签仍 EP `#606266`（`--el-text-color-*` 仅暗色主题写入）、`el-select` 下拉面板未覆盖（20 处/7 视图，`styles.css` 覆盖的是 `.el-dropdown-menu` 另一组件）、loading 遮罩 `#ffffffe6` 非 MD3 scrim、无字阶/动效令牌/ripple、几何未 MD3 化（switch 40×20）、图标集为 EP icons；量化：前端 53 令牌 + 54 个 `.el-*` 选择器 vs 在用 52 个 EP 组件，未映射 `--el-*` 引用 474 处/去重 273 个。② 结论纠正：EP 之上不可达"完整 MD3"，定义 L1 令牌级/L2 组件皮肤级/L3 组件库级，本次取 **L2 收口（不换库）**，方案 docs/13（P1 令牌收口 → P2 未覆盖组件 → P3 字阶与状态层 → P4 高度/主题约束 → P5 走查）**待用户评审后实施**。③ 令牌漂移修复：qbank-web 5 处（`--md-shape-xl` 24→28px[MD3 规范值；该令牌在 qbank-web 无消费]；`--md-primary-hover`/`--md-success-hover` 由"加深"改为 MD3 状态层"提亮"方向；success/warning container 取值）+ pressed 态派生（`--md-primary-active`→`#7662ad`、`--md-success-active`→`#2c7b43`）+ 前端 3 处（静态 hover 令牌与 `theme.js` 的 `mix()` 派生值不逐位相等，改为派生值 `#b93730`/`#27783f`/`#856614`）。④ 新增 `.agents/scripts/check_md_tokens.sh`（纯 bash + `LC_ALL=C` 修 comm 排序域；正反向自测：注入漂移→FAIL/退出码 1、文件缺失→2）。门禁：qbank-web `mvn package` BUILD SUCCESS ✓；前端在**原生 FS 副本** `npm ci` + `vite build` ✓（工作区因 FUSE 孤儿文件阻塞，见 Waiting For User）；CSS 盲区补扫（括号 104/104、61/61；无重复/自引用令牌）✓。
 - 2026-09-17 11:14 coord-20260917-1103（协调者/DSH）：#12 **P4 完成，迁移四阶段全部交付**（97d3433）——新增 Bootstrap↔MD3 令牌桥接：把 Bootstrap 的 --bs-*-rgb（primary/secondary/success/danger/warning/light + body/border/link）整体映射到 MD3，使 text-muted(52 处)/text-danger(13)/text-primary(12)/bg-light(10)/bg-white(4)/text-success(7) 等工具类与 error.html 自动落到 MD3 色，不再泄露 Bootstrap 默认蓝/灰；字阶收口 body/表格/卡片/表单/按钮 14px（对齐前端 body-medium），内容区 padding 24px。门禁：括号平衡 61/61、无自引用/无裸色值（157 令牌）、mvn worktree BUILD SUCCESS ✓。**遗留：人工视觉验收（14 页目测）为验收前置，本环境无浏览器故未做**；验收通过即可关闭 issue #12。
 - 2026-09-17 11:11 coord-20260917-1103（协调者/DSH）：#12 P3 完成——卡片/表格（表头 #f7f8fa→surface-container）/分页（选中=secondary-container）/徽章（text-bg-* 六变体映射 MD3 容器色）/提醒（四变体）/弹窗（shape-lg+outline）/语义按钮补全（success/danger/warning/light），并把按钮 hover/active 深色变体收敛为 :root 令牌（--md-primary-hover 等）；门禁：括号平衡 57/57、无自引用/无裸色值（137 令牌）、mvn worktree BUILD SUCCESS ✓。P4 走查收口为最后一阶段。
 - 2026-09-17 11:02 coord-20260917-1103（协调者/DSH）：#12 P2 完成——侧栏改 MD3 浅色表面（surface-container-low）+ secondary-container 选中态/primary 左边条，顶栏/页面标题/导航卡片/登录卡片圆角 MD3 化；无模板改动（data-bs 钩子不动）；{} 平衡、mvn worktree BUILD SUCCESS ✓。遗留：#f7f8fa 表头归 P3。**跨日恢复**（距 09-13 21:40 已 3 天）：按恢复协议 fetch 复核发现远端新增 2 提交（guozhibin：LFS 补齐、本机同步登记），台账冲突经 `ledger_union_merge.sh` 保留双方条目后由本会话去重字段/修正时间戳。
-- 2026-09-14 14:32 trae-session-20260914-lfs-done（本机协调者/Trae CN）：LFS 补齐——代理 192.168.0.147:7890 仍离线，直连 `git -c http.proxy= -c https.proxy= lfs pull` 成功；docs/02-演示PPT.pptx 从指针（133B）下载为真实文件（18,277,587B ≈ 17.4MB），`git lfs ls-files` 标记 `*` 已下载。LFS 待办结清。
-- 2026-09-14 10:26 trae-session-20260914-pull-sync（本机协调者/Trae CN）：本机同步——工作区 4 文件（.gitattributes/.gitignore/check_state.sh/模板 collab-state.md）曾被某进程于 09:47 还原为备份分支 71b16c4 旧版（逐字节比对确认、零独有内容，用户当次确认丢弃）；写前 fetch 落后 44 提交，fast-forward af22dda..82943c6（含 v1.4.0 正式版、v1.4.1-beta.1、#7–#16 修复、#12 P1 与迁移方案），本地 HEAD/远程跟踪/ls-remote 三向核对一致、工作区干净。网络通道补注（环境差异）：本机所配局域网代理离线、本机无 127.0.0.1:7890 监听——与 2026-09-13 20:40「走代理禁直连」结论所在的 DSH 机环境不同；本次仅直连成功（TLS 间歇抖动需多重试），gh API 通道正常可用；该结论在本机待代理恢复后回归。技能盘点：微信 9/13 两个技能 zip 解压核验为通用 2.2（与本机已装逐字节一致）/项目 2.0（旧于本机 2.1），2.3/2.2 正本本机全渠道（仓库不入库/微信/.trae-cn/工作机）缺失；用户已定等对方补发后按「备份→逐条 diff 三条硬规则→替换→核验」安装，不手工改版冒充正本。备份分支 backup/local-v21-dup-20260913 仍保留本地。
-- 2026-09-13 21:40 coord-20260913-1450（协调者/DSH）：网络通道结论——git 走代理 127.0.0.1:7890（local+global 已配），Clash 分流规则已加 github.com→主代理（建议补 githubusercontent.com 覆盖 Release/LFS 资产）；**禁止 `-c http.proxy=` 绕代理**（直连对 GitHub 国内不稳，此前 TLS 抖动根源）；默认代理下 ls-remote/push 秒通。注：本结论限于 DSH 机环境；另机（局域网代理离线的 trae-cn）依赖直连，见 2026-09-14 10:26 条。
-- 2026-09-13 21:13 coord-20260913-1450（协调者/DSH）：#12 P1 完成——app.css 加 MD3 令牌层（色板/形状与前端一致）+ .btn/.form-control/.form-check/:focus-visible 覆盖 + 登录渐变与 body 背景统一主色；{} 平衡、mvn worktree BUILD SUCCESS ✓。
-- 2026-09-13 19:50 coord-20260913-1450（协调者/DSH）：**v1.4.0 正式版发布完成**（API 核实：dev=main=fe10ba1、package.json=1.4.0、标签 v1.4.0 已打；release.yml 打包进行中）。#12 已关联 v1.4.1 milestone（排期承诺工程化登记）。本地 git fetch 受 TLS 阻断（gh API 通道正常），本地同步待网络恢复后 merge（禁 rebase）+ 推送 15c092c 等本地提交。
-- 2026-09-13 19:35 coord-20260913-1450（协调者/DSH）：按用户指示关闭全部待验收 issue（#4/#5/#6/#7/#8/#9/#10/#11/#13/#14/#15/#16，共 12 个，gh close 附修复提交与验收状态评论；#5 注明真实库验证待补可重开）；剩余打开仅 #12（backlog）。
-- 2026-09-13 19:15 coord-20260913-1450（协调者/DSH）：无人值守轮 8——issue #6 死令牌核查完成（真实零消费仅 tertiary-container/on-tertiary-container 2 个已删；其余均有消费；11 字段主题模型为设计选择维持现状，primary=#6750a4 走官方色板基线）；前端门禁 ✓。
-- 2026-09-13 19:05 coord-20260913-1450（协调者/DSH）：无人值守轮 7——issue #4/#15 深色主题 EP 覆盖补全（theme.js 按 pageBg 明暗写入/清理 EP text/bg/overlay/border + MD 表面阶梯，暗夜深蓝下 EP 文本表格弹层可读）；前端门禁 npm run build ✓。
-- 2026-09-13 18:55 coord-20260913-1450（协调者/DSH）：无人值守轮 6——issue #10 登录态失效（LoginInterceptor 每请求查库校验 status，禁用/删除即时失效并同步最新资料、密码 hash 不入 session；WebConfig 构造器注入 Mapper）；门禁 worktree BUILD SUCCESS ✓。
-- 2026-09-13 18:45 coord-20260913-1450（协调者/DSH）：无人值守轮 5——issue #16 键盘可访问性与小屏（全局 :focus-visible 焦点环、侧栏折叠按钮 role=button+tabindex+Enter/Space 语义化、640px 断点收紧留白）；前端门禁 npm run build ✓。遗留：完整小屏布局重构（移动抽屉）列 backlog。
-- 2026-09-13 18:35 coord-20260913-1450（协调者/DSH）：无人值守轮 4——issue #8 限流绕过修复（loginKey 小写归一防大小写变体；XFF 默认不信任，需 qbank-web.rate-limit.trust-x-forwarded-for=true 显式开启；锁定到期惰性清零）；门禁 worktree BUILD SUCCESS ✓。
-- 2026-09-13 18:25 coord-20260913-1450（协调者/DSH）：无人值守轮 3——issue #9 会话安全加固（SessionID 登录/注册轮换防固定、SameSite=Lax+HttpOnly 配置、tracking-modes=cookie 杜绝 URL jsessionid；CSRF 以 SameSite 缓解，完整 CSRF token 留 backlog 注明）；门禁 worktree BUILD SUCCESS ✓。
-- 2026-09-13 18:15 coord-20260913-1450（协调者/DSH）：无人值守轮 2——issue #11 登录页修复完成（538e05f：口令不落明文/失败回填用户名/站内回跳 isSafeNext 防开放重定向/LoginInterceptor 带 next 编码跳转；qbank-web 门禁 worktree 验证 BUILD SUCCESS ✓）；途中集成 beta.6 bump（2419311，合并 5e2c9f2）。
-- 2026-09-13 18:05 coord-20260913-1450（协调者/DSH）：无人值守轮 1——issue #7 残留硬编码色值改读 EP 语义令牌（6c10fbc，7 文件：状态色→el-color-*/边框→el-border-color/占位→placeholder；前端门禁 npm ci+build 通过 ✓）；issue #13 顶栏标题补齐 pageTitle（9505c08，5 控制器：登录/注册/仪表盘/题库管理/分类管理/题目管理/题目表单；qbank-web 门禁在干净 worktree 验证通过 ✓——工作树 target 受同机 Trae/IDE 干扰，构建验证已用 worktree 对照确认与改动无关）。
-- 2026-09-13 17:55 coord-20260913-1450（协调者/DSH）：**无人值守模式启动**（用户指示"现在开始无人执手，修复后续的问题"）——任务周期内 fast-forward 推 dev 预授权当次确认；按自主执行规则逐 issue 修复、checkpoint 推送、需要人工决策时暂停汇报。「禁默认 rebase」条款落地（AGENTS.md 并行细则 + 技能）；首次 rebase 为当时用户确认的例外，发现并行后一律 merge+union。
-- 2026-09-13 17:45 coord-20260913-1450（协调者/DSH）：**TASK-002 完成**（430cae3）——bootstrap 5.3.3 + icons 1.11.3（含字体）入 vendor，layout.html 3 处改本地 th: 引用；bootcdn 零命中、路径一致、mvn clean package 通过（首次失败系工作树 target 陈旧产物，clean 修复；干净 HEAD worktree 对照确认与改动无关）。issue 修复核查：#3 已关闭，TASK-001/002 已交付。
-
-- 2026-09-13 16:40 coord-20260913-1450（协调者/DSH）：**TASK-001 完成**（2e210d0）——upgrade.sql 追加 v6.1 种子主题幂等刷新（仅当 id=1 未被管理员改动时刷新为 MD3 紫，重复导入不再触发）；config 与 init.sql 逐字符一致、引号平衡、幂等推演成立；真实库运行验证待有权限环境（本机 MySQL root 无密码被拒，未猜凭据）。issue #3 已由 gh 关闭（COMPLETED，关联 67730c3）。
-
-- 2026-09-13 16:31 trae-session-20260913-v21-migration（协调者/Trae CN·另机，git 2.39.1）：第五次分叉对齐（重复迁移型；用户当次确认）。本会话从滞后基线 a203a6a 重复实施 .agents 迁移，本地 4 提交（c541330/3068063/7ce8c18/71b16c4）内容被远端 1a0008b 起的版本完全覆盖；处置：备份分支 backup/local-v21-dup-20260913 保留后 `reset --hard origin/dev`（a8147e1，零丢失、未 force）。附带事实：①外发 v2.1 源头草稿（聊天接收副本，仓库外）缺固定作者/仅 beta/跨模块拆提交三条硬规则，已就地补回，用户将回传分发渠道；同目录更老旧草稿按用户决定原样保留；②本机技能安装目录为通用 2.2/项目 2.1，滞后上游标准 2.3/2.2，待指定来源同步；③styles.css/LoginView.vue 文件头重复 BOM 已回退（无净变更）；④本机代理 192.168.0.147:7890 离线，直连可用但抖动；reset 时 LFS 文件 docs/02-演示PPT.pptx（18MB）直连下载挂起，已 GIT_LFS_SKIP_SMUDGE 跳过（指针落盘），待代理恢复 `git lfs pull`。
-- 2026-09-13 16:25 coord-20260913-1450（协调者/DSH）：**并行细则落地**（用户确认"按你的建议来"）——文件域分工并行 OK、台账写锁（ledger_lock/lock_until，30 分钟过期，写前 fetch 读锁）、台账低频更新、冲突兜底（保留双方全部条目）；固化于 AGENTS.md「并行协作细则」、台账模板与技能。当前锁空置。
-- 2026-09-13 16:10 coord-20260913-1450（协调者/DSH）：第四次集成完成（用户确认接管）——merge ggt 15:50 心跳作业（7988fc9）与 beta.4 bump（7b4f995，github-actions[bot]，dev 累积达标自动发布 v1.4.0-beta.4，版本声明 5 处已随合并同步）；台账以双方全部条目合并（工作树曾被本机 IDE/Trae 侧并发写，用户确认由本会话接管）。工作环境声明（.dsh 等运行目录勿删忽略项）已固化于 AGENTS.md/技能/台账/.gitignore。
-- 2026-09-13 16:00 coord-20260913-1450（协调者/DSH）：第三次集成完成（merge ggt 65d040d/9a205c5/08ff930，保留双方全部条目）；工作环境声明固化——`.dsh/` 为本机 DSH 运行环境目录（非废弃约定），.gitignore 忽略项已补回并说明；教训：push 前也须 fetch（本次分叉发生在 push 瞬间）。**发现同工作树并发写迹象**：冲突文件 15:56:25 被外部进程改写（reflog 无提交），已按纪律冻结并上报用户。
-- 2026-09-13 15:55 coord-20260913-1450（协调者/DSH）：开始第三次集成——merge ggt 15:47-15:48 提交（65d040d/9a205c5/08ff930）。
-- 2026-09-13 15:50 trae-cn-2026-09-13（协调者/Trae CN）：**心跳作业**（用户指示）。写台账前先 `git fetch origin dev` 核对得 `0 0`（合规新硬步骤）后动笔。落地本机心跳文件 `.agents/heartbeat/trae-cn-2026-09-13.json`（不入 git）。同步修正 `.agents/templates/collab-state.md` 滞后的 `skill_version`（→ 通用 2.3/项目 2.2）；修正 `baseline`/`last_known_good` 滞后（39fed75 → **9a205c5**）。
-- 2026-09-13 15:50 coord-20260913-1450（协调者/DSH）：与 trae-cn 线合并对齐（git merge origin/dev，冲突仅台账，保留双方全部条目）；采纳复盘教训——heartbeat_sync.sh 增加"写台账前自动 fetch 核对"步骤；自动化落地（heartbeat_sync/预授权条款）随本次合并入线。
-- 2026-09-13 15:47 trae-cn-2026-09-13（协调者/Trae CN）：经用户当次确认清理 `.gitignore` 第 22 行废弃忽略项 `.dsh/`（协作资产已收拢至 `.agents/`，该目录约定作废）；推送 dev（含 65d040d 台账提交）。
-- 2026-09-13 15:46 trae-cn-2026-09-13（协调者/Trae CN）：按用户指示「按建议来」固化防分叉硬步骤。写台账前先 `git fetch origin dev` 核对，得 `0 0`（无分叉）后动笔。更新技能：通用技能 2.2→**2.3**；项目技能 2.1→**2.2**（对齐通用 2.3）。技能文件位于技能安装目录，不入 git。同步台账 `skill_version` 为「通用 2.3 / 项目 2.2」。
-- 2026-09-13 15:41 trae-cn-2026-09-13（协调者/Trae CN）：恢复协议核对发现本地 dev 与 `origin/dev` **再次分叉**（本地独有 3：39fed75/aac8c6b/8bab271；远端独有 2：d332735/3b6f967，均为台账提交；merge-base 70cfc3f）。经用户当次确认执行「合并对齐」：`git merge origin/dev` 并手工合并台账（保留双方全部条目，未丢弃任何提交），随后推送 dev。
-- 2026-09-13 15:30 trae-cn-2026-09-13（协调者/Trae CN）：本地分支清理。经用户当次确认删除本地 `main`（81fb016，删除前校验 `origin/main..main = 0`，无独有提交、零丢失）；本地 `beta` 分支原本不存在。本地现仅剩 `dev`。未 push。
-- 2026-09-13 15:25 coord-20260913-1450（协调者/DSH）：同步自动化落地——heartbeat_sync.sh 一键心跳+台账提交（--push 需预授权/当次确认）；任务书预授权条款（周期内 fast-forward 推 dev）写入 AGENTS.md/技能/台账模板。
-- 2026-09-13 15:24 trae-cn-2026-09-13（协调者/Trae CN）：心跳对齐。本地 dev 与远端分叉，经用户当次确认以 `origin/dev` 重建，丢弃本地 3 个重复提交；补回远端缺失的 `.gitattributes` 行尾规则（`*.sh text eol=lf`，39fed75）；登记本会话心跳。无活跃任务。
-- 2026-09-13 14:50 coord-20260913-1450（协调者/DSH）：完成技能 v2.1 重做与多人协作修正（.agents/ 入仓、Windows Git Bash 标注、基线滞后语义）；无活跃任务，等待新目标。心跳对齐。
 
 ## Active Tasks
 
 ### TASK-003（v1.4.1 里程碑 #12：qbank-web 全量 MD3 迁移）
-- brief: docs/12-qbank-web-md3-迁移方案.md（方案已产出，待实施）
-- scope: qbank-web/src/main/resources/templates/**; static/css/app.css
-- interface_boundaries: vendor 引用不回归；data-bs-* JS hooks 类名不动；前端 Vue MD3 令牌一致
-- status: stages_done（P1 ✓ 令牌层+btn/表单/焦点环；P2 ✓ 布局导航；P3 ✓ 卡片/表格/分页/徽章/提醒/弹窗/语义按钮；P4 ✓ Bootstrap↔MD3 令牌桥接+字阶收口）——**待人工视觉验收**（14 页目测）；验收通过后关闭 #12 并推进 v1.4.1 正式发布。**2026-09-17 令牌已与前端对齐（e9d9455）：shape-xl 28px、hover/pressed 改提亮方向、语义容器色取值——视觉验收请以对齐后版本为准**
+- 目标：qbank-web 模板与静态样式全量 MD3 迁移（brief: docs/12-qbank-web-md3-迁移方案.md；scope: qbank-web/src/main/resources/templates/**; static/css/app.css；影响域：vendor 引用不回归、data-bs-* JS hooks 类名不动、前端 Vue MD3 令牌一致）
+- 状态：stages_done——P1 令牌层+btn/表单/焦点环、P2 布局导航、P3 卡片/表格/分页/徽章/提醒/弹窗/语义按钮、P4 Bootstrap↔MD3 令牌桥接+字阶收口全部完成；2026-09-17 令牌已与前端对齐（e9d9455）
+- 阻塞点：待人工视觉验收（14 页目测）；验收通过后关闭 #12 并推进 v1.4.1 正式发布
+- 验证：qbank-web `mvn -B -DskipTests package --file qbank-web/pom.xml`（干净 worktree）；14 视图目测
 
 ### TASK-004（v1.4.1 周期：frontend 前端 MD3 L2 收口）
-- brief: docs/13-frontend-md3-审计与迁移方案.md（**方案已交付，待用户评审**；评审通过后按 P1-P5 实施）
-- scope: frontend/src/styles.css; frontend/src/stores/theme.js; frontend/src/views/**; frontend/src/components/**（**不含** frontend/package.json 与 package-lock.json）
-- interface_boundaries: theme.js ↔ styles.css 令牌契约（暗色分支先清后写）；qbank-web 令牌同步（`.agents/scripts/check_md_tokens.sh` 守护）；不改后端 API（401/403、JWT 白名单）、不改依赖、不改版本声明 5 处、不写 CHANGELOG
-- owner_session: coord-20260917-1126
-- pending_takeover: （空）
-- heartbeat: 1789616705
-- status: plan_delivered（L2 路线 + P1-P5 + 验收标准 + 影响域已写入 docs/13；**等待用户评审后再动代码**）
-- next_action: 用户评审 docs/13 → P1（EP 语义色/中性色/遮罩/动效令牌映射，关掉 G1/G2/G4/G6）
-- verification: `(cd frontend && npm ci && npm run build)`；`bash .agents/scripts/check_md_tokens.sh`；14 视图目测 + `firefox --headless --screenshot` 探针（环境变量门控）
-- 环境阻塞: 工作区 `frontend/node_modules/@rollup/rollup-linux-x64-gnu` 因 FUSE 孤儿文件（`.fuse_hidden*`，Windows 宿主侧句柄未释放）导致 `npm ci` ENOTEMPTY；门禁暂以原生 FS 副本验证（`tar` 复制 + MD5 核对一致性）
+- 目标：按 docs/13 实施 P1-P5（brief: docs/13-frontend-md3-审计与迁移方案.md；scope: frontend/src/styles.css、frontend/src/stores/theme.js、frontend/src/views/**、frontend/src/components/**（不含 frontend/package.json 与 package-lock.json）；影响域：theme.js ↔ styles.css 令牌契约、qbank-web 令牌同步、不改后端 API、不改依赖、不改版本声明 5 处、不写 CHANGELOG）
+- 状态：plan_delivered（owner_session: coord-20260917-1126；L2 路线 + P1-P5 + 验收标准 + 影响域已写入 docs/13）
+- 阻塞点：等用户评审 docs/13 后才动代码；工作区 `frontend/node_modules/@rollup/rollup-linux-x64-gnu` 因 FUSE 孤儿文件（`.fuse_hidden*`）导致 `npm ci` ENOTEMPTY，门禁暂以原生 FS 副本验证
+- 验证：`(cd frontend && npm ci && npm run build)`；`bash .agents/scripts/check_md_tokens.sh`；14 视图目测 + `firefox --headless --screenshot` 探针（环境变量门控）
 
-### TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）
-- brief: .agents/tasks/TASK-001.md
-- scope: db/upgrade.sql（init.sql 只读核对）
-- interface_boundaries: app_theme 种子 ↔ theme.js isBaseline（primary='#6750a4'）；与 init.sql config 完全一致；幂等且不覆盖管理员改动
-- owner_session: coord-20260913-1450
-- pending_takeover: （空）
-- heartbeat: 1789287300
-- status: completed
-- next_action: （已完成）真实库运行验证待有权限环境；发布周期提示执行 upgrade.sql
-- verification: db 幂等契约（重复导入不报错）；init.sql 一致性 grep；本任务不涉及前后端构建
-- completed_commit: 2e210d0
-
-### TASK-002（issue #14：qbank-web BootCDN 资源本地化）
-- brief: .agents/tasks/TASK-002.md
-- scope: qbank-web/src/main/resources/static/vendor/**（新增）; templates/fragments/layout.html
-- interface_boundaries: layout.html 是全部 14 页面公共片段；版本保持 bootstrap 5.3.3 / icons 1.11.3 不变；icons css 需同步 fonts
-- owner_session: coord-20260913-1450
-- pending_takeover: （空）
-- heartbeat: 1789287300
-- status: confirmed
-- next_action: （已完成 430cae3）bootcdn 零命中、mvn clean package 通过（首败为 target 陈旧产物，clean 后解决）
-- verification: qbank-web mvn package；bootcdn 零命中 grep；vendor 文件存在性
-- completed_commit: 430cae3
+### TASK-001 / TASK-002（已完结，细节见 `.agents/COLLAB_STATE.archive.md` 的 Archive › Completed Tasks）
+- TASK-001（issue #5：upgrade.sql 同步 MD3 紫默认主题）：completed，2e210d0；真实库幂等验证待有权限环境
+- TASK-002（issue #14：qbank-web BootCDN 资源本地化）：completed，430cae3
 
 ## Waiting For User
 
@@ -115,6 +60,7 @@ last_known_good: ff0f64fdb88dbd2929e75e49747bab10227ef7f3
 - 2026-09-13 19:25 coord-20260913-1450（协调者/DSH）：无人值守轮 9（收尾）——自主修复全部完成（#3 关闭；#5/#7/#8/#9/#10/#11/#13/#16/#4/#15/#6 共 11 个已交付，见 Session Log 轮 1-8）。#12（qbank-web 全量 MD3）决策：属 14 模板重写大工程、半吊子迁移反增混乱，列 backlog 建议独立里程碑（含小屏布局重构）。待人工验收项：TASK-001 真实库幂等验证、#4/#15/#11/#16 运行期目测、qbank-web 各修复在部署环境回归。issue 关闭由用户验收后执行（未自动关）。
 - 本机（工作机 trae-session-20260914-pull-sync）技能安装目录为通用 2.2/项目 2.1；微信 9/13 技能 zip 经解压核验为通用 2.2（与本机一致）/项目 2.0（更旧），2.3/2.2 正本仅 DSH 机安装目录持有、本机全渠道缺失。用户已定（2026-09-14）：等对方补发 2.3/2.2 技能包后按「备份→逐条 diff 三条硬规则→替换→核验」安装，不手工改版。
 - ~~代理恢复后在该工作机执行 `git lfs pull` 补齐 docs/02-演示PPT.pptx~~ **已完成（2026-09-14 14:32）**：直连 `git lfs pull` 成功，文件 18,277,587B 已下载、`git lfs ls-files` 标记 `*`。
+- 2026-10-27 20:40 coord-20261027-2050（协调者/DSH）：**其他成员按各自平台登记入口**——`.agents/platforms.json` 的 targets 为空、仓库不预置入口文件；使用某平台者执行 `python3 .agents/scripts/platform_entries.py add <平台>` 后 `generate`，并把结果随提交带入。
 
 ## Archive
 

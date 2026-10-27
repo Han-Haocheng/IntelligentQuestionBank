@@ -24,6 +24,8 @@ last_known_good: <每目标回滚基线，可多项>
 
 - <日期时间> <session-id>（<角色/工具链>）：<本次会话产出与状态>；<下一步>。老条目归档到 Archive。
 
+> 归档约定：Active ≤30 行、Session Log 留 5 条；超出条目逐字移入 `.agents/COLLAB_STATE.archive.md`，不删条目、不改写、不调顺序。
+
 ## Active Tasks
 
 ### TASK-001
