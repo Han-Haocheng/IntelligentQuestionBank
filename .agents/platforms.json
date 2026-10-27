@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "rules_file": "AGENTS.md",
+  "rules_begin": "<!-- RULES:BEGIN -->",
+  "rules_end": "<!-- RULES:END -->",
+  "header_note": "生成物：由 .agents/scripts/platform_entries.py 从 AGENTS.md 的 RULES 块渲染；禁止手改。改规则请改 AGENTS.md 后重新 generate。",
+  "footer_note": "完整规则与仓库事实见 AGENTS.md；本文件与 AGENTS.md 冲突时以 AGENTS.md 为准。",
+  "targets": [],
+  "known_platforms": [
+    {
+      "platform": "claude",
+      "display": "Claude Code",
+      "globs": [
+        "CLAUDE.md"
+      ],
+      "format": "md",
+      "local_only": false
+    },
+    {
+      "platform": "gemini",
+      "display": "Gemini CLI",
+      "globs": [
+        "GEMINI.md"
+      ],
+      "format": "md",
+      "local_only": false
+    },
+    {
+      "platform": "conventions",
+      "display": "通用 CONVENTIONS",
+      "globs": [
+        "CONVENTIONS.md"
+      ],
+      "format": "md",
+      "local_only": false
+    },
+    {
+      "platform": "copilot",
+      "display": "GitHub Copilot",
+      "globs": [
+        ".github/copilot-instructions.md",
+        ".github/instructions/*.md"
+      ],
+      "format": "md",
+      "local_only": false
+    },
+    {
+      "platform": "cursor",
+      "display": "Cursor",
+      "globs": [
+        ".cursor/rules/*.mdc"
+      ],
+      "format": "mdc",
+      "local_only": false
+    },
+    {
+      "platform": "cline",
+      "display": "Cline",
+      "globs": [
+        ".clinerules/*.md"
+      ],
+      "format": "md",
+      "local_only": false
+    },
+    {
+      "platform": "windsurf",
+      "display": "Windsurf",
+      "globs": [
+        ".windsurf/rules/*.md"
+      ],
+      "format": "md",
+      "local_only": false
+    },
+    {
+      "platform": "trae",
+      "display": "Trae",
+      "globs": [
+        ".trae/**"
+      ],
+      "format": "md",
+      "local_only": true
+    }
+  ]
+}
