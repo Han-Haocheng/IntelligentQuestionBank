@@ -1,51 +1,78 @@
-# AGENTS.md — 本仓库 AI 协作纪律
+# AGENTS.md — AI 协作强制约定（唯一事实源）
 
-> 约束作用于本仓库的所有 AI 代理（子代理 / Copilot / Cursor / Claude Code 等）。详细规则见技能 intelligent-question-bank-workflow 与 .github/RELEASE_AUTOMATION.md。
+> 适用：本仓库全部 AI 代理与成员（DSH / Trae / Claude Code / Copilot / Cursor / Cline / Gemini 等）。
+> 本文件是规则唯一事实源。各平台入口文件由 `.agents/scripts/platform_entries.py` 从下方 `RULES` 块渲染，**禁止手写正文**；未登记即出现的入口文件由 CI 判红。
+> 修改规则：只改 `RULES` 块 → `generate` → `check` 通过 → 提交。
 
-## 硬性规则（违反即事故）
+<!-- RULES:BEGIN -->
+## 硬性约定（所有平台、所有成员，违反即事故）
 
-1. **一切开发只在 dev**：本地无 main/beta（已删除）；远端 main/beta 仅由发布工作流合并/快进更新。
-   禁止：push 任何分支、手动改版本号、打标签、force、切分支。
-2. **提交必带 pathspec**：`git commit -m "..." -- <文件>`；禁止 `git add -A`；提交前 `git diff --cached --stat` 自检。
-3. **禁止 npm install / 改依赖**（多代理共享环境，需人工决策）。
-4. **不写 CHANGELOG.md 与 README「版本历史」**：由发布周期统一维护。
-5. 版本号由发布工作流管理，人工操作必须用 `.github/scripts/bump-version.sh <版本>`（同步 5 处声明）。
+1. **先对齐**：实质请求先输出「理解 / 异议 / 动作」。方案有错误、风险或会累积技术债时必须反驳并给替代方案；不可逆、敏感、跨契约、需求歧义 → 停下等确认。
+2. **只在 dev**：本地唯一开发分支；`main` / `beta` 只由发布工作流以合并或快进更新。禁止 push、切分支、打标签、force、rebase（协调者持预授权时的 fast-forward 推 dev 除外）。
+3. **提交带 pathspec**：`git commit -m "..." -- <文件>`；禁止 `git add -A`；误暂存用 `git restore --staged <文件>` 摘出，不动工作树；禁止 `--no-verify`。
+4. **禁改清单**：版本声明文件（见「版本与发布」）、`CHANGELOG.md`、依赖与锁文件、`.github/workflows/` 发布三件（beta / formal / release）、他人未提交改动。人工发布走 `.github/scripts/bump-version.sh`。
+5. **提交前必跑**：`python3 .agents/scripts/platform_entries.py check`；有结构化任务时加 `python3 .agents/scripts/task check <任务id>` 与 `python3 .agents/scripts/gate.py check`；推送前 `python3 .agents/scripts/gate.py push`（仅协调者）。
+6. **写域互斥**：同一文件域同一时刻只允许一个写者，动手前声明写域；全量构建与门禁由协调者统一执行。
+7. **台账单写**：`.agents/COLLAB_STATE.md` 只由持锁协调者写；写前 `git fetch` 读 `ledger_lock` / `lock_until`；锁未过期只读；冲突按 union 保留双方全部条目。
+8. **越界即停**：方案偏离、门禁变红、契约冲突、无归属改动 → 保留现场上报，不盲目重试，不自行扩大范围。
+<!-- RULES:END -->
 
-## 验证门禁（全绿才提交）
+## 平台入口
+
+| 项 | 约定 |
+|---|---|
+| 规则源 | 本文件 `RULES` 块，唯一可编辑处 |
+| 生成 | `python3 .agents/scripts/platform_entries.py generate` |
+| 校验 | `python3 .agents/scripts/platform_entries.py check`：0 通过 / 1 漂移或未登记 / 2 配置错误；CI 与 pre-commit 均执行 |
+| 新平台接入 | 成员在 `.agents/platforms.json` 登记后生成；仓库内出现未登记的已知入口文件即判红 |
+| 本机专用入口 | `install --local`（如 `.trae/rules/project_rules.md`），写入本机，不入 git |
+| 能力差异 | 任务板、多代理编排等仅部分平台具备；任一强制约定不得依赖平台独有能力，共同下限 = git + bash + python3 |
+
+平台入口不预置：用哪个平台由该成员自行登记并生成，不替他人决定文件形态。
+
+## 验证门禁（全绿才提交；缺项须显式写「本项目无此项」）
 
 - 前端：`(cd frontend && npm ci && npm run build)`
 - 后端：`mvn -B -DskipTests package --file backend/pom.xml`
-- 改 db/init.sql 需验证幂等（可重复导入）
+- qbank-web：`mvn -B -DskipTests package --file qbank-web/pom.xml`
+- 样式令牌：`bash .agents/scripts/check_md_tokens.sh`
+- DB：改 `db/init.sql` 需验证可重复导入（幂等）
 
-## 版本声明 5 处
+## 门槛阶梯
 
-frontend/package.json · frontend/package-lock.json · backend/pom.xml · qbank-web/pom.xml · README.MD（启动 jar 名）
+| 层 | 位置 | 强度 | 内容 |
+|---|---|---|---|
+| L1 | `.githooks/` | 提前发现 | `bash .agents/scripts/bootstrap.sh` 安装 `core.hooksPath`；无任务上下文也检查提交格式、受保护路径、平台入口同源 |
+| L2 | `.github/workflows/discipline.yml` | 权威，不可绕过 | 提交范围校验（格式 / 禁改文件 / 白名单）、平台入口同源、任务与门禁自检 |
+| L3 | 协调者验收 | 兜底 | 复查提交内容、全仓复跑门禁、检查影响域接口兼容 |
 
-## 发布
+版本放行白名单：作者 `github-actions[bot]` 或标题前缀 `chore(release)`；其余提交触及版本声明或 `CHANGELOG.md` 一律由 L2 阻断。
 
-- beta 自动：dev 自上次跟进 ≥10 提交 → `.github/workflows/beta-release.yml`（合并 dev→beta，prerelease）
-- 正式版：手动派发 `.github/workflows/formal-release.yml`（快进 main，latest）
-- 打包：`.github/workflows/release.yml`（v* 标签或手动填标签）
+## 版本与发布
 
-## 协作台账（多人多 AI 共享事实源）
+- 版本声明：`frontend/package.json`、`frontend/package-lock.json`、`backend/pom.xml`、`qbank-web/pom.xml`、`README.MD`（启动 jar 名）
+- beta 自动：dev 自上次跟进 ≥10 提交 → `.github/workflows/beta-release.yml`；正式版：手动派发 `.github/workflows/formal-release.yml`；打包：`.github/workflows/release.yml`
 
-- 源：`.agents/COLLAB_STATE.md`（入仓、随提交更新；仅协调者写入；只写仓库相对路径，禁止密钥/token）
-- 脚本：提交前自检 `bash .agents/scripts/check_staged_files.sh <允许路径...>`；恢复前 `bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md`；一键心跳 `bash .agents/scripts/heartbeat_sync.sh [--push]`（更新心跳+提交台账；`--push` 需任务书预授权或当次确认，仅 fast-forward 推 dev）；一键盘点 `bash .agents/scripts/collab_status.sh`；对齐 `bash .agents/scripts/collab_sync.sh [--merge] [--push]`（`--push` 需授权）；台账冲突 union 合并 `bash .agents/scripts/ledger_union_merge.sh`
-- 任务书预授权：任务书可登记「本任务周期内 fast-forward 推 dev」并经用户当次确认；周期内自动执行不再逐次确认；发布分支/打标签/其它 push 不在此列
-- 防分叉硬步骤：写台账前必 `git fetch` 核对远端，push 前同样须 fetch 复核（技能通用 2.3 / 项目 2.2 固化）
-- **工作环境声明**：`.dsh/`、`/.trae/`、`/.tools/` 等为本机工具链运行环境目录（DSH 等的会话快照/本地计划），各本机保留、一律不入 git；协作资产只以 `.agents/` 为仓库共享域。**删除任一忽略项前必须先确认该目录不被本机运行环境使用**
-- 脚本需 bash 环境：Windows 协作者用 Git for Windows 自带 Git Bash（或 WSL）执行；cmd/PowerShell 无原生 bash，无法直接运行
-- `.agents/heartbeat/` 为本地心跳，不入 git
+## 协作台账与脚本
 
-## 并行协作细则（多协调者同仓并行）
+- 台账 `.agents/COLLAB_STATE.md`：Active ≤30 行、Session Log 留 5 条；超出部分移入 `.agents/COLLAB_STATE.archive.md`，条目不删除
+- `bootstrap.sh` 装钩子与环境自检；`check_staged_files.sh` 暂存区归属自检；`check_state.sh` 恢复前体检
+- `collab_status.sh` 盘点；`collab_sync.sh [--merge] [--push]` 对齐；`heartbeat_sync.sh [--push]` 心跳；`ledger_union_merge.sh` union 合并
+- 心跳文件 `.agents/heartbeat/<session>.json`（本地，不入 git）
 
-- **并行 OK**：文件域互不重叠的任务可并行开发（任务书写明文件域边界，波次并行）；git 的分布合并模型天然支持多 clone 并行
-- **共享热点单写**：`.agents/COLLAB_STATE.md` 等单一事实源同一时刻只允许一个协调者写入
-- **台账写锁**：写台账前必 `git fetch` 并读远端台账 `ledger_lock`/`lock_until`；锁未过期（30 分钟）则不写（等待或只读）；写入时把锁更新为自己 +30 分钟，随台账提交；过期自动释放
-- **低频更新**：台账只在里程碑/交接/发布点更新；日常状态用本地心跳 `.agents/heartbeat/<session>.json`
-- **冲突兜底**：台账冲突一律按「保留双方全部条目」union 合并，不丢信息；无法自动合并时冻结上报用户
-- **禁默认 rebase**：共享 dev + 多协调者场景禁止默认 rebase（历史重写、重放冲突、双方提交"换身份"）；rebase 仅限"独占分支、无并行写者、提交可重放"的例外且需当次确认；并行场景统一 merge + union
+## 并行协作
+
+- 并行前提：文件域两两不相交、任务书写明边界、协调者统一提交
+- 共享热点单写：`AGENTS.md`、`COLLAB_STATE.md`、`gate-config.json`、`platforms.json`、发布相关文件
+- 多 clone：push 前必 `git fetch` 复核；禁止默认 rebase；冲突用 merge + union；无归属改动先冻结上报
+
+## 工作环境
+
+- `.dsh/`、`.dsh-ops/`、`.trae/`、`.tools/`、`.agents/heartbeat/` 为本机运行环境，不入 git；删除前确认无本机进程使用
+- Windows 成员用 Git for Windows 的 Git Bash 或 WSL 执行 bash / python3 脚本；cmd 与 PowerShell 无原生 bash
 
 ## 提交风格
 
-Conventional Commits（`feat/fix/docs/chore/ci/refactor/style` + 中文说明），原子化提交。
+- Conventional Commits：`feat|fix|docs|chore|ci|refactor|style` + 可选范围 + 中文说明
+- body 带 `Agent: <平台>/<模型>`；结构化任务带 `Task: T-YYYYMMDD-NN`
+- 原子提交：一个可独立验证的步骤一个提交

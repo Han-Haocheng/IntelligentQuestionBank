@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — L1 强制层（平台无关，仅依赖 git + bash，python3 可选）
+# 顺序：① 平台入口同源 ② 受保护路径 ③ 结构化任务门禁
+# 说明：过去「无任务上下文直接 exit 0」已移除；①② 在任何提交上都执行。
+set -u
+
+say() { echo "[gate] $*" >&2; }
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || { say "不在 git 仓库内，跳过"; exit 0; }
+cd "$root" || { say "无法进入仓库根目录，跳过"; exit 0; }
+
+has_python=0
+command -v python3 >/dev/null 2>&1 && has_python=1
+
+# ---------- ① 平台入口同源（有 python3 才跑；缺失降级不阻断） ----------
+pe=".agents/scripts/platform_entries.py"
+if [ "$has_python" -eq 1 ]; then
+  if [ -f "$pe" ]; then
+    say "① 平台入口同源校验：$pe check"
+    if ! python3 "$pe" check; then
+      say "平台入口与 AGENTS.md 的 RULES 块不一致；先 python3 $pe generate 再提交"
+      exit 1
+    fi
+  else
+    say "① 未找到 $pe，平台入口同源校验降级跳过（CI 仍强制）"
+  fi
+else
+  say "① 未找到 python3，平台入口同源校验降级跳过（bash 检查继续）"
+fi
+
+# ---------- 读取受保护路径（配置优先，python3 缺失时用内置默认） ----------
+read_protected() {
+  if [ "$has_python" -eq 1 ] && [ -f .agents/gate-config.json ]; then
+    python3 - <<'PY' 2>/dev/null
+import json
+with open(".agents/gate-config.json", encoding="utf-8") as fh:
+    cfg = json.load(fh)
+prot = cfg.get("protected") or {}
+paths = [str(x) for x in (prot.get("paths") or [])]
+paths += [str(x) for x in (cfg.get("release_workflows") or [])]
+for item in paths:
+    print(item)
+PY
+  fi
+}
+
+protected=$(read_protected || true)
+if [ -z "$protected" ]; then
+  protected=$(printf '%s\n' \
+    CHANGELOG.md \
+    frontend/package.json \
+    frontend/package-lock.json \
+    backend/pom.xml \
+    qbank-web/pom.xml \
+    .github/workflows/beta-release.yml \
+    .github/workflows/formal-release.yml \
+    .github/workflows/release.yml)
+fi
+
+# ---------- ② 受保护路径检查（ALLOW_PROTECTED=1 放行） ----------
+staged=$(git diff --cached --name-only 2>/dev/null || true)
+hits=""
+if [ -n "$staged" ] && [ -n "$protected" ]; then
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
+      if [ "$f" = "$p" ]; then hits="$hits$f"$'\n'; fi
+    done <<< "$staged"
+  done <<< "$protected"
+fi
+hits=$(printf '%s' "$hits" | sed '/^$/d' | sort -u)
+
+if [ -n "$hits" ]; then
+  if [ "${ALLOW_PROTECTED:-0}" = "1" ]; then
+    while IFS= read -r f; do
+      [ -n "$f" ] && say "② ALLOW_PROTECTED=1 放行受保护路径：$f（仅限发布类改动）"
+    done <<< "$hits"
+  else
+    while IFS= read -r f; do
+      [ -n "$f" ] && say "② 受保护路径被暂存：$f"
+    done <<< "$hits"
+    say "受保护路径仅允许发布白名单改动（作者 github-actions[bot] 或标题前缀 chore(release)），人工发布走 .github/scripts/bump-version.sh；确需本机放行用 ALLOW_PROTECTED=1"
+    exit 1
+  fi
+else
+  say "② 受保护路径检查通过"
+fi
+
+# ---------- ②b README 版本行（启动 jar 名）：只拦版本行，正常文档改动放行 ----------
+if [ -n "$staged" ] && printf '%s\n' "$staged" | grep -qx 'README.MD'; then
+  readme_ver() { git show "$1" 2>/dev/null | grep -oE 'qbank-[0-9][^ ")]*\.jar' | head -1; }
+  old_v=$(readme_ver HEAD:README.MD)
+  new_v=$(readme_ver :README.MD)
+  if [ -n "$old_v" ] && [ -n "$new_v" ] && [ "$old_v" != "$new_v" ]; then
+    if [ "${ALLOW_PROTECTED:-0}" = "1" ]; then
+      say "②b ALLOW_PROTECTED=1 放行 README 版本行：$old_v -> $new_v"
+    else
+      say "②b README 启动 jar 名被暂存改动：$old_v -> $new_v（发布类改动用 ALLOW_PROTECTED=1 并走 bump-version.sh）"
+      exit 1
+    fi
+  else
+    say "②b README 版本行未变化"
+  fi
+else
+  say "②b 未暂存 README.MD，跳过版本行检查"
+fi
+
+# ---------- ③ 结构化任务门禁（仅有任务上下文时） ----------
+if [ -n "${GATE_TASK_ID:-}" ] || [ -s .agents/tasks/.current ]; then
+  if [ "$has_python" -eq 0 ]; then
+    say "③ 有任务上下文但缺少 python3，无法执行 gate.py check"
+    exit 1
+  fi
+  say "③ 结构化任务门禁：python3 .agents/scripts/gate.py check"
+  exec python3 .agents/scripts/gate.py check
+fi
+
+say "③ 无任务上下文（GATE_TASK_ID/.current），结构化门禁跳过；①② 已执行"
+exit 0

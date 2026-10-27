@@ -1,0 +1,55 @@
+name: Discipline
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 检出仓库（全历史，供提交范围校验）
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 编译精度层脚本
+        run: python3 -m py_compile .agents/scripts/task .agents/scripts/*.py
+      - name: 任务校验
+        run: python3 .agents/scripts/task check --all-active
+      - name: 环境体检
+        run: python3 .agents/scripts/gate.py doctor
+      - name: 平台入口同源校验
+        run: |
+          set -eu
+          if [ ! -f .agents/scripts/platform_entries.py ]; then
+            echo "[gate] 缺少 .agents/scripts/platform_entries.py，平台入口校验无法执行（禁止静默跳过）" >&2
+            exit 1
+          fi
+          python3 .agents/scripts/platform_entries.py check
+      - name: 提交范围校验
+        run: |
+          set -eu
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          else
+            base="${{ github.event.before }}"
+            head="${{ github.sha }}"
+          fi
+          echo "[gate] 事件：${{ github.event_name }}；base=$base head=$head"
+          zero="0000000000000000000000000000000000000000"
+          if [ -z "$base" ] || [ "$base" = "$zero" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "[gate] before 为空/全零/对象不存在，退化为 --last 1 兜底" >&2
+            python3 .agents/scripts/range_check.py --last 1
+          else
+            python3 .agents/scripts/range_check.py --range "$base..$head"
+          fi

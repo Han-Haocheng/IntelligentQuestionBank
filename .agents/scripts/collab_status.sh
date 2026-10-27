@@ -27,9 +27,10 @@ fi
 
 if [ -f .agents/COLLAB_STATE.md ]; then
   bash .agents/scripts/check_state.sh .agents/COLLAB_STATE.md >/dev/null 2>&1 && echo "[台账] check_state 通过" || echo "[台账] check_state 未通过（见上条/需重建）"
-  lock="$(awk '/^ledger_lock:/{print $2; exit}' .agents/COLLAB_STATE.md)"
+  # 字段值可能带中文说明（如 "coord-x（本机协调者；30 分钟过期）"），只取主体与会话名/数值前缀
+  lock="$(awk '/^ledger_lock:/{ n=$2; sub(/（.*$/, "", n); sub(/\(.*$/, "", n); print n; exit }' .agents/COLLAB_STATE.md)"
   case "$lock" in ""|"（空）"|null) lock="" ;; esac
-  until_epoch="$(awk '/^lock_until:/{print $2; exit}' .agents/COLLAB_STATE.md)"
+  until_epoch="$(awk '/^lock_until:/{ if (match($2, /^[0-9]+/)) print substr($2, 1, RLENGTH); exit }' .agents/COLLAB_STATE.md)"
   if [ -n "$until_epoch" ] && [ "${until_epoch}" -gt "$(date +%s)" ] 2>/dev/null; then
     hour="$(date -d "@${until_epoch}" '+%H:%M' 2>/dev/null || echo "$until_epoch")"
     echo "[台账锁] 被 ${lock} 持有，至 ${hour} 过期"

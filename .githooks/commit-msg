@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -u
+msg_file=${1:?缺少 commit message 文件}
+if ! grep -qE "^(feat|fix|docs|chore|ci|refactor|style)(\([^)]+\))?: .+" "$msg_file"; then
+  echo "[gate] 提交标题不符合 Conventional Commits" >&2
+  exit 1
+fi
+if [ -n "${GATE_TASK_ID:-}" ] || [ -s .agents/tasks/.current ]; then
+  if ! grep -qE "^Task: T-[0-9]{8}-[0-9]{2}$" "$msg_file"; then
+    echo "[gate] 结构化任务提交缺少 Task trailer" >&2
+    exit 1
+  fi
+fi
+exit 0
