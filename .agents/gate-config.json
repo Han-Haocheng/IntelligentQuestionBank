@@ -118,5 +118,34 @@
       ],
       "cwd": "."
     }
-  }
+  },
+  "commit_types": [
+    "feat",
+    "fix",
+    "docs",
+    "chore",
+    "ci",
+    "refactor",
+    "style"
+  ],
+  "protected": {
+    "paths": [
+      "CHANGELOG.md",
+      "frontend/package.json",
+      "frontend/package-lock.json",
+      "backend/pom.xml",
+      "qbank-web/pom.xml"
+    ],
+    "release_authors": [
+      "github-actions[bot]"
+    ],
+    "release_subject_prefix": [
+      "chore(release)"
+    ]
+  },
+  "release_workflows": [
+    ".github/workflows/beta-release.yml",
+    ".github/workflows/formal-release.yml",
+    ".github/workflows/release.yml"
+  ]
 }

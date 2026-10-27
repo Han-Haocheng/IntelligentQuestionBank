@@ -148,6 +148,27 @@ def push_check(root):
 
 def doctor(root):
     cfg = pc.load_config(root)
+
+    def tool_version(cmd):
+        try:
+            r = subprocess.run(cmd, text=True, capture_output=True, timeout=10)
+        except Exception as exc:
+            return f"(unavailable: {exc})"
+        lines = (r.stdout or r.stderr or "").strip().splitlines()
+        return lines[0] if lines else "(unknown)"
+
+    def platform_entries_status():
+        script = Path(root) / ".agents" / "scripts" / "platform_entries.py"
+        if not script.is_file():
+            return "missing (未找到 .agents/scripts/platform_entries.py)"
+        r = subprocess.run([sys.executable, str(script), "check"],
+                           cwd=str(root), text=True, capture_output=True)
+        if r.returncode == 0:
+            return "ok"
+        label = "drift" if r.returncode == 1 else "error"
+        detail = (r.stderr or r.stdout or "").strip().splitlines()
+        return f"{label} (exit {r.returncode})" + (f": {detail[0]}" if detail else "")
+
     print(f"root: {root}")
     print(f"python: {sys.version.split()[0]}")
     print(f"config: {(root / '.agents' / 'gate-config.json')}")
@@ -155,6 +176,10 @@ def doctor(root):
     hooks = git(root, ["config", "--get", "core.hooksPath"]).stdout.strip()
     print(f"core.hooksPath: {hooks or '(unset)'}")
     print(f"tasks: {len(pc.all_tasks(root, cfg))}")
+    print(f"bash: {tool_version(['bash', '--version'])}")
+    print(f"python3: {tool_version(['python3', '--version'])}")
+    print(f"git: {tool_version(['git', '--version'])}")
+    print(f"platform_entries: {platform_entries_status()}")
     return 0
 
 def build(root, scope):
